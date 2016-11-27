@@ -108,10 +108,25 @@ export default class Actor {
     Actor.actors = [];
   }
 
-  static update() {
+  static updateLowerZero() {
     Actor.actors.sort((a, b) => a.priority - b.priority);
+    Actor.updateSorted(true);
+  }
+
+  static update() {
+    Actor.updateSorted();
+  }
+
+  static updateSorted(isLowerZero = false) {
     for (let i = 0; i < Actor.actors.length;) {
       const a = Actor.actors[i];
+      if (isLowerZero && a.priority >= 0) {
+        return;
+      }
+      if (!isLowerZero && a.priority < 0) {
+        i++;
+        continue;
+      }
       if (a.isAlive !== false) {
         a.update();
       }

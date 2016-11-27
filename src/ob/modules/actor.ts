@@ -45,6 +45,7 @@ export class Star extends ob.Actor {
     this.addModule(new ob.m.WrapPos(this));
     const colorStrs = ['00', '7f', 'ff'];
     this.color = '#' + _.times(3, () => colorStrs[Math.floor(ob.p.random(3))]).join('');
+    this.priority = -1;
   }
 
   update() {

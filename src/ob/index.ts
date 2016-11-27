@@ -184,10 +184,11 @@ function draw() {
   handleScene();
   sss.update();
   updateFunc();
-  ppe.update();
   _.forEach(modules, m => {
     m.update();
   });
+  Actor.updateLowerZero();
+  ppe.update();
   Actor.update();
   if (postUpdateFunc != null) {
     postUpdateFunc();

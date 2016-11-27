@@ -110,7 +110,7 @@
 	    Player.prototype.update = function () {
 	        this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
 	        if (this.ms.angle >= this.nextAsAngle) {
-	            ob.addScore();
+	            ob.addScore(1, this.pos);
 	            this.nextAsAngle += p.PI;
 	            sss.play('c1');
 	        }
@@ -1128,10 +1128,15 @@
 	    }
 	}
 	exports.endGame = endGame;
-	function addScore(v) {
+	function addScore(v, pos) {
 	    if (v === void 0) { v = 1; }
+	    if (pos === void 0) { pos = null; }
 	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
 	        exports.score += v;
+	        if (pos != null) {
+	            var t = new m.Actor.Text("+" + v);
+	            t.pos.set(pos);
+	        }
 	    }
 	}
 	exports.addScore = addScore;
@@ -1189,16 +1194,17 @@
 	    handleScene();
 	    sss.update();
 	    updateFunc();
-	    ppe.update();
 	    _.forEach(modules, function (m) {
 	        m.update();
 	    });
+	    actor_1.default.updateLowerZero();
+	    ppe.update();
 	    actor_1.default.update();
 	    if (postUpdateFunc != null) {
 	        postUpdateFunc();
 	    }
 	    if (options.isShowingScore) {
-	        text.draw("" + exports.score, 1, 1);
+	        text.draw("" + exports.score, 1, 1, text.Align.left);
 	    }
 	    drawSceneText();
 	    exports.ticks++;
@@ -1235,18 +1241,18 @@
 	    switch (exports.scene) {
 	        case Scene.title:
 	            if (titleCont == null) {
-	                text.draw(title, screen.size.x / 2, screen.size.y * 0.48, true);
+	                text.draw(title, screen.size.x / 2, screen.size.y * 0.48);
 	            }
 	            else {
-	                text.draw(title, screen.size.x / 2, screen.size.y * 0.4, true);
-	                text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48, true);
+	                text.draw(title, screen.size.x / 2, screen.size.y * 0.4);
+	                text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48);
 	            }
 	            break;
 	        case Scene.gameover:
-	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45, true);
+	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
 	            break;
 	        case Scene.replay:
-	            text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55, true);
+	            text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55);
 	            break;
 	    }
 	}
@@ -20781,10 +20787,24 @@
 	    Actor.clear = function () {
 	        Actor.actors = [];
 	    };
-	    Actor.update = function () {
+	    Actor.updateLowerZero = function () {
 	        Actor.actors.sort(function (a, b) { return a.priority - b.priority; });
+	        Actor.updateSorted(true);
+	    };
+	    Actor.update = function () {
+	        Actor.updateSorted();
+	    };
+	    Actor.updateSorted = function (isLowerZero) {
+	        if (isLowerZero === void 0) { isLowerZero = false; }
 	        for (var i = 0; i < Actor.actors.length;) {
 	            var a = Actor.actors[i];
+	            if (isLowerZero && a.priority >= 0) {
+	                return;
+	            }
+	            if (!isLowerZero && a.priority < 0) {
+	                i++;
+	                continue;
+	            }
 	            if (a.isAlive !== false) {
 	                a.update();
 	            }
@@ -20918,10 +20938,20 @@
 	    }
 	}
 	exports.init = init;
-	function draw(str, x, y, isAlignCenter) {
-	    if (isAlignCenter === void 0) { isAlignCenter = false; }
+	(function (Align) {
+	    Align[Align["left"] = 0] = "left";
+	    Align[Align["right"] = 1] = "right";
+	})(exports.Align || (exports.Align = {}));
+	var Align = exports.Align;
+	function draw(str, x, y, align) {
+	    if (align === void 0) { align = null; }
 	    context.fillStyle = 'white';
-	    if (isAlignCenter) {
+	    if (align === Align.left) {
+	    }
+	    else if (align === Align.right) {
+	        x -= str.length * 5;
+	    }
+	    else {
 	        x -= str.length * 5 / 2;
 	    }
 	    x = Math.floor(x);
@@ -21256,6 +21286,7 @@
 	        this.addModule(new ob.m.WrapPos(this));
 	        var colorStrs = ['00', '7f', 'ff'];
 	        this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
+	        this.priority = -1;
 	    }
 	    Star.prototype.update = function () {
 	        _super.prototype.update.call(this);
@@ -21265,6 +21296,28 @@
 	    return Star;
 	}(ob.Actor));
 	exports.Star = Star;
+	var Text = (function (_super) {
+	    __extends(Text, _super);
+	    function Text(str, duration, align) {
+	        if (duration === void 0) { duration = 30; }
+	        if (align === void 0) { align = null; }
+	        _super.call(this);
+	        this.str = str;
+	        this.duration = duration;
+	        this.align = align;
+	        this.vel.y = -2;
+	    }
+	    Text.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        this.vel.mult(0.9);
+	        ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
+	        if (this.ticks >= this.duration) {
+	            this.remove();
+	        }
+	    };
+	    return Text;
+	}(ob.Actor));
+	exports.Text = Text;
 
 
 /***/ },
