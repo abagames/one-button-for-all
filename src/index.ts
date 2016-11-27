@@ -27,7 +27,7 @@ function initGame() {
   _.times(64, () => new m.Actor.Star());
   new Player();
   ob.addModule(new m.DoInterval(null, () => {
-    new Enemy()
+    new Enemy();
   }, 60, false, true));
 }
 
@@ -36,6 +36,7 @@ function update() {
 
 class Player extends m.Actor.Player {
   ms;
+  nextAsAngle = p.HALF_PI;
 
   constructor() {
     super();
@@ -47,6 +48,11 @@ class Player extends m.Actor.Player {
 
   update() {
     this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
+    if (this.ms.angle >= this.nextAsAngle) {
+      ob.addScore();
+      this.nextAsAngle += p.PI;
+      sss.play('c1');
+    }
     super.update();
   }
 }

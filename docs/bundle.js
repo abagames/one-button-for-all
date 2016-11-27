@@ -66,8 +66,10 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var _ = __webpack_require__(5);
 	var pag = __webpack_require__(2);
 	var ppe = __webpack_require__(3);
+	var sss = __webpack_require__(7);
 	var ob = __webpack_require__(4);
 	ob.init(init, initGame, update);
 	var p = ob.p;
@@ -87,6 +89,7 @@
 	    });
 	}
 	function initGame() {
+	    _.times(64, function () { return new m.Actor.Star(); });
 	    new Player();
 	    ob.addModule(new m.DoInterval(null, function () {
 	        new Enemy();
@@ -98,6 +101,7 @@
 	    __extends(Player, _super);
 	    function Player() {
 	        _super.call(this);
+	        this.nextAsAngle = p.HALF_PI;
 	        this.ms = new m.MoveSin(this, 'pos.x');
 	        this.addModule(this.ms);
 	        this.pos.y = 100;
@@ -105,6 +109,11 @@
 	    }
 	    Player.prototype.update = function () {
 	        this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
+	        if (this.ms.angle >= this.nextAsAngle) {
+	            ob.addScore();
+	            this.nextAsAngle += p.PI;
+	            sss.play('c1');
+	        }
 	        _super.prototype.update.call(this);
 	    };
 	    return Player;
@@ -1120,6 +1129,7 @@
 	}
 	exports.endGame = endGame;
 	function addScore(v) {
+	    if (v === void 0) { v = 1; }
 	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
 	        exports.score += v;
 	    }
@@ -1197,7 +1207,7 @@
 	    if (exports.scene !== Scene.game && ui.isJustPressed) {
 	        beginGame();
 	    }
-	    if (exports.scene === Scene.game) {
+	    if (options.isReplayEnabled && exports.scene === Scene.game) {
 	        ir.record(getStatus(), ui.getReplayEvents());
 	    }
 	    if (exports.scene === Scene.gameover && exports.ticks === 60) {
@@ -1213,6 +1223,11 @@
 	        }
 	        else {
 	            beginTitle();
+	        }
+	    }
+	    if (exports.scene === Scene.game) {
+	        if (actor_1.default.get('player').length <= 0) {
+	            endGame();
 	        }
 	    }
 	}
@@ -20724,12 +20739,9 @@
 	                Math.abs(_this.pos.y - a.pos.y) < (_this.collision.y + a.collision.y) / 2;
 	        });
 	    };
-	    Actor.prototype.emitParticles = function (patternName) {
-	        var args = [];
-	        for (var _i = 1; _i < arguments.length; _i++) {
-	            args[_i - 1] = arguments[_i];
-	        }
-	        ppe.emit.apply(ppe, [patternName, this.pos.x, this.pos.y, this.angle].concat(args));
+	    Actor.prototype.emitParticles = function (patternName, options) {
+	        if (options === void 0) { options = {}; }
+	        ppe.emit(patternName, this.pos.x, this.pos.y, this.angle, options);
 	    };
 	    Actor.prototype.drawPixels = function (x, y) {
 	        if (x === void 0) { x = null; }
@@ -21198,7 +21210,9 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
+	var _ = __webpack_require__(5);
 	var pag = __webpack_require__(2);
+	var sss = __webpack_require__(7);
 	var ob = __webpack_require__(4);
 	var Player = (function (_super) {
 	    __extends(Player, _super);
@@ -21208,8 +21222,11 @@
 	        this.type = 'player';
 	    }
 	    Player.prototype.update = function () {
+	        this.emitParticles('t_pl');
 	        _super.prototype.update.call(this);
 	        if (this.testCollision('enemy').length > 0) {
+	            sss.play('u_pl_d');
+	            this.emitParticles('e_pl_d', { sizeScale: 2 });
 	            this.remove();
 	        }
 	    };
@@ -21224,11 +21241,30 @@
 	        this.type = 'enemy';
 	    }
 	    Enemy.prototype.update = function () {
+	        this.emitParticles('t_en');
 	        _super.prototype.update.call(this);
 	    };
 	    return Enemy;
 	}(ob.Actor));
 	exports.Enemy = Enemy;
+	var Star = (function (_super) {
+	    __extends(Star, _super);
+	    function Star() {
+	        _super.call(this);
+	        this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
+	        this.vel.y = ob.p.random(0.5, 1.5);
+	        this.addModule(new ob.m.WrapPos(this));
+	        var colorStrs = ['00', '7f', 'ff'];
+	        this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
+	    }
+	    Star.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        ob.p.fill(this.color);
+	        ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 2, 2);
+	    };
+	    return Star;
+	}(ob.Actor));
+	exports.Star = Star;
 
 
 /***/ },

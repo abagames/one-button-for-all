@@ -118,7 +118,7 @@ export function endGame() {
   }
 }
 
-export function addScore(v: number) {
+export function addScore(v: number = 1) {
   if (scene === Scene.game || scene === Scene.replay) {
     score += v;
   }
@@ -199,7 +199,7 @@ function handleScene() {
   if (scene !== Scene.game && ui.isJustPressed) {
     beginGame();
   }
-  if (scene === Scene.game) {
+  if (options.isReplayEnabled && scene === Scene.game) {
     ir.record(getStatus(), ui.getReplayEvents());
   }
   if (scene === Scene.gameover && ticks === 60) {
@@ -214,6 +214,11 @@ function handleScene() {
       ui.setReplayEvents(events);
     } else {
       beginTitle();
+    }
+  }
+  if (scene === Scene.game) {
+    if (Actor.get('player').length <= 0) {
+      endGame();
     }
   }
 }

@@ -12,8 +12,11 @@ export class Player extends ob.Actor {
   }
 
   update() {
+    this.emitParticles('t_pl');
     super.update();
     if (this.testCollision('enemy').length > 0) {
+      sss.play('u_pl_d');
+      this.emitParticles('e_pl_d', { sizeScale: 2 });
       this.remove();
     }
   }
@@ -27,6 +30,7 @@ export class Enemy extends ob.Actor {
   }
 
   update() {
+    this.emitParticles('t_en');
     super.update();
   }
 }
