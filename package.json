@@ -1,0 +1,18 @@
+{
+  "name": "one-button-for-all",
+  "version": "1.0.0",
+  "description": "One button games",
+  "author": "ABA",
+  "license": "MIT",
+  "devDependencies": {
+    "glob": "^7.1.0",
+    "ts-loader": "^0.8.2",
+    "typescript": "^2.0.10",
+    "webpack-livereload-plugin": "^0.9.0"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.37",
+    "lodash": "^4.16.4",
+    "p5": "^0.5.4"
+  }
+}
