@@ -24,6 +24,7 @@ function init() {
 }
 
 function initGame() {
+  _.times(64, () => new m.Actor.Star());
   new Player();
   ob.addModule(new m.DoInterval(null, () => {
     new Enemy()
