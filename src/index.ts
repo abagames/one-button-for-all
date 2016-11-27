@@ -24,7 +24,38 @@ function init() {
 }
 
 function initGame() {
+  new Player();
+  ob.addModule(new m.DoInterval(null, () => {
+    new Enemy()
+  }, 60, false, true));
 }
 
 function update() {
+}
+
+class Player extends m.Actor.Player {
+  ms;
+
+  constructor() {
+    super();
+    this.ms = new m.MoveSin(this, 'pos.x');
+    this.addModule(this.ms);
+    this.pos.y = 100;
+    this.angle = -p.HALF_PI;
+  }
+
+  update() {
+    this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
+    super.update();
+  }
+}
+
+class Enemy extends m.Actor.Enemy {
+  constructor() {
+    super();
+    this.pos.x = p.random(128);
+    this.vel.y = p.random(1, m.getDifficulty());
+    this.addModule(new m.RemoveWhenOut(this))
+    this.angle = p.HALF_PI;
+  }
 }

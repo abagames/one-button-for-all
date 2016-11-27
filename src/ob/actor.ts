@@ -18,7 +18,7 @@ export default class Actor {
   ticks = 0;
   pixels: pag.Pixel[][][];
   type: string;
-  collision: p5.Vector = new p5.Vector();
+  collision: p5.Vector = new p5.Vector(8, 8);
   context: CanvasRenderingContext2D = screen.context;
   replayPropertyNames: string[];
   modules: any[] = [];

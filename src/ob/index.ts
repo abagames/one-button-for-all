@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as pag from 'pag';
 import * as ppe from 'ppe';
 import * as sss from 'sss';
@@ -10,9 +11,7 @@ import * as screen from './screen';
 import * as text from './text';
 import * as debug from './debug';
 import * as m from './modules';
-export { default as Actor } from './actor';
-export { default as Random } from './random';
-export { ui, screen, text, debug, m };
+export { Actor, Random, ui, screen, text, debug, m };
 
 declare const require: any;
 export const p5 = require('p5');
@@ -39,6 +38,7 @@ let setReplayStatusFunc: Function;
 let title: string = 'N/A';
 let titleCont: string;
 let isDebugEnabled = false;
+let modules = [];
 
 export enum Scene {
   title, game, gameover, replay
@@ -124,6 +124,14 @@ export function addScore(v: number) {
   }
 }
 
+export function addModule(module) {
+  modules.push(module);
+}
+
+export function clearModules() {
+  modules = [];
+}
+
 function setup() {
   Actor.init();
   initFunc();
@@ -146,6 +154,7 @@ function beginGame() {
     sss.playBgm();
   }
   ir.startRecord();
+  clearModules();
   Actor.clear();
   initGameFunc();
 }
@@ -172,6 +181,9 @@ function draw() {
   sss.update();
   updateFunc();
   ppe.update();
+  _.forEach(modules, m => {
+    m.update();
+  });
   Actor.update();
   if (postUpdateFunc != null) {
     postUpdateFunc();

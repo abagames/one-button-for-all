@@ -1231,7 +1231,7 @@ declare class p5 {
   /**
    * Return a random number.
    */
-  random(min: number, max: number): number
+  random(min?: number, max?: number): number
 
   /**
    * Returns a random number fitting a Gaussian, or

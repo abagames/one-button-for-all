@@ -1,4 +1,7 @@
+import * as _ from 'lodash';
 import * as ob from '../index';
+import * as Actor from './actor';
+export { Actor };
 
 export function isIn(v: number, low: number, high: number) {
   return v >= low && v <= high;
@@ -12,6 +15,10 @@ export function wrap(v: number, low: number, high: number) {
   } else {
     return w + o % w + low;
   }
+}
+
+export function getDifficulty() {
+  return Math.sqrt(ob.ticks * 0.001 + 1);
 }
 
 export class Vector {
@@ -31,7 +38,8 @@ export class DoInterval {
   isEnabled = true;
 
   constructor(public actor: ob.Actor, public func: Function,
-    public interval = 60, isStartRandomized = false) {
+    public interval = 60, isStartRandomized = false,
+    public isChangedByDifficulty = false) {
     this.ticks = isStartRandomized ? ob.random.getInt(interval) : interval;
   }
 
@@ -41,17 +49,17 @@ export class DoInterval {
       if (this.isEnabled) {
         this.func();
       }
-      this.ticks += this.interval;
+      let i = this.interval;
+      if (this.isChangedByDifficulty) {
+        i /= getDifficulty();
+      }
+      this.ticks += i;
     }
-  }
-
-  setEnabled(isEnabled = true) {
-    this.isEnabled = isEnabled;
   }
 }
 
 export class RemoveWhenOut {
-  constructor(public actor: ob.Actor, public padding = 0) { }
+  constructor(public actor: ob.Actor, public padding = 8) { }
 
   update() {
     if (!isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
@@ -62,7 +70,7 @@ export class RemoveWhenOut {
 }
 
 export class WrapPos {
-  constructor(public actor: ob.Actor, public padding = 0) { }
+  constructor(public actor: ob.Actor, public padding = 8) { }
 
   update() {
     this.actor.pos.x =
@@ -70,4 +78,37 @@ export class WrapPos {
     this.actor.pos.y =
       wrap(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding);
   }
+}
+
+export class MoveSin {
+  prop;
+  angle: number;
+
+  constructor
+    (public actor: ob.Actor, prop: string,
+    public center = 64, public width = 48,
+    public speed = 0.1, startAngle = 0) {
+    this.prop = getPropValue(actor, prop);
+    this.prop.value[this.prop.name] = this.center;
+    this.angle = startAngle;
+  }
+
+  update() {
+    this.angle += this.speed;
+    this.prop.value[this.prop.name] = Math.sin(this.angle) * this.width + this.center;
+  }
+}
+
+function getPropValue(obj, prop: string) {
+  let value = obj;
+  let name;
+  const ps = prop.split('.');
+  _.forEach(ps, (p, i) => {
+    if (i < ps.length - 1) {
+      value = value[p];
+    } else {
+      name = p;
+    }
+  });
+  return { value, name };
 }
