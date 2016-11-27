@@ -56,9 +56,16 @@ export function init(_context: CanvasRenderingContext2D) {
   }
 }
 
-export function draw(str: string, x: number, y: number, isAlignCenter = false) {
+export enum Align {
+  left, right
+}
+
+export function draw(str: string, x: number, y: number, align: Align = null) {
   context.fillStyle = 'white';
-  if (isAlignCenter) {
+  if (align === Align.left) {
+  } else if (align === Align.right) {
+    x -= str.length * 5;
+  } else {
     x -= str.length * 5 / 2;
   }
   x = Math.floor(x);

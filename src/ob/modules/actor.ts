@@ -53,3 +53,22 @@ export class Star extends ob.Actor {
     ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 2, 2);
   }
 }
+
+
+export class Text extends ob.Actor {
+  constructor
+    (public str: string, public duration = 30,
+    public align: ob.text.Align = null) {
+    super();
+    this.vel.y = -2;
+  }
+
+  update() {
+    super.update();
+    this.vel.mult(0.9);
+    ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
+    if (this.ticks >= this.duration) {
+      this.remove();
+    }
+  }
+}

@@ -49,7 +49,7 @@ class Player extends m.Actor.Player {
   update() {
     this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
     if (this.ms.angle >= this.nextAsAngle) {
-      ob.addScore();
+      ob.addScore(1, this.pos);
       this.nextAsAngle += p.PI;
       sss.play('c1');
     }

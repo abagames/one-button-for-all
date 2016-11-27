@@ -118,9 +118,13 @@ export function endGame() {
   }
 }
 
-export function addScore(v: number = 1) {
+export function addScore(v: number = 1, pos: p5.Vector = null) {
   if (scene === Scene.game || scene === Scene.replay) {
     score += v;
+    if (pos != null) {
+      const t = new m.Actor.Text(`+${v}`);
+      t.pos.set(pos);
+    }
   }
 }
 
@@ -189,7 +193,7 @@ function draw() {
     postUpdateFunc();
   }
   if (options.isShowingScore) {
-    text.draw(`${score}`, 1, 1);
+    text.draw(`${score}`, 1, 1, text.Align.left);
   }
   drawSceneText();
   ticks++;
@@ -227,17 +231,17 @@ function drawSceneText() {
   switch (scene) {
     case Scene.title:
       if (titleCont == null) {
-        text.draw(title, screen.size.x / 2, screen.size.y * 0.48, true);
+        text.draw(title, screen.size.x / 2, screen.size.y * 0.48);
       } else {
-        text.draw(title, screen.size.x / 2, screen.size.y * 0.4, true);
-        text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48, true);
+        text.draw(title, screen.size.x / 2, screen.size.y * 0.4);
+        text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48);
       }
       break;
     case Scene.gameover:
-      text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45, true);
+      text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
       break;
     case Scene.replay:
-      text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55, true);
+      text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55);
       break;
   }
 }
