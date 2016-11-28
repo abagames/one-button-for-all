@@ -1,37 +1,5 @@
 import * as _ from 'lodash';
 import * as ob from '../index';
-import * as Actor from './actor';
-export { Actor };
-
-export function isIn(v: number, low: number, high: number) {
-  return v >= low && v <= high;
-}
-
-export function wrap(v: number, low: number, high: number) {
-  const w = high - low;
-  const o = v - low;
-  if (o >= 0) {
-    return o % w + low;
-  } else {
-    return w + o % w + low;
-  }
-}
-
-export function getDifficulty() {
-  return Math.sqrt(ob.ticks * 0.001 + 1);
-}
-
-export class Vector {
-  static getAngle(v: p5.Vector) {
-    return Math.atan2(v.y, v.x);
-  }
-
-  static constrain
-    (v: p5.Vector, lowX: number, highX: number, lowY: number, highY: number) {
-    v.x = ob.p.constrain(v.x, lowX, highX);
-    v.y = ob.p.constrain(v.y, lowY, highY);
-  }
-}
 
 export class DoInterval {
   ticks: number;
@@ -51,7 +19,7 @@ export class DoInterval {
       }
       let i = this.interval;
       if (this.isChangedByDifficulty) {
-        i /= getDifficulty();
+        i /= ob.getDifficulty();
       }
       this.ticks += i;
     }
@@ -62,8 +30,8 @@ export class RemoveWhenOut {
   constructor(public actor: ob.Actor, public padding = 8) { }
 
   update() {
-    if (!isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
-      !isIn(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding)) {
+    if (!ob.isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
+      !ob.isIn(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding)) {
       this.actor.remove();
     }
   }
@@ -74,9 +42,9 @@ export class WrapPos {
 
   update() {
     this.actor.pos.x =
-      wrap(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding);
+      ob.wrap(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding);
     this.actor.pos.y =
-      wrap(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding);
+      ob.wrap(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding);
   }
 }
 

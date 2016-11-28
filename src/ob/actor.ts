@@ -1,14 +1,14 @@
 import * as _ from 'lodash';
 import * as pag from 'pag';
 import * as ppe from 'ppe';
+import * as sss from 'sss';
 import * as ir from 'ir';
-import * as s1 from './index';
-import * as screen from './screen';
+import * as ob from './index';
 
 let p5;
 const rotationNum = 16;
 
-export default class Actor {
+export class Actor {
   pos: p5.Vector = new p5.Vector();
   vel: p5.Vector = new p5.Vector();
   angle = 0;
@@ -19,13 +19,14 @@ export default class Actor {
   pixels: pag.Pixel[][][];
   type: string;
   collision: p5.Vector = new p5.Vector(8, 8);
-  context: CanvasRenderingContext2D = screen.context;
+  context: CanvasRenderingContext2D = ob.screen.context;
   replayPropertyNames: string[];
   modules: any[] = [];
 
   constructor() {
     Actor.add(this);
     this.type = ('' + this.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
+    this.addModule(new ob.RemoveWhenOut(this));
   }
 
   update() {
@@ -93,7 +94,7 @@ export default class Actor {
   static actors: any[];
 
   static init() {
-    p5 = s1.p5;
+    p5 = ob.p5;
     pag.defaultOptions.isMirrorY = true;
     pag.defaultOptions.rotationNum = rotationNum;
     pag.defaultOptions.scale = 2;
@@ -157,5 +158,111 @@ export default class Actor {
     _.forEach(status, s => {
       actorGeneratorFunc(s[0], s[1]);
     });
+  }
+}
+
+export class Player extends Actor {
+  constructor() {
+    super();
+    this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
+    this.type = 'player';
+  }
+
+  update() {
+    this.emitParticles('t_pl');
+    super.update();
+    if (this.testCollision('enemy').length > 0) {
+      this.onDestroyed();
+    }
+  }
+
+  onDestroyed() {
+    sss.play('u_pl_d');
+    this.emitParticles('e_pl_d', { sizeScale: 2 });
+    this.remove();
+    ob.endGame();
+  }
+}
+
+export class Enemy extends Actor {
+  constructor() {
+    super();
+    this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
+    this.type = 'enemy';
+  }
+
+  update() {
+    this.emitParticles('t_en');
+    super.update();
+    const cs = this.testCollision('shot');
+    if (cs.length > 0) {
+      this.onDestroyed();
+      _.forEach(cs, s => {
+        s.remove();
+      });
+    }
+  }
+
+  onDestroyed() {
+    sss.play('e_en_d');
+    this.emitParticles('e_en_d');
+    ob.addScore(1, this.pos);
+    this.remove();
+  }
+}
+
+export class Shot extends Actor {
+  constructor(actor, speed = 2) {
+    super();
+    this.pixels = pag.generate(['xxx'], { hue: 0.4 });
+    this.type = 'shot';
+    this.pos.set(actor.pos);
+    this.angle = actor.angle;
+    this.speed = speed;
+  }
+
+  update() {
+    this.emitParticles('t_st');
+    super.update();
+  }
+}
+
+export class Star extends Actor {
+  color;
+
+  constructor() {
+    super();
+    this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
+    this.vel.y = ob.p.random(0.5, 1.5);
+    this.clearModules();
+    this.addModule(new ob.WrapPos(this));
+    const colorStrs = ['00', '7f', 'ff'];
+    this.color = '#' + _.times(3, () => colorStrs[Math.floor(ob.p.random(3))]).join('');
+    this.priority = -1;
+  }
+
+  update() {
+    super.update();
+    ob.p.fill(this.color);
+    ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 2, 2);
+  }
+}
+
+
+export class Text extends Actor {
+  constructor
+    (public str: string, public duration = 30,
+    public align: ob.text.Align = null) {
+    super();
+    this.vel.y = -2;
+  }
+
+  update() {
+    super.update();
+    this.vel.mult(0.9);
+    ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
+    if (this.ticks >= this.duration) {
+      this.remove();
+    }
   }
 }

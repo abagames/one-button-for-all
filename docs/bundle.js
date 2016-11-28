@@ -47,13 +47,13 @@
 	__webpack_require__(1);
 	__webpack_require__(9);
 	__webpack_require__(14);
-	__webpack_require__(4);
+	__webpack_require__(7);
 	__webpack_require__(16);
-	__webpack_require__(15);
-	__webpack_require__(12);
 	__webpack_require__(10);
+	__webpack_require__(12);
+	__webpack_require__(13);
 	__webpack_require__(11);
-	module.exports = __webpack_require__(13);
+	module.exports = __webpack_require__(15);
 
 
 /***/ },
@@ -66,14 +66,13 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var _ = __webpack_require__(5);
-	var pag = __webpack_require__(2);
-	var ppe = __webpack_require__(3);
-	var sss = __webpack_require__(7);
-	var ob = __webpack_require__(4);
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(4);
+	var ppe = __webpack_require__(5);
+	var sss = __webpack_require__(6);
+	var ob = __webpack_require__(7);
 	ob.init(init, initGame, update);
 	var p = ob.p;
-	var m = ob.m;
 	function init() {
 	    ob.screen.init(128, 128);
 	    ob.setTitle('ONE BUTTON', 'FOR ALL');
@@ -89,9 +88,9 @@
 	    });
 	}
 	function initGame() {
-	    _.times(64, function () { return new m.Actor.Star(); });
+	    _.times(64, function () { return new ob.Star(); });
 	    new Player();
-	    ob.addModule(new m.DoInterval(null, function () {
+	    ob.addModule(new ob.DoInterval(null, function () {
 	        new Enemy();
 	    }, 60, false, true));
 	}
@@ -102,7 +101,7 @@
 	    function Player() {
 	        _super.call(this);
 	        this.nextAsAngle = p.HALF_PI;
-	        this.ms = new m.MoveSin(this, 'pos.x');
+	        this.ms = new ob.MoveSin(this, 'pos.x');
 	        this.addModule(this.ms);
 	        this.pos.y = 100;
 	        this.angle = -p.HALF_PI;
@@ -114,1168 +113,27 @@
 	            this.nextAsAngle += p.PI;
 	            sss.play('c1');
 	        }
+	        if (ob.ui.isJustPressed) {
+	            new ob.Shot(this);
+	        }
 	        _super.prototype.update.call(this);
 	    };
 	    return Player;
-	}(m.Actor.Player));
+	}(ob.Player));
 	var Enemy = (function (_super) {
 	    __extends(Enemy, _super);
 	    function Enemy() {
 	        _super.call(this);
 	        this.pos.x = p.random(128);
-	        this.vel.y = p.random(1, m.getDifficulty());
-	        this.addModule(new m.RemoveWhenOut(this));
+	        this.vel.y = p.random(1, ob.getDifficulty());
 	        this.angle = p.HALF_PI;
 	    }
 	    return Enemy;
-	}(m.Actor.Enemy));
+	}(ob.Enemy));
 
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
-
-	(function webpackUniversalModuleDefinition(root, factory) {
-		if(true)
-			module.exports = factory();
-		else if(typeof define === 'function' && define.amd)
-			define([], factory);
-		else if(typeof exports === 'object')
-			exports["pag"] = factory();
-		else
-			root["pag"] = factory();
-	})(this, function() {
-	return /******/ (function(modules) { // webpackBootstrap
-	/******/ 	// The module cache
-	/******/ 	var installedModules = {};
-	
-	/******/ 	// The require function
-	/******/ 	function __webpack_require__(moduleId) {
-	
-	/******/ 		// Check if module is in cache
-	/******/ 		if(installedModules[moduleId])
-	/******/ 			return installedModules[moduleId].exports;
-	
-	/******/ 		// Create a new module (and put it into the cache)
-	/******/ 		var module = installedModules[moduleId] = {
-	/******/ 			exports: {},
-	/******/ 			id: moduleId,
-	/******/ 			loaded: false
-	/******/ 		};
-	
-	/******/ 		// Execute the module function
-	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-	
-	/******/ 		// Flag the module as loaded
-	/******/ 		module.loaded = true;
-	
-	/******/ 		// Return the exports of the module
-	/******/ 		return module.exports;
-	/******/ 	}
-	
-	
-	/******/ 	// expose the modules object (__webpack_modules__)
-	/******/ 	__webpack_require__.m = modules;
-	
-	/******/ 	// expose the module cache
-	/******/ 	__webpack_require__.c = installedModules;
-	
-	/******/ 	// __webpack_public_path__
-	/******/ 	__webpack_require__.p = "";
-	
-	/******/ 	// Load entry module and return exports
-	/******/ 	return __webpack_require__(0);
-	/******/ })
-	/************************************************************************/
-	/******/ ([
-	/* 0 */
-	/***/ function(module, exports, __webpack_require__) {
-	
-		module.exports = __webpack_require__(1);
-	
-	
-	/***/ },
-	/* 1 */
-	/***/ function(module, exports) {
-	
-		"use strict";
-		exports.defaultOptions = {
-		    isMirrorX: false,
-		    isMirrorY: false,
-		    seed: 0,
-		    hue: null,
-		    saturation: 0.8,
-		    value: 1,
-		    rotationNum: 1,
-		    scale: 1,
-		    scaleX: null,
-		    scaleY: null,
-		    colorNoise: 0.1,
-		    colorLighting: 1,
-		    edgeDarkness: 0.4,
-		    isShowingEdge: true,
-		    isShowingBody: true,
-		    isLimitingColors: false,
-		};
-		var generatedPixels = {};
-		var seed = 0;
-		function generate(patterns, _options) {
-		    if (_options === void 0) { _options = {}; }
-		    _options.baseSeed = seed;
-		    var jso = JSON.stringify({ patterns: patterns, options: _options });
-		    if (generatedPixels[jso]) {
-		        return generatedPixels[jso];
-		    }
-		    var options = {};
-		    forOwn(exports.defaultOptions, function (v, k) {
-		        options[k] = v;
-		    });
-		    forOwn(_options, function (v, k) {
-		        options[k] = v;
-		    });
-		    var random = new Random();
-		    var rndSeed = seed + getHashFromString(patterns.join());
-		    if (options.seed != null) {
-		        rndSeed += options.seed;
-		    }
-		    random.setSeed(rndSeed);
-		    if (options.hue == null) {
-		        options.hue = random.get01();
-		    }
-		    if (options.scaleX == null) {
-		        options.scaleX = options.scale;
-		    }
-		    if (options.scaleY == null) {
-		        options.scaleY = options.scale;
-		    }
-		    var pixels = generatePixels(patterns, options, random);
-		    var result;
-		    if (options.rotationNum > 1) {
-		        result = map(createRotated(pixels, options.rotationNum), function (p) {
-		            return createColored(p, options);
-		        });
-		    }
-		    else {
-		        result = [createColored(pixels, options)];
-		    }
-		    generatedPixels[jso] = result;
-		    return result;
-		}
-		exports.generate = generate;
-		function setSeed(_seed) {
-		    if (_seed === void 0) { _seed = 0; }
-		    seed = _seed;
-		}
-		exports.setSeed = setSeed;
-		function setDefaultOptions(_defaultOptions) {
-		    forOwn(_defaultOptions, function (v, k) {
-		        exports.defaultOptions[k] = v;
-		    });
-		}
-		exports.setDefaultOptions = setDefaultOptions;
-		var Pixel = (function () {
-		    function Pixel() {
-		        this.r = 0;
-		        this.g = 0;
-		        this.b = 0;
-		        this.isEmpty = true;
-		    }
-		    Pixel.prototype.setFromHsv = function (hue, saturation, value, isLimitingColors) {
-		        if (isLimitingColors === void 0) { isLimitingColors = false; }
-		        this.isEmpty = false;
-		        this.r = value;
-		        this.g = value;
-		        this.b = value;
-		        var h = hue * 6;
-		        var i = Math.floor(h);
-		        var f = h - i;
-		        switch (i) {
-		            case 0:
-		                this.g *= 1 - saturation * (1 - f);
-		                this.b *= 1 - saturation;
-		                break;
-		            case 1:
-		                this.b *= 1 - saturation;
-		                this.r *= 1 - saturation * f;
-		                break;
-		            case 2:
-		                this.b *= 1 - saturation * (1 - f);
-		                this.r *= 1 - saturation;
-		                break;
-		            case 3:
-		                this.r *= 1 - saturation;
-		                this.g *= 1 - saturation * f;
-		                break;
-		            case 4:
-		                this.r *= 1 - saturation * (1 - f);
-		                this.g *= 1 - saturation;
-		                break;
-		            case 5:
-		                this.g *= 1 - saturation;
-		                this.b *= 1 - saturation * f;
-		                break;
-		        }
-		        if (isLimitingColors === true) {
-		            this.r = this.limitColor(this.r);
-		            this.g = this.limitColor(this.g);
-		            this.b = this.limitColor(this.b);
-		        }
-		        this.setStyle();
-		    };
-		    Pixel.prototype.setStyle = function () {
-		        var r = Math.floor(this.r * 255);
-		        var g = Math.floor(this.g * 255);
-		        var b = Math.floor(this.b * 255);
-		        this.style = "rgb(" + r + "," + g + "," + b + ")";
-		    };
-		    Pixel.prototype.limitColor = function (v) {
-		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
-		    };
-		    return Pixel;
-		}());
-		exports.Pixel = Pixel;
-		function draw(context, pixels, x, y, rotationIndex) {
-		    var pxs = pixels[rotationIndex];
-		    var pw = pxs.length;
-		    var ph = pxs[0].length;
-		    var sbx = Math.floor(x - pw / 2);
-		    var sby = Math.floor(y - ph / 2);
-		    for (var y_1 = 0, sy = sby; y_1 < ph; y_1++, sy++) {
-		        for (var x_1 = 0, sx = sbx; x_1 < pw; x_1++, sx++) {
-		            var px = pxs[x_1][y_1];
-		            if (!px.isEmpty) {
-		                context.fillStyle = px.style;
-		                context.fillRect(sx, sy, 1, 1);
-		            }
-		        }
-		    }
-		}
-		exports.draw = draw;
-		function generatePixels(patterns, options, random) {
-		    var pw = reduce(patterns, function (w, p) { return Math.max(w, p.length); }, 0);
-		    var ph = patterns.length;
-		    var w = Math.round(pw * options.scaleX);
-		    var h = Math.round(ph * options.scaleY);
-		    w += options.isMirrorX ? 1 : 2;
-		    h += options.isMirrorY ? 1 : 2;
-		    var pixels = createPixels(patterns, pw, ph, w, h, options.scaleX, options.scaleY, random);
-		    if (options.isMirrorX) {
-		        pixels = mirrorX(pixels, w, h);
-		        w *= 2;
-		    }
-		    if (options.isMirrorY) {
-		        pixels = mirrorY(pixels, w, h);
-		        h *= 2;
-		    }
-		    pixels = createEdge(pixels, w, h);
-		    return pixels;
-		}
-		function createPixels(patterns, pw, ph, w, h, scaleX, scaleY, random) {
-		    return timesMap(w, function (x) {
-		        var px = Math.floor((x - 1) / scaleX);
-		        return timesMap(h, function (y) {
-		            var py = Math.floor((y - 1) / scaleY);
-		            if (px < 0 || px >= pw || py < 0 || py >= ph) {
-		                return 0;
-		            }
-		            var c = px < patterns[py].length ? patterns[py][px] : ' ';
-		            var m = 0;
-		            if (c === '-') {
-		                m = random.get01() < 0.5 ? 1 : 0;
-		            }
-		            else if (c === 'x' || c === 'X') {
-		                m = random.get01() < 0.5 ? 1 : -1;
-		            }
-		            else if (c === 'o' || c === 'O') {
-		                m = -1;
-		            }
-		            else if (c === '*') {
-		                m = 1;
-		            }
-		            return m;
-		        });
-		    });
-		}
-		function mirrorX(pixels, w, h) {
-		    return timesMap(w * 2, function (x) { return timesMap(h, function (y) {
-		        return x < w ? pixels[x][y] : pixels[w * 2 - x - 1][y];
-		    }); });
-		}
-		function mirrorY(pixels, w, h) {
-		    return timesMap(w, function (x) { return timesMap(h * 2, function (y) {
-		        return y < h ? pixels[x][y] : pixels[x][h * 2 - y - 1];
-		    }); });
-		}
-		function createEdge(pixels, w, h) {
-		    return timesMap(w, function (x) { return timesMap(h, function (y) {
-		        return ((pixels[x][y] === 0 &&
-		            ((x - 1 >= 0 && pixels[x - 1][y] > 0) ||
-		                (x + 1 < w && pixels[x + 1][y] > 0) ||
-		                (y - 1 >= 0 && pixels[x][y - 1] > 0) ||
-		                (y + 1 < h && pixels[x][y + 1] > 0))) ?
-		            -1 : pixels[x][y]);
-		    }); });
-		}
-		function createRotated(pixels, rotationNum) {
-		    var pw = pixels.length;
-		    var ph = pixels[0].length;
-		    var pcx = pw / 2;
-		    var pcy = ph / 2;
-		    var w = Math.round(pw * 1.5 / 2) * 2;
-		    var h = Math.round(ph * 1.5 / 2) * 2;
-		    var cx = w / 2;
-		    var cy = h / 2;
-		    var offset = { x: 0, y: 0 };
-		    return timesMap(rotationNum, function (ai) {
-		        var angle = -ai * Math.PI * 2 / rotationNum;
-		        return timesMap(w, function (x) { return timesMap(h, function (y) {
-		            offset.x = x - cx;
-		            offset.y = y - cy;
-		            rotateVector(offset, angle);
-		            var px = Math.round(offset.x + pcx);
-		            var py = Math.round(offset.y + pcy);
-		            return (px < 0 || px >= pw || py < 0 || py >= ph) ?
-		                0 : pixels[px][py];
-		        }); });
-		    });
-		}
-		function rotateVector(v, angle) {
-		    var vx = v.x;
-		    v.x = Math.cos(angle) * vx - Math.sin(angle) * v.y;
-		    v.y = Math.sin(angle) * vx + Math.cos(angle) * v.y;
-		}
-		function createColored(pixels, options) {
-		    var w = pixels.length;
-		    var h = pixels[0].length;
-		    var random = new Random();
-		    random.setSeed(options.seed);
-		    return timesMap(w, function (x) { return timesMap(h, function (y) {
-		        var p = pixels[x][y];
-		        if ((p === 1 && !options.isShowingBody) ||
-		            (p === -1 && !options.isShowingEdge)) {
-		            return new Pixel();
-		        }
-		        if (p !== 0) {
-		            var l = Math.sin(y / h * Math.PI) * options.colorLighting +
-		                (1 - options.colorLighting);
-		            var v = (l * (1 - options.colorNoise) +
-		                random.get01() * options.colorNoise) * options.value;
-		            v = v >= 0 ? (v <= 1 ? v : 1) : 0;
-		            if (p === -1) {
-		                v *= (1 - options.edgeDarkness);
-		            }
-		            var px = new Pixel();
-		            px.setFromHsv(options.hue, options.saturation, v, options.isLimitingColors);
-		            return px;
-		        }
-		        else {
-		            return new Pixel();
-		        }
-		    }); });
-		}
-		function getHashFromString(str) {
-		    var hash = 0;
-		    var len = str.length;
-		    for (var i = 0; i < len; i++) {
-		        var chr = str.charCodeAt(i);
-		        hash = ((hash << 5) - hash) + chr;
-		        hash |= 0;
-		    }
-		    return hash;
-		}
-		function nArray(n, v) {
-		    var a = [];
-		    for (var i = 0; i < n; i++) {
-		        a.push(v);
-		    }
-		    return a;
-		}
-		function times(n, func) {
-		    for (var i = 0; i < n; i++) {
-		        func(i);
-		    }
-		}
-		function timesMap(n, func) {
-		    var result = [];
-		    for (var i = 0; i < n; i++) {
-		        result.push(func(i));
-		    }
-		    return result;
-		}
-		function forEach(array, func) {
-		    for (var i = 0; i < array.length; i++) {
-		        func(array[i]);
-		    }
-		}
-		function forOwn(obj, func) {
-		    for (var p in obj) {
-		        func(obj[p], p);
-		    }
-		}
-		function map(array, func) {
-		    var result = [];
-		    for (var i = 0; i < array.length; i++) {
-		        result.push(func(array[i], i));
-		    }
-		    return result;
-		}
-		function reduce(array, func, initValue) {
-		    var result = initValue;
-		    for (var i = 0; i < array.length; i++) {
-		        result = func(result, array[i], i);
-		    }
-		    return result;
-		}
-		var Random = (function () {
-		    function Random() {
-		        this.setSeed();
-		        this.get01 = this.get01.bind(this);
-		    }
-		    Random.prototype.setSeed = function (v) {
-		        if (v === void 0) { v = -0x7fffffff; }
-		        if (v === -0x7fffffff) {
-		            v = Math.floor(Math.random() * 0x7fffffff);
-		        }
-		        this.x = v = 1812433253 * (v ^ (v >> 30));
-		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
-		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
-		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
-		        return this;
-		    };
-		    Random.prototype.getInt = function () {
-		        var t = this.x ^ (this.x << 11);
-		        this.x = this.y;
-		        this.y = this.z;
-		        this.z = this.w;
-		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
-		        return this.w;
-		    };
-		    Random.prototype.get01 = function () {
-		        return this.getInt() / 0x7fffffff;
-		    };
-		    return Random;
-		}());
-	
-	
-	/***/ }
-	/******/ ])
-	});
-	;
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	(function webpackUniversalModuleDefinition(root, factory) {
-		if(true)
-			module.exports = factory();
-		else if(typeof define === 'function' && define.amd)
-			define([], factory);
-		else if(typeof exports === 'object')
-			exports["ppe"] = factory();
-		else
-			root["ppe"] = factory();
-	})(this, function() {
-	return /******/ (function(modules) { // webpackBootstrap
-	/******/ 	// The module cache
-	/******/ 	var installedModules = {};
-	
-	/******/ 	// The require function
-	/******/ 	function __webpack_require__(moduleId) {
-	
-	/******/ 		// Check if module is in cache
-	/******/ 		if(installedModules[moduleId])
-	/******/ 			return installedModules[moduleId].exports;
-	
-	/******/ 		// Create a new module (and put it into the cache)
-	/******/ 		var module = installedModules[moduleId] = {
-	/******/ 			exports: {},
-	/******/ 			id: moduleId,
-	/******/ 			loaded: false
-	/******/ 		};
-	
-	/******/ 		// Execute the module function
-	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-	
-	/******/ 		// Flag the module as loaded
-	/******/ 		module.loaded = true;
-	
-	/******/ 		// Return the exports of the module
-	/******/ 		return module.exports;
-	/******/ 	}
-	
-	
-	/******/ 	// expose the modules object (__webpack_modules__)
-	/******/ 	__webpack_require__.m = modules;
-	
-	/******/ 	// expose the module cache
-	/******/ 	__webpack_require__.c = installedModules;
-	
-	/******/ 	// __webpack_public_path__
-	/******/ 	__webpack_require__.p = "";
-	
-	/******/ 	// Load entry module and return exports
-	/******/ 	return __webpack_require__(0);
-	/******/ })
-	/************************************************************************/
-	/******/ ([
-	/* 0 */
-	/***/ function(module, exports, __webpack_require__) {
-	
-		module.exports = __webpack_require__(1);
-	
-	
-	/***/ },
-	/* 1 */
-	/***/ function(module, exports) {
-	
-		"use strict";
-		exports.options = {
-		    scaleRatio: 1,
-		    canvas: null,
-		    isLimitingColors: false
-		};
-		var emitters = {};
-		var seed = 0;
-		var context;
-		// emit the particle.
-		// specify the type with the first character of the patternName
-		// (e: explosion, m: muzzle, s: spark, t: trail, j: jet)
-		function emit(patternName, x, y, angle, emitOptions) {
-		    if (angle === void 0) { angle = 0; }
-		    if (emitOptions === void 0) { emitOptions = {}; }
-		    if (emitters[patternName] == null) {
-		        var random_1 = new Random();
-		        random_1.setSeed(seed + getHashFromString(patternName));
-		        emitters[patternName] = new Emitter(patternName[0], emitOptions, random_1);
-		    }
-		    var velX = emitOptions.velX == null ? 0 : emitOptions.velX;
-		    var velY = emitOptions.velY == null ? 0 : emitOptions.velY;
-		    emitters[patternName].emit(x, y, angle, velX, velY);
-		}
-		exports.emit = emit;
-		function update() {
-		    Particle.update();
-		}
-		exports.update = update;
-		function getParticles() {
-		    return Particle.s;
-		}
-		exports.getParticles = getParticles;
-		function setSeed(_seed) {
-		    if (_seed === void 0) { _seed = 0; }
-		    seed = _seed;
-		}
-		exports.setSeed = setSeed;
-		function reset() {
-		    emitters = {};
-		    Particle.s = [];
-		}
-		exports.reset = reset;
-		function setOptions(_options) {
-		    for (var attr in _options) {
-		        exports.options[attr] = _options[attr];
-		    }
-		}
-		exports.setOptions = setOptions;
-		var Emitter = (function () {
-		    function Emitter(patternType, emitOptions, random) {
-		        this.base = new Particle();
-		        this.angleDeflection = 0;
-		        this.speedDeflection = 0.5;
-		        this.sizeDeflection = 0.5;
-		        this.ticksDeflection = 0.3;
-		        this.count = 1;
-		        var hue = emitOptions.hue == null ? random.get01() : emitOptions.hue;
-		        var sizeScale = emitOptions.sizeScale == null ? 1 : emitOptions.sizeScale;
-		        var countScale = emitOptions.countScale == null ? 1 : emitOptions.countScale;
-		        switch (patternType) {
-		            case 'e':
-		                this.base.speed = 0.7;
-		                this.base.slowdownRatio = 0.05;
-		                this.base.targetSize = 10;
-		                this.base.beginColor = new Color(hue, 1, 0.5, 0.3);
-		                this.base.middleColor = new Color(hue, 0.2, 0.9, 0.1);
-		                this.base.endColor = new Color(hue, 0, 0, 0);
-		                this.base.middleTicks = 20;
-		                this.base.endTicks = 30;
-		                this.angleDeflection = Math.PI * 2;
-		                this.count = 15;
-		                break;
-		            case 'm':
-		            case 's':
-		                this.base.speed = patternType === 'm' ? 1.5 : 0.5;
-		                this.base.slowdownRatio = 0.025;
-		                this.base.targetSize = 5;
-		                this.base.beginColor = new Color(hue, 0.5, 0.5, 0.3);
-		                this.base.middleColor = new Color(hue, 1, 0.9, 0.3);
-		                this.base.endColor = new Color(hue, 0.75, 0.75, 0.2);
-		                this.base.middleTicks = 10;
-		                this.base.endTicks = 20;
-		                this.angleDeflection = patternType === 'm' ?
-		                    0.3 * random.getForParam() : Math.PI * 2;
-		                this.count = 10;
-		                break;
-		            case 't':
-		            case 'j':
-		                this.base.speed = patternType === 't' ? 0.1 : 1;
-		                this.base.slowdownRatio = 0.03;
-		                this.base.targetSize = patternType === 't' ? 3 : 7;
-		                this.base.beginColor = new Color(hue, 0.7, 0.7, 0.4);
-		                this.base.middleColor = new Color(hue, 1, 0.9, 0.2);
-		                this.base.endColor = new Color(hue, 0.7, 0.7, 0.1);
-		                this.base.middleTicks = patternType === 't' ? 30 : 15;
-		                this.base.endTicks = patternType === 't' ? 40 : 20;
-		                this.angleDeflection = 0.5 * random.getForParam();
-		                this.speedDeflection = 0.1;
-		                this.sizeDeflection = 0.1;
-		                this.ticksDeflection = 0.1;
-		                this.count = 0.5;
-		                break;
-		        }
-		        if (emitOptions.speed != null) {
-		            this.base.speed = emitOptions.speed;
-		        }
-		        if (emitOptions.slowdownRatio != null) {
-		            this.base.slowdownRatio = emitOptions.slowdownRatio;
-		        }
-		        this.base.speed *= sizeScale * exports.options.scaleRatio;
-		        this.base.targetSize *= sizeScale * exports.options.scaleRatio;
-		        this.count *= countScale;
-		        this.base.speed *= random.getForParam();
-		        this.base.slowdownRatio *= random.getForParam();
-		        this.base.targetSize *= random.getForParam();
-		        var em = this.base.endTicks - this.base.middleTicks;
-		        this.base.middleTicks *= random.getForParam();
-		        this.base.endTicks = this.base.middleTicks + em * random.getForParam();
-		        this.speedDeflection *= random.getForParam();
-		        this.sizeDeflection *= random.getForParam();
-		        this.ticksDeflection *= random.getForParam();
-		        this.count *= random.getForParam();
-		    }
-		    Emitter.prototype.emit = function (x, y, angle, velX, velY) {
-		        if (angle === void 0) { angle = 0; }
-		        if (velX === void 0) { velX = 0; }
-		        if (velY === void 0) { velY = 0; }
-		        if (this.count < 1 && this.count < Math.random()) {
-		            return;
-		        }
-		        for (var i = 0; i < this.count; i++) {
-		            var p = new Particle();
-		            p.pos.x = x;
-		            p.pos.y = y;
-		            p.vel.x = velX;
-		            p.vel.y = velY;
-		            p.angle = angle + (Math.random() - 0.5) * this.angleDeflection;
-		            p.speed = this.base.speed *
-		                ((Math.random() * 2 - 1) * this.speedDeflection + 1);
-		            p.slowdownRatio = this.base.slowdownRatio;
-		            p.targetSize = this.base.targetSize *
-		                ((Math.random() * 2 - 1) * this.sizeDeflection + 1);
-		            p.middleTicks = this.base.middleTicks *
-		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
-		            p.endTicks = this.base.endTicks *
-		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
-		            p.beginColor = this.base.beginColor;
-		            p.middleColor = this.base.middleColor;
-		            p.endColor = this.base.endColor;
-		            Particle.s.push(p);
-		        }
-		    };
-		    return Emitter;
-		}());
-		exports.Emitter = Emitter;
-		var Particle = (function () {
-		    function Particle() {
-		        this.pos = new Vector();
-		        this.vel = new Vector();
-		        this.size = 0;
-		        this.angle = 0;
-		        this.speed = 1;
-		        this.slowdownRatio = 0.01;
-		        this.targetSize = 10;
-		        this.middleTicks = 20;
-		        this.endTicks = 60;
-		        this.ticks = 0;
-		    }
-		    Particle.prototype.update = function () {
-		        this.pos.x += Math.cos(this.angle) * this.speed + this.vel.x;
-		        this.pos.y += Math.sin(this.angle) * this.speed + this.vel.y;
-		        this.speed *= (1 - this.slowdownRatio);
-		        this.vel.x *= 0.99;
-		        this.vel.y *= 0.99;
-		        if (this.ticks >= this.endTicks) {
-		            return false;
-		        }
-		        if (this.ticks < this.middleTicks) {
-		            this.color = this.beginColor.getLerped(this.middleColor, this.ticks / this.middleTicks);
-		            this.size += (this.targetSize - this.size) * 0.1;
-		        }
-		        else {
-		            this.color = this.middleColor.getLerped(this.endColor, (this.ticks - this.middleTicks) / (this.endTicks - this.middleTicks));
-		            this.size *= 0.95;
-		        }
-		        this.color = this.color.getSparkled();
-		        if (context != null) {
-		            context.fillStyle = this.color.getStyle();
-		            context.fillRect(this.pos.x - this.size / 2, this.pos.y - this.size / 2, this.size, this.size);
-		        }
-		        this.ticks++;
-		    };
-		    Particle.update = function () {
-		        if (context == null && exports.options.canvas != null) {
-		            context = exports.options.canvas.getContext('2d');
-		        }
-		        for (var i = 0; i < Particle.s.length;) {
-		            if (Particle.s[i].update() === false) {
-		                Particle.s.splice(i, 1);
-		            }
-		            else {
-		                i++;
-		            }
-		        }
-		    };
-		    Particle.s = [];
-		    return Particle;
-		}());
-		exports.Particle = Particle;
-		var Vector = (function () {
-		    function Vector(x, y) {
-		        if (x === void 0) { x = 0; }
-		        if (y === void 0) { y = 0; }
-		        this.x = x;
-		        this.y = y;
-		    }
-		    return Vector;
-		}());
-		exports.Vector = Vector;
-		var Color = (function () {
-		    function Color(hue, saturation, value, sparkleRatio) {
-		        if (hue === void 0) { hue = 0; }
-		        if (saturation === void 0) { saturation = 1; }
-		        if (value === void 0) { value = 1; }
-		        if (sparkleRatio === void 0) { sparkleRatio = 0; }
-		        this.hue = hue;
-		        this.saturation = saturation;
-		        this.value = value;
-		        this.sparkleRatio = sparkleRatio;
-		        this.r = 0;
-		        this.g = 0;
-		        this.b = 0;
-		        this.r = value;
-		        this.g = value;
-		        this.b = value;
-		        var h = hue * 6;
-		        var i = Math.floor(h);
-		        var f = h - i;
-		        switch (i) {
-		            case 0:
-		                this.g *= 1 - saturation * (1 - f);
-		                this.b *= 1 - saturation;
-		                break;
-		            case 1:
-		                this.b *= 1 - saturation;
-		                this.r *= 1 - saturation * f;
-		                break;
-		            case 2:
-		                this.b *= 1 - saturation * (1 - f);
-		                this.r *= 1 - saturation;
-		                break;
-		            case 3:
-		                this.r *= 1 - saturation;
-		                this.g *= 1 - saturation * f;
-		                break;
-		            case 4:
-		                this.r *= 1 - saturation * (1 - f);
-		                this.g *= 1 - saturation;
-		                break;
-		            case 5:
-		                this.g *= 1 - saturation;
-		                this.b *= 1 - saturation * f;
-		                break;
-		        }
-		        if (exports.options.isLimitingColors === true) {
-		            this.limitRgb();
-		        }
-		    }
-		    Color.prototype.getStyle = function () {
-		        var r = Math.floor(this.r * 255);
-		        var g = Math.floor(this.g * 255);
-		        var b = Math.floor(this.b * 255);
-		        return "rgb(" + r + "," + g + "," + b + ")";
-		    };
-		    Color.prototype.getSparkled = function () {
-		        if (this.sparkled == null) {
-		            this.sparkled = new Color();
-		        }
-		        this.sparkled.r = clamp(this.r + this.sparkleRatio * (Math.random() * 2 - 1));
-		        this.sparkled.g = clamp(this.g + this.sparkleRatio * (Math.random() * 2 - 1));
-		        this.sparkled.b = clamp(this.b + this.sparkleRatio * (Math.random() * 2 - 1));
-		        if (exports.options.isLimitingColors === true) {
-		            this.sparkled.limitRgb();
-		        }
-		        return this.sparkled;
-		    };
-		    Color.prototype.getLerped = function (other, ratio) {
-		        if (this.lerped == null) {
-		            this.lerped = new Color();
-		        }
-		        this.lerped.r = this.r * (1 - ratio) + other.r * ratio;
-		        this.lerped.g = this.g * (1 - ratio) + other.g * ratio;
-		        this.lerped.b = this.b * (1 - ratio) + other.b * ratio;
-		        this.lerped.sparkleRatio =
-		            this.sparkleRatio * (1 - ratio) + other.sparkleRatio * ratio;
-		        if (exports.options.isLimitingColors === true) {
-		            this.lerped.limitRgb();
-		        }
-		        return this.lerped;
-		    };
-		    Color.prototype.limitRgb = function () {
-		        this.r = this.limitColor(this.r);
-		        this.g = this.limitColor(this.g);
-		        this.b = this.limitColor(this.b);
-		    };
-		    Color.prototype.limitColor = function (v) {
-		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
-		    };
-		    return Color;
-		}());
-		exports.Color = Color;
-		function getHashFromString(str) {
-		    var hash = 0;
-		    var len = str.length;
-		    for (var i = 0; i < len; i++) {
-		        var chr = str.charCodeAt(i);
-		        hash = ((hash << 5) - hash) + chr;
-		        hash |= 0;
-		    }
-		    return hash;
-		}
-		function clamp(v) {
-		    if (v <= 0) {
-		        return 0;
-		    }
-		    else if (v >= 1) {
-		        return 1;
-		    }
-		    else {
-		        return v;
-		    }
-		}
-		var Random = (function () {
-		    function Random() {
-		        this.setSeed();
-		        this.get01 = this.get01.bind(this);
-		    }
-		    Random.prototype.setSeed = function (v) {
-		        if (v === void 0) { v = -0x7fffffff; }
-		        if (v === -0x7fffffff) {
-		            v = Math.floor(Math.random() * 0x7fffffff);
-		        }
-		        this.x = v = 1812433253 * (v ^ (v >> 30));
-		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
-		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
-		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
-		        return this;
-		    };
-		    Random.prototype.getInt = function () {
-		        var t = this.x ^ (this.x << 11);
-		        this.x = this.y;
-		        this.y = this.z;
-		        this.z = this.w;
-		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
-		        return this.w;
-		    };
-		    Random.prototype.get01 = function () {
-		        return this.getInt() / 0x7fffffff;
-		    };
-		    Random.prototype.getForParam = function () {
-		        return this.get01() + 0.5;
-		    };
-		    return Random;
-		}());
-	
-	
-	/***/ }
-	/******/ ])
-	});
-	;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var _ = __webpack_require__(5);
-	var pag = __webpack_require__(2);
-	var ppe = __webpack_require__(3);
-	var sss = __webpack_require__(7);
-	var ir = __webpack_require__(8);
-	var actor_1 = __webpack_require__(9);
-	exports.Actor = actor_1.default;
-	var random_1 = __webpack_require__(12);
-	exports.Random = random_1.default;
-	var ui = __webpack_require__(13);
-	exports.ui = ui;
-	var screen = __webpack_require__(10);
-	exports.screen = screen;
-	var text = __webpack_require__(11);
-	exports.text = text;
-	var debug = __webpack_require__(14);
-	exports.debug = debug;
-	var m = __webpack_require__(15);
-	exports.m = m;
-	exports.p5 = __webpack_require__(17);
-	exports.ticks = 0;
-	exports.score = 0;
-	var options = {
-	    isShowingScore: true,
-	    isShowingTitle: true,
-	    isReplayEnabled: false,
-	    isPlayingBgm: true
-	};
-	var initFunc;
-	var initGameFunc;
-	var updateFunc;
-	var postUpdateFunc;
-	var onSeedChangedFunc;
-	var actorGeneratorFunc;
-	var getReplayStatusFunc;
-	var setReplayStatusFunc;
-	var title = 'N/A';
-	var titleCont;
-	var isDebugEnabled = false;
-	var modules = [];
-	(function (Scene) {
-	    Scene[Scene["title"] = 0] = "title";
-	    Scene[Scene["game"] = 1] = "game";
-	    Scene[Scene["gameover"] = 2] = "gameover";
-	    Scene[Scene["replay"] = 3] = "replay";
-	})(exports.Scene || (exports.Scene = {}));
-	var Scene = exports.Scene;
-	;
-	function init(_initFunc, _initGameFunc, _updateFunc, _postUpdateFunc) {
-	    if (_postUpdateFunc === void 0) { _postUpdateFunc = null; }
-	    initFunc = _initFunc;
-	    initGameFunc = _initGameFunc;
-	    updateFunc = _updateFunc;
-	    postUpdateFunc = _postUpdateFunc;
-	    exports.random = new random_1.default();
-	    sss.init();
-	    new exports.p5(function (_p) {
-	        exports.p = _p;
-	        exports.p.setup = setup;
-	        exports.p.draw = draw;
-	        exports.p.mousePressed = function () {
-	            sss.playEmpty();
-	        };
-	    });
-	}
-	exports.init = init;
-	function setTitle(_title, _titleCont) {
-	    if (_titleCont === void 0) { _titleCont = null; }
-	    title = _title;
-	    titleCont = _titleCont;
-	}
-	exports.setTitle = setTitle;
-	function setReplayFuncs(_actorGeneratorFunc, _getReplayStatusFunc, _setReplayStatusFunc) {
-	    if (_getReplayStatusFunc === void 0) { _getReplayStatusFunc = null; }
-	    if (_setReplayStatusFunc === void 0) { _setReplayStatusFunc = null; }
-	    options.isReplayEnabled = true;
-	    actorGeneratorFunc = _actorGeneratorFunc;
-	    getReplayStatusFunc = _getReplayStatusFunc;
-	    setReplayStatusFunc = _setReplayStatusFunc;
-	}
-	exports.setReplayFuncs = setReplayFuncs;
-	function enableDebug(_onSeedChangedFunc) {
-	    if (_onSeedChangedFunc === void 0) { _onSeedChangedFunc = null; }
-	    onSeedChangedFunc = _onSeedChangedFunc;
-	    debug.initSeedUi(setSeeds);
-	    debug.enableShowingErrors();
-	    isDebugEnabled = true;
-	}
-	exports.enableDebug = enableDebug;
-	function setOptions(_options) {
-	    for (var attr in _options) {
-	        options[attr] = _options[attr];
-	    }
-	}
-	exports.setOptions = setOptions;
-	function setSeeds(seed) {
-	    pag.setSeed(seed);
-	    ppe.setSeed(seed);
-	    ppe.reset();
-	    sss.reset();
-	    sss.setSeed(seed);
-	    if (exports.scene === Scene.game) {
-	        sss.playBgm();
-	    }
-	    if (onSeedChangedFunc != null) {
-	        onSeedChangedFunc();
-	    }
-	}
-	exports.setSeeds = setSeeds;
-	function endGame() {
-	    if (exports.scene === Scene.gameover) {
-	        return;
-	    }
-	    var isReplay = exports.scene === Scene.replay;
-	    exports.scene = Scene.gameover;
-	    exports.ticks = 0;
-	    sss.stopBgm();
-	    if (!isReplay && options.isReplayEnabled) {
-	        ir.saveAsUrl();
-	    }
-	}
-	exports.endGame = endGame;
-	function addScore(v, pos) {
-	    if (v === void 0) { v = 1; }
-	    if (pos === void 0) { pos = null; }
-	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
-	        exports.score += v;
-	        if (pos != null) {
-	            var t = new m.Actor.Text("+" + v);
-	            t.pos.set(pos);
-	        }
-	    }
-	}
-	exports.addScore = addScore;
-	function addModule(module) {
-	    modules.push(module);
-	}
-	exports.addModule = addModule;
-	function clearModules() {
-	    modules = [];
-	}
-	exports.clearModules = clearModules;
-	function setup() {
-	    actor_1.default.init();
-	    initFunc();
-	    if (isDebugEnabled || !options.isShowingTitle) {
-	        beginGame();
-	    }
-	    else {
-	        if (options.isReplayEnabled && ir.loadFromUrl() === true) {
-	            beginReplay();
-	        }
-	        else {
-	            beginTitle();
-	            initGameFunc();
-	        }
-	    }
-	}
-	function beginGame() {
-	    exports.scene = Scene.game;
-	    exports.score = exports.ticks = 0;
-	    if (options.isPlayingBgm) {
-	        sss.playBgm();
-	    }
-	    ir.startRecord();
-	    clearModules();
-	    actor_1.default.clear();
-	    initGameFunc();
-	}
-	function beginTitle() {
-	    exports.scene = Scene.title;
-	    exports.ticks = 0;
-	}
-	function beginReplay() {
-	    var status = ir.startReplay();
-	    if (status !== false) {
-	        exports.scene = Scene.replay;
-	        actor_1.default.clear();
-	        initGameFunc();
-	        setStatus(status);
-	    }
-	}
-	function draw() {
-	    screen.clear();
-	    ui.update();
-	    handleScene();
-	    sss.update();
-	    updateFunc();
-	    _.forEach(modules, function (m) {
-	        m.update();
-	    });
-	    actor_1.default.updateLowerZero();
-	    ppe.update();
-	    actor_1.default.update();
-	    if (postUpdateFunc != null) {
-	        postUpdateFunc();
-	    }
-	    if (options.isShowingScore) {
-	        text.draw("" + exports.score, 1, 1, text.Align.left);
-	    }
-	    drawSceneText();
-	    exports.ticks++;
-	}
-	function handleScene() {
-	    if (exports.scene !== Scene.game && ui.isJustPressed) {
-	        beginGame();
-	    }
-	    if (options.isReplayEnabled && exports.scene === Scene.game) {
-	        ir.record(getStatus(), ui.getReplayEvents());
-	    }
-	    if (exports.scene === Scene.gameover && exports.ticks === 60) {
-	        beginTitle();
-	    }
-	    if (options.isReplayEnabled && exports.scene === Scene.title && exports.ticks === 120) {
-	        beginReplay();
-	    }
-	    if (exports.scene === Scene.replay) {
-	        var events = ir.getEvents();
-	        if (events !== false) {
-	            ui.setReplayEvents(events);
-	        }
-	        else {
-	            beginTitle();
-	        }
-	    }
-	    if (exports.scene === Scene.game) {
-	        if (actor_1.default.get('player').length <= 0) {
-	            endGame();
-	        }
-	    }
-	}
-	function drawSceneText() {
-	    switch (exports.scene) {
-	        case Scene.title:
-	            if (titleCont == null) {
-	                text.draw(title, screen.size.x / 2, screen.size.y * 0.48);
-	            }
-	            else {
-	                text.draw(title, screen.size.x / 2, screen.size.y * 0.4);
-	                text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48);
-	            }
-	            break;
-	        case Scene.gameover:
-	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
-	            break;
-	        case Scene.replay:
-	            text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55);
-	            break;
-	    }
-	}
-	function getStatus() {
-	    var status = [exports.ticks, exports.score, exports.random.getStatus(), actor_1.default.getReplayStatus()];
-	    if (getReplayStatusFunc != null) {
-	        status.push(getReplayStatusFunc());
-	    }
-	    return status;
-	}
-	function setStatus(status) {
-	    actor_1.default.setReplayStatus(status[3], actorGeneratorFunc);
-	    if (setReplayStatusFunc != null) {
-	        setReplayStatusFunc(status[4]);
-	    }
-	    exports.ticks = status[0];
-	    exports.score = status[1];
-	    exports.random.setStatus(status[2]);
-	}
-
-
-/***/ },
-/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
@@ -18344,10 +17202,10 @@
 	  }
 	}.call(this));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(6)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3)(module)))
 
 /***/ },
-/* 6 */
+/* 3 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -18363,7 +17221,877 @@
 
 
 /***/ },
-/* 7 */
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function webpackUniversalModuleDefinition(root, factory) {
+		if(true)
+			module.exports = factory();
+		else if(typeof define === 'function' && define.amd)
+			define([], factory);
+		else if(typeof exports === 'object')
+			exports["pag"] = factory();
+		else
+			root["pag"] = factory();
+	})(this, function() {
+	return /******/ (function(modules) { // webpackBootstrap
+	/******/ 	// The module cache
+	/******/ 	var installedModules = {};
+	
+	/******/ 	// The require function
+	/******/ 	function __webpack_require__(moduleId) {
+	
+	/******/ 		// Check if module is in cache
+	/******/ 		if(installedModules[moduleId])
+	/******/ 			return installedModules[moduleId].exports;
+	
+	/******/ 		// Create a new module (and put it into the cache)
+	/******/ 		var module = installedModules[moduleId] = {
+	/******/ 			exports: {},
+	/******/ 			id: moduleId,
+	/******/ 			loaded: false
+	/******/ 		};
+	
+	/******/ 		// Execute the module function
+	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+	
+	/******/ 		// Flag the module as loaded
+	/******/ 		module.loaded = true;
+	
+	/******/ 		// Return the exports of the module
+	/******/ 		return module.exports;
+	/******/ 	}
+	
+	
+	/******/ 	// expose the modules object (__webpack_modules__)
+	/******/ 	__webpack_require__.m = modules;
+	
+	/******/ 	// expose the module cache
+	/******/ 	__webpack_require__.c = installedModules;
+	
+	/******/ 	// __webpack_public_path__
+	/******/ 	__webpack_require__.p = "";
+	
+	/******/ 	// Load entry module and return exports
+	/******/ 	return __webpack_require__(0);
+	/******/ })
+	/************************************************************************/
+	/******/ ([
+	/* 0 */
+	/***/ function(module, exports, __webpack_require__) {
+	
+		module.exports = __webpack_require__(1);
+	
+	
+	/***/ },
+	/* 1 */
+	/***/ function(module, exports) {
+	
+		"use strict";
+		exports.defaultOptions = {
+		    isMirrorX: false,
+		    isMirrorY: false,
+		    seed: 0,
+		    hue: null,
+		    saturation: 0.8,
+		    value: 1,
+		    rotationNum: 1,
+		    scale: 1,
+		    scaleX: null,
+		    scaleY: null,
+		    colorNoise: 0.1,
+		    colorLighting: 1,
+		    edgeDarkness: 0.4,
+		    isShowingEdge: true,
+		    isShowingBody: true,
+		    isLimitingColors: false,
+		};
+		var generatedPixels = {};
+		var seed = 0;
+		function generate(patterns, _options) {
+		    if (_options === void 0) { _options = {}; }
+		    _options.baseSeed = seed;
+		    var jso = JSON.stringify({ patterns: patterns, options: _options });
+		    if (generatedPixels[jso]) {
+		        return generatedPixels[jso];
+		    }
+		    var options = {};
+		    forOwn(exports.defaultOptions, function (v, k) {
+		        options[k] = v;
+		    });
+		    forOwn(_options, function (v, k) {
+		        options[k] = v;
+		    });
+		    var random = new Random();
+		    var rndSeed = seed + getHashFromString(patterns.join());
+		    if (options.seed != null) {
+		        rndSeed += options.seed;
+		    }
+		    random.setSeed(rndSeed);
+		    if (options.hue == null) {
+		        options.hue = random.get01();
+		    }
+		    if (options.scaleX == null) {
+		        options.scaleX = options.scale;
+		    }
+		    if (options.scaleY == null) {
+		        options.scaleY = options.scale;
+		    }
+		    var pixels = generatePixels(patterns, options, random);
+		    var result;
+		    if (options.rotationNum > 1) {
+		        result = map(createRotated(pixels, options.rotationNum), function (p) {
+		            return createColored(p, options);
+		        });
+		    }
+		    else {
+		        result = [createColored(pixels, options)];
+		    }
+		    generatedPixels[jso] = result;
+		    return result;
+		}
+		exports.generate = generate;
+		function setSeed(_seed) {
+		    if (_seed === void 0) { _seed = 0; }
+		    seed = _seed;
+		}
+		exports.setSeed = setSeed;
+		function setDefaultOptions(_defaultOptions) {
+		    forOwn(_defaultOptions, function (v, k) {
+		        exports.defaultOptions[k] = v;
+		    });
+		}
+		exports.setDefaultOptions = setDefaultOptions;
+		var Pixel = (function () {
+		    function Pixel() {
+		        this.r = 0;
+		        this.g = 0;
+		        this.b = 0;
+		        this.isEmpty = true;
+		    }
+		    Pixel.prototype.setFromHsv = function (hue, saturation, value, isLimitingColors) {
+		        if (isLimitingColors === void 0) { isLimitingColors = false; }
+		        this.isEmpty = false;
+		        this.r = value;
+		        this.g = value;
+		        this.b = value;
+		        var h = hue * 6;
+		        var i = Math.floor(h);
+		        var f = h - i;
+		        switch (i) {
+		            case 0:
+		                this.g *= 1 - saturation * (1 - f);
+		                this.b *= 1 - saturation;
+		                break;
+		            case 1:
+		                this.b *= 1 - saturation;
+		                this.r *= 1 - saturation * f;
+		                break;
+		            case 2:
+		                this.b *= 1 - saturation * (1 - f);
+		                this.r *= 1 - saturation;
+		                break;
+		            case 3:
+		                this.r *= 1 - saturation;
+		                this.g *= 1 - saturation * f;
+		                break;
+		            case 4:
+		                this.r *= 1 - saturation * (1 - f);
+		                this.g *= 1 - saturation;
+		                break;
+		            case 5:
+		                this.g *= 1 - saturation;
+		                this.b *= 1 - saturation * f;
+		                break;
+		        }
+		        if (isLimitingColors === true) {
+		            this.r = this.limitColor(this.r);
+		            this.g = this.limitColor(this.g);
+		            this.b = this.limitColor(this.b);
+		        }
+		        this.setStyle();
+		    };
+		    Pixel.prototype.setStyle = function () {
+		        var r = Math.floor(this.r * 255);
+		        var g = Math.floor(this.g * 255);
+		        var b = Math.floor(this.b * 255);
+		        this.style = "rgb(" + r + "," + g + "," + b + ")";
+		    };
+		    Pixel.prototype.limitColor = function (v) {
+		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
+		    };
+		    return Pixel;
+		}());
+		exports.Pixel = Pixel;
+		function draw(context, pixels, x, y, rotationIndex) {
+		    var pxs = pixels[rotationIndex];
+		    var pw = pxs.length;
+		    var ph = pxs[0].length;
+		    var sbx = Math.floor(x - pw / 2);
+		    var sby = Math.floor(y - ph / 2);
+		    for (var y_1 = 0, sy = sby; y_1 < ph; y_1++, sy++) {
+		        for (var x_1 = 0, sx = sbx; x_1 < pw; x_1++, sx++) {
+		            var px = pxs[x_1][y_1];
+		            if (!px.isEmpty) {
+		                context.fillStyle = px.style;
+		                context.fillRect(sx, sy, 1, 1);
+		            }
+		        }
+		    }
+		}
+		exports.draw = draw;
+		function generatePixels(patterns, options, random) {
+		    var pw = reduce(patterns, function (w, p) { return Math.max(w, p.length); }, 0);
+		    var ph = patterns.length;
+		    var w = Math.round(pw * options.scaleX);
+		    var h = Math.round(ph * options.scaleY);
+		    w += options.isMirrorX ? 1 : 2;
+		    h += options.isMirrorY ? 1 : 2;
+		    var pixels = createPixels(patterns, pw, ph, w, h, options.scaleX, options.scaleY, random);
+		    if (options.isMirrorX) {
+		        pixels = mirrorX(pixels, w, h);
+		        w *= 2;
+		    }
+		    if (options.isMirrorY) {
+		        pixels = mirrorY(pixels, w, h);
+		        h *= 2;
+		    }
+		    pixels = createEdge(pixels, w, h);
+		    return pixels;
+		}
+		function createPixels(patterns, pw, ph, w, h, scaleX, scaleY, random) {
+		    return timesMap(w, function (x) {
+		        var px = Math.floor((x - 1) / scaleX);
+		        return timesMap(h, function (y) {
+		            var py = Math.floor((y - 1) / scaleY);
+		            if (px < 0 || px >= pw || py < 0 || py >= ph) {
+		                return 0;
+		            }
+		            var c = px < patterns[py].length ? patterns[py][px] : ' ';
+		            var m = 0;
+		            if (c === '-') {
+		                m = random.get01() < 0.5 ? 1 : 0;
+		            }
+		            else if (c === 'x' || c === 'X') {
+		                m = random.get01() < 0.5 ? 1 : -1;
+		            }
+		            else if (c === 'o' || c === 'O') {
+		                m = -1;
+		            }
+		            else if (c === '*') {
+		                m = 1;
+		            }
+		            return m;
+		        });
+		    });
+		}
+		function mirrorX(pixels, w, h) {
+		    return timesMap(w * 2, function (x) { return timesMap(h, function (y) {
+		        return x < w ? pixels[x][y] : pixels[w * 2 - x - 1][y];
+		    }); });
+		}
+		function mirrorY(pixels, w, h) {
+		    return timesMap(w, function (x) { return timesMap(h * 2, function (y) {
+		        return y < h ? pixels[x][y] : pixels[x][h * 2 - y - 1];
+		    }); });
+		}
+		function createEdge(pixels, w, h) {
+		    return timesMap(w, function (x) { return timesMap(h, function (y) {
+		        return ((pixels[x][y] === 0 &&
+		            ((x - 1 >= 0 && pixels[x - 1][y] > 0) ||
+		                (x + 1 < w && pixels[x + 1][y] > 0) ||
+		                (y - 1 >= 0 && pixels[x][y - 1] > 0) ||
+		                (y + 1 < h && pixels[x][y + 1] > 0))) ?
+		            -1 : pixels[x][y]);
+		    }); });
+		}
+		function createRotated(pixels, rotationNum) {
+		    var pw = pixels.length;
+		    var ph = pixels[0].length;
+		    var pcx = pw / 2;
+		    var pcy = ph / 2;
+		    var w = Math.round(pw * 1.5 / 2) * 2;
+		    var h = Math.round(ph * 1.5 / 2) * 2;
+		    var cx = w / 2;
+		    var cy = h / 2;
+		    var offset = { x: 0, y: 0 };
+		    return timesMap(rotationNum, function (ai) {
+		        var angle = -ai * Math.PI * 2 / rotationNum;
+		        return timesMap(w, function (x) { return timesMap(h, function (y) {
+		            offset.x = x - cx;
+		            offset.y = y - cy;
+		            rotateVector(offset, angle);
+		            var px = Math.round(offset.x + pcx);
+		            var py = Math.round(offset.y + pcy);
+		            return (px < 0 || px >= pw || py < 0 || py >= ph) ?
+		                0 : pixels[px][py];
+		        }); });
+		    });
+		}
+		function rotateVector(v, angle) {
+		    var vx = v.x;
+		    v.x = Math.cos(angle) * vx - Math.sin(angle) * v.y;
+		    v.y = Math.sin(angle) * vx + Math.cos(angle) * v.y;
+		}
+		function createColored(pixels, options) {
+		    var w = pixels.length;
+		    var h = pixels[0].length;
+		    var random = new Random();
+		    random.setSeed(options.seed);
+		    return timesMap(w, function (x) { return timesMap(h, function (y) {
+		        var p = pixels[x][y];
+		        if ((p === 1 && !options.isShowingBody) ||
+		            (p === -1 && !options.isShowingEdge)) {
+		            return new Pixel();
+		        }
+		        if (p !== 0) {
+		            var l = Math.sin(y / h * Math.PI) * options.colorLighting +
+		                (1 - options.colorLighting);
+		            var v = (l * (1 - options.colorNoise) +
+		                random.get01() * options.colorNoise) * options.value;
+		            v = v >= 0 ? (v <= 1 ? v : 1) : 0;
+		            if (p === -1) {
+		                v *= (1 - options.edgeDarkness);
+		            }
+		            var px = new Pixel();
+		            px.setFromHsv(options.hue, options.saturation, v, options.isLimitingColors);
+		            return px;
+		        }
+		        else {
+		            return new Pixel();
+		        }
+		    }); });
+		}
+		function getHashFromString(str) {
+		    var hash = 0;
+		    var len = str.length;
+		    for (var i = 0; i < len; i++) {
+		        var chr = str.charCodeAt(i);
+		        hash = ((hash << 5) - hash) + chr;
+		        hash |= 0;
+		    }
+		    return hash;
+		}
+		function nArray(n, v) {
+		    var a = [];
+		    for (var i = 0; i < n; i++) {
+		        a.push(v);
+		    }
+		    return a;
+		}
+		function times(n, func) {
+		    for (var i = 0; i < n; i++) {
+		        func(i);
+		    }
+		}
+		function timesMap(n, func) {
+		    var result = [];
+		    for (var i = 0; i < n; i++) {
+		        result.push(func(i));
+		    }
+		    return result;
+		}
+		function forEach(array, func) {
+		    for (var i = 0; i < array.length; i++) {
+		        func(array[i]);
+		    }
+		}
+		function forOwn(obj, func) {
+		    for (var p in obj) {
+		        func(obj[p], p);
+		    }
+		}
+		function map(array, func) {
+		    var result = [];
+		    for (var i = 0; i < array.length; i++) {
+		        result.push(func(array[i], i));
+		    }
+		    return result;
+		}
+		function reduce(array, func, initValue) {
+		    var result = initValue;
+		    for (var i = 0; i < array.length; i++) {
+		        result = func(result, array[i], i);
+		    }
+		    return result;
+		}
+		var Random = (function () {
+		    function Random() {
+		        this.setSeed();
+		        this.get01 = this.get01.bind(this);
+		    }
+		    Random.prototype.setSeed = function (v) {
+		        if (v === void 0) { v = -0x7fffffff; }
+		        if (v === -0x7fffffff) {
+		            v = Math.floor(Math.random() * 0x7fffffff);
+		        }
+		        this.x = v = 1812433253 * (v ^ (v >> 30));
+		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
+		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
+		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
+		        return this;
+		    };
+		    Random.prototype.getInt = function () {
+		        var t = this.x ^ (this.x << 11);
+		        this.x = this.y;
+		        this.y = this.z;
+		        this.z = this.w;
+		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
+		        return this.w;
+		    };
+		    Random.prototype.get01 = function () {
+		        return this.getInt() / 0x7fffffff;
+		    };
+		    return Random;
+		}());
+	
+	
+	/***/ }
+	/******/ ])
+	});
+	;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function webpackUniversalModuleDefinition(root, factory) {
+		if(true)
+			module.exports = factory();
+		else if(typeof define === 'function' && define.amd)
+			define([], factory);
+		else if(typeof exports === 'object')
+			exports["ppe"] = factory();
+		else
+			root["ppe"] = factory();
+	})(this, function() {
+	return /******/ (function(modules) { // webpackBootstrap
+	/******/ 	// The module cache
+	/******/ 	var installedModules = {};
+	
+	/******/ 	// The require function
+	/******/ 	function __webpack_require__(moduleId) {
+	
+	/******/ 		// Check if module is in cache
+	/******/ 		if(installedModules[moduleId])
+	/******/ 			return installedModules[moduleId].exports;
+	
+	/******/ 		// Create a new module (and put it into the cache)
+	/******/ 		var module = installedModules[moduleId] = {
+	/******/ 			exports: {},
+	/******/ 			id: moduleId,
+	/******/ 			loaded: false
+	/******/ 		};
+	
+	/******/ 		// Execute the module function
+	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+	
+	/******/ 		// Flag the module as loaded
+	/******/ 		module.loaded = true;
+	
+	/******/ 		// Return the exports of the module
+	/******/ 		return module.exports;
+	/******/ 	}
+	
+	
+	/******/ 	// expose the modules object (__webpack_modules__)
+	/******/ 	__webpack_require__.m = modules;
+	
+	/******/ 	// expose the module cache
+	/******/ 	__webpack_require__.c = installedModules;
+	
+	/******/ 	// __webpack_public_path__
+	/******/ 	__webpack_require__.p = "";
+	
+	/******/ 	// Load entry module and return exports
+	/******/ 	return __webpack_require__(0);
+	/******/ })
+	/************************************************************************/
+	/******/ ([
+	/* 0 */
+	/***/ function(module, exports, __webpack_require__) {
+	
+		module.exports = __webpack_require__(1);
+	
+	
+	/***/ },
+	/* 1 */
+	/***/ function(module, exports) {
+	
+		"use strict";
+		exports.options = {
+		    scaleRatio: 1,
+		    canvas: null,
+		    isLimitingColors: false
+		};
+		var emitters = {};
+		var seed = 0;
+		var context;
+		// emit the particle.
+		// specify the type with the first character of the patternName
+		// (e: explosion, m: muzzle, s: spark, t: trail, j: jet)
+		function emit(patternName, x, y, angle, emitOptions) {
+		    if (angle === void 0) { angle = 0; }
+		    if (emitOptions === void 0) { emitOptions = {}; }
+		    if (emitters[patternName] == null) {
+		        var random_1 = new Random();
+		        random_1.setSeed(seed + getHashFromString(patternName));
+		        emitters[patternName] = new Emitter(patternName[0], emitOptions, random_1);
+		    }
+		    var velX = emitOptions.velX == null ? 0 : emitOptions.velX;
+		    var velY = emitOptions.velY == null ? 0 : emitOptions.velY;
+		    emitters[patternName].emit(x, y, angle, velX, velY);
+		}
+		exports.emit = emit;
+		function update() {
+		    Particle.update();
+		}
+		exports.update = update;
+		function getParticles() {
+		    return Particle.s;
+		}
+		exports.getParticles = getParticles;
+		function setSeed(_seed) {
+		    if (_seed === void 0) { _seed = 0; }
+		    seed = _seed;
+		}
+		exports.setSeed = setSeed;
+		function reset() {
+		    emitters = {};
+		    Particle.s = [];
+		}
+		exports.reset = reset;
+		function setOptions(_options) {
+		    for (var attr in _options) {
+		        exports.options[attr] = _options[attr];
+		    }
+		}
+		exports.setOptions = setOptions;
+		var Emitter = (function () {
+		    function Emitter(patternType, emitOptions, random) {
+		        this.base = new Particle();
+		        this.angleDeflection = 0;
+		        this.speedDeflection = 0.5;
+		        this.sizeDeflection = 0.5;
+		        this.ticksDeflection = 0.3;
+		        this.count = 1;
+		        var hue = emitOptions.hue == null ? random.get01() : emitOptions.hue;
+		        var sizeScale = emitOptions.sizeScale == null ? 1 : emitOptions.sizeScale;
+		        var countScale = emitOptions.countScale == null ? 1 : emitOptions.countScale;
+		        switch (patternType) {
+		            case 'e':
+		                this.base.speed = 0.7;
+		                this.base.slowdownRatio = 0.05;
+		                this.base.targetSize = 10;
+		                this.base.beginColor = new Color(hue, 1, 0.5, 0.3);
+		                this.base.middleColor = new Color(hue, 0.2, 0.9, 0.1);
+		                this.base.endColor = new Color(hue, 0, 0, 0);
+		                this.base.middleTicks = 20;
+		                this.base.endTicks = 30;
+		                this.angleDeflection = Math.PI * 2;
+		                this.count = 15;
+		                break;
+		            case 'm':
+		            case 's':
+		                this.base.speed = patternType === 'm' ? 1.5 : 0.5;
+		                this.base.slowdownRatio = 0.025;
+		                this.base.targetSize = 5;
+		                this.base.beginColor = new Color(hue, 0.5, 0.5, 0.3);
+		                this.base.middleColor = new Color(hue, 1, 0.9, 0.3);
+		                this.base.endColor = new Color(hue, 0.75, 0.75, 0.2);
+		                this.base.middleTicks = 10;
+		                this.base.endTicks = 20;
+		                this.angleDeflection = patternType === 'm' ?
+		                    0.3 * random.getForParam() : Math.PI * 2;
+		                this.count = 10;
+		                break;
+		            case 't':
+		            case 'j':
+		                this.base.speed = patternType === 't' ? 0.1 : 1;
+		                this.base.slowdownRatio = 0.03;
+		                this.base.targetSize = patternType === 't' ? 3 : 7;
+		                this.base.beginColor = new Color(hue, 0.7, 0.7, 0.4);
+		                this.base.middleColor = new Color(hue, 1, 0.9, 0.2);
+		                this.base.endColor = new Color(hue, 0.7, 0.7, 0.1);
+		                this.base.middleTicks = patternType === 't' ? 30 : 15;
+		                this.base.endTicks = patternType === 't' ? 40 : 20;
+		                this.angleDeflection = 0.5 * random.getForParam();
+		                this.speedDeflection = 0.1;
+		                this.sizeDeflection = 0.1;
+		                this.ticksDeflection = 0.1;
+		                this.count = 0.5;
+		                break;
+		        }
+		        if (emitOptions.speed != null) {
+		            this.base.speed = emitOptions.speed;
+		        }
+		        if (emitOptions.slowdownRatio != null) {
+		            this.base.slowdownRatio = emitOptions.slowdownRatio;
+		        }
+		        this.base.speed *= sizeScale * exports.options.scaleRatio;
+		        this.base.targetSize *= sizeScale * exports.options.scaleRatio;
+		        this.count *= countScale;
+		        this.base.speed *= random.getForParam();
+		        this.base.slowdownRatio *= random.getForParam();
+		        this.base.targetSize *= random.getForParam();
+		        var em = this.base.endTicks - this.base.middleTicks;
+		        this.base.middleTicks *= random.getForParam();
+		        this.base.endTicks = this.base.middleTicks + em * random.getForParam();
+		        this.speedDeflection *= random.getForParam();
+		        this.sizeDeflection *= random.getForParam();
+		        this.ticksDeflection *= random.getForParam();
+		        this.count *= random.getForParam();
+		    }
+		    Emitter.prototype.emit = function (x, y, angle, velX, velY) {
+		        if (angle === void 0) { angle = 0; }
+		        if (velX === void 0) { velX = 0; }
+		        if (velY === void 0) { velY = 0; }
+		        if (this.count < 1 && this.count < Math.random()) {
+		            return;
+		        }
+		        for (var i = 0; i < this.count; i++) {
+		            var p = new Particle();
+		            p.pos.x = x;
+		            p.pos.y = y;
+		            p.vel.x = velX;
+		            p.vel.y = velY;
+		            p.angle = angle + (Math.random() - 0.5) * this.angleDeflection;
+		            p.speed = this.base.speed *
+		                ((Math.random() * 2 - 1) * this.speedDeflection + 1);
+		            p.slowdownRatio = this.base.slowdownRatio;
+		            p.targetSize = this.base.targetSize *
+		                ((Math.random() * 2 - 1) * this.sizeDeflection + 1);
+		            p.middleTicks = this.base.middleTicks *
+		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
+		            p.endTicks = this.base.endTicks *
+		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
+		            p.beginColor = this.base.beginColor;
+		            p.middleColor = this.base.middleColor;
+		            p.endColor = this.base.endColor;
+		            Particle.s.push(p);
+		        }
+		    };
+		    return Emitter;
+		}());
+		exports.Emitter = Emitter;
+		var Particle = (function () {
+		    function Particle() {
+		        this.pos = new Vector();
+		        this.vel = new Vector();
+		        this.size = 0;
+		        this.angle = 0;
+		        this.speed = 1;
+		        this.slowdownRatio = 0.01;
+		        this.targetSize = 10;
+		        this.middleTicks = 20;
+		        this.endTicks = 60;
+		        this.ticks = 0;
+		    }
+		    Particle.prototype.update = function () {
+		        this.pos.x += Math.cos(this.angle) * this.speed + this.vel.x;
+		        this.pos.y += Math.sin(this.angle) * this.speed + this.vel.y;
+		        this.speed *= (1 - this.slowdownRatio);
+		        this.vel.x *= 0.99;
+		        this.vel.y *= 0.99;
+		        if (this.ticks >= this.endTicks) {
+		            return false;
+		        }
+		        if (this.ticks < this.middleTicks) {
+		            this.color = this.beginColor.getLerped(this.middleColor, this.ticks / this.middleTicks);
+		            this.size += (this.targetSize - this.size) * 0.1;
+		        }
+		        else {
+		            this.color = this.middleColor.getLerped(this.endColor, (this.ticks - this.middleTicks) / (this.endTicks - this.middleTicks));
+		            this.size *= 0.95;
+		        }
+		        this.color = this.color.getSparkled();
+		        if (context != null) {
+		            context.fillStyle = this.color.getStyle();
+		            context.fillRect(this.pos.x - this.size / 2, this.pos.y - this.size / 2, this.size, this.size);
+		        }
+		        this.ticks++;
+		    };
+		    Particle.update = function () {
+		        if (context == null && exports.options.canvas != null) {
+		            context = exports.options.canvas.getContext('2d');
+		        }
+		        for (var i = 0; i < Particle.s.length;) {
+		            if (Particle.s[i].update() === false) {
+		                Particle.s.splice(i, 1);
+		            }
+		            else {
+		                i++;
+		            }
+		        }
+		    };
+		    Particle.s = [];
+		    return Particle;
+		}());
+		exports.Particle = Particle;
+		var Vector = (function () {
+		    function Vector(x, y) {
+		        if (x === void 0) { x = 0; }
+		        if (y === void 0) { y = 0; }
+		        this.x = x;
+		        this.y = y;
+		    }
+		    return Vector;
+		}());
+		exports.Vector = Vector;
+		var Color = (function () {
+		    function Color(hue, saturation, value, sparkleRatio) {
+		        if (hue === void 0) { hue = 0; }
+		        if (saturation === void 0) { saturation = 1; }
+		        if (value === void 0) { value = 1; }
+		        if (sparkleRatio === void 0) { sparkleRatio = 0; }
+		        this.hue = hue;
+		        this.saturation = saturation;
+		        this.value = value;
+		        this.sparkleRatio = sparkleRatio;
+		        this.r = 0;
+		        this.g = 0;
+		        this.b = 0;
+		        this.r = value;
+		        this.g = value;
+		        this.b = value;
+		        var h = hue * 6;
+		        var i = Math.floor(h);
+		        var f = h - i;
+		        switch (i) {
+		            case 0:
+		                this.g *= 1 - saturation * (1 - f);
+		                this.b *= 1 - saturation;
+		                break;
+		            case 1:
+		                this.b *= 1 - saturation;
+		                this.r *= 1 - saturation * f;
+		                break;
+		            case 2:
+		                this.b *= 1 - saturation * (1 - f);
+		                this.r *= 1 - saturation;
+		                break;
+		            case 3:
+		                this.r *= 1 - saturation;
+		                this.g *= 1 - saturation * f;
+		                break;
+		            case 4:
+		                this.r *= 1 - saturation * (1 - f);
+		                this.g *= 1 - saturation;
+		                break;
+		            case 5:
+		                this.g *= 1 - saturation;
+		                this.b *= 1 - saturation * f;
+		                break;
+		        }
+		        if (exports.options.isLimitingColors === true) {
+		            this.limitRgb();
+		        }
+		    }
+		    Color.prototype.getStyle = function () {
+		        var r = Math.floor(this.r * 255);
+		        var g = Math.floor(this.g * 255);
+		        var b = Math.floor(this.b * 255);
+		        return "rgb(" + r + "," + g + "," + b + ")";
+		    };
+		    Color.prototype.getSparkled = function () {
+		        if (this.sparkled == null) {
+		            this.sparkled = new Color();
+		        }
+		        this.sparkled.r = clamp(this.r + this.sparkleRatio * (Math.random() * 2 - 1));
+		        this.sparkled.g = clamp(this.g + this.sparkleRatio * (Math.random() * 2 - 1));
+		        this.sparkled.b = clamp(this.b + this.sparkleRatio * (Math.random() * 2 - 1));
+		        if (exports.options.isLimitingColors === true) {
+		            this.sparkled.limitRgb();
+		        }
+		        return this.sparkled;
+		    };
+		    Color.prototype.getLerped = function (other, ratio) {
+		        if (this.lerped == null) {
+		            this.lerped = new Color();
+		        }
+		        this.lerped.r = this.r * (1 - ratio) + other.r * ratio;
+		        this.lerped.g = this.g * (1 - ratio) + other.g * ratio;
+		        this.lerped.b = this.b * (1 - ratio) + other.b * ratio;
+		        this.lerped.sparkleRatio =
+		            this.sparkleRatio * (1 - ratio) + other.sparkleRatio * ratio;
+		        if (exports.options.isLimitingColors === true) {
+		            this.lerped.limitRgb();
+		        }
+		        return this.lerped;
+		    };
+		    Color.prototype.limitRgb = function () {
+		        this.r = this.limitColor(this.r);
+		        this.g = this.limitColor(this.g);
+		        this.b = this.limitColor(this.b);
+		    };
+		    Color.prototype.limitColor = function (v) {
+		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
+		    };
+		    return Color;
+		}());
+		exports.Color = Color;
+		function getHashFromString(str) {
+		    var hash = 0;
+		    var len = str.length;
+		    for (var i = 0; i < len; i++) {
+		        var chr = str.charCodeAt(i);
+		        hash = ((hash << 5) - hash) + chr;
+		        hash |= 0;
+		    }
+		    return hash;
+		}
+		function clamp(v) {
+		    if (v <= 0) {
+		        return 0;
+		    }
+		    else if (v >= 1) {
+		        return 1;
+		    }
+		    else {
+		        return v;
+		    }
+		}
+		var Random = (function () {
+		    function Random() {
+		        this.setSeed();
+		        this.get01 = this.get01.bind(this);
+		    }
+		    Random.prototype.setSeed = function (v) {
+		        if (v === void 0) { v = -0x7fffffff; }
+		        if (v === -0x7fffffff) {
+		            v = Math.floor(Math.random() * 0x7fffffff);
+		        }
+		        this.x = v = 1812433253 * (v ^ (v >> 30));
+		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
+		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
+		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
+		        return this;
+		    };
+		    Random.prototype.getInt = function () {
+		        var t = this.x ^ (this.x << 11);
+		        this.x = this.y;
+		        this.y = this.z;
+		        this.z = this.w;
+		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
+		        return this.w;
+		    };
+		    Random.prototype.get01 = function () {
+		        return this.getInt() / 0x7fffffff;
+		    };
+		    Random.prototype.getForParam = function () {
+		        return this.get01() + 0.5;
+		    };
+		    return Random;
+		}());
+	
+	
+	/***/ }
+	/******/ ])
+	});
+	;
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function webpackUniversalModuleDefinition(root, factory) {
@@ -19970,6 +19698,278 @@
 	;
 
 /***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	function __export(m) {
+	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	}
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(4);
+	var ppe = __webpack_require__(5);
+	var sss = __webpack_require__(6);
+	var ir = __webpack_require__(8);
+	var actor_1 = __webpack_require__(9);
+	var random_1 = __webpack_require__(10);
+	exports.Random = random_1.default;
+	var ui = __webpack_require__(11);
+	exports.ui = ui;
+	var screen = __webpack_require__(12);
+	exports.screen = screen;
+	var text = __webpack_require__(13);
+	exports.text = text;
+	var debug = __webpack_require__(14);
+	exports.debug = debug;
+	__export(__webpack_require__(15));
+	__export(__webpack_require__(9));
+	__export(__webpack_require__(16));
+	exports.p5 = __webpack_require__(17);
+	exports.ticks = 0;
+	exports.score = 0;
+	var options = {
+	    isShowingScore: true,
+	    isShowingTitle: true,
+	    isReplayEnabled: false,
+	    isPlayingBgm: true
+	};
+	var initFunc;
+	var initGameFunc;
+	var updateFunc;
+	var postUpdateFunc;
+	var onSeedChangedFunc;
+	var actorGeneratorFunc;
+	var getReplayStatusFunc;
+	var setReplayStatusFunc;
+	var title = 'N/A';
+	var titleCont;
+	var isDebugEnabled = false;
+	var modules = [];
+	(function (Scene) {
+	    Scene[Scene["title"] = 0] = "title";
+	    Scene[Scene["game"] = 1] = "game";
+	    Scene[Scene["gameover"] = 2] = "gameover";
+	    Scene[Scene["replay"] = 3] = "replay";
+	})(exports.Scene || (exports.Scene = {}));
+	var Scene = exports.Scene;
+	;
+	function init(_initFunc, _initGameFunc, _updateFunc, _postUpdateFunc) {
+	    if (_postUpdateFunc === void 0) { _postUpdateFunc = null; }
+	    initFunc = _initFunc;
+	    initGameFunc = _initGameFunc;
+	    updateFunc = _updateFunc;
+	    postUpdateFunc = _postUpdateFunc;
+	    exports.random = new random_1.default();
+	    sss.init();
+	    new exports.p5(function (_p) {
+	        exports.p = _p;
+	        exports.p.setup = setup;
+	        exports.p.draw = draw;
+	        exports.p.mousePressed = function () {
+	            sss.playEmpty();
+	        };
+	    });
+	}
+	exports.init = init;
+	function setTitle(_title, _titleCont) {
+	    if (_titleCont === void 0) { _titleCont = null; }
+	    title = _title;
+	    titleCont = _titleCont;
+	}
+	exports.setTitle = setTitle;
+	function setReplayFuncs(_actorGeneratorFunc, _getReplayStatusFunc, _setReplayStatusFunc) {
+	    if (_getReplayStatusFunc === void 0) { _getReplayStatusFunc = null; }
+	    if (_setReplayStatusFunc === void 0) { _setReplayStatusFunc = null; }
+	    options.isReplayEnabled = true;
+	    actorGeneratorFunc = _actorGeneratorFunc;
+	    getReplayStatusFunc = _getReplayStatusFunc;
+	    setReplayStatusFunc = _setReplayStatusFunc;
+	}
+	exports.setReplayFuncs = setReplayFuncs;
+	function enableDebug(_onSeedChangedFunc) {
+	    if (_onSeedChangedFunc === void 0) { _onSeedChangedFunc = null; }
+	    onSeedChangedFunc = _onSeedChangedFunc;
+	    debug.initSeedUi(setSeeds);
+	    debug.enableShowingErrors();
+	    isDebugEnabled = true;
+	}
+	exports.enableDebug = enableDebug;
+	function setOptions(_options) {
+	    for (var attr in _options) {
+	        options[attr] = _options[attr];
+	    }
+	}
+	exports.setOptions = setOptions;
+	function setSeeds(seed) {
+	    pag.setSeed(seed);
+	    ppe.setSeed(seed);
+	    ppe.reset();
+	    sss.reset();
+	    sss.setSeed(seed);
+	    if (exports.scene === Scene.game) {
+	        sss.playBgm();
+	    }
+	    if (onSeedChangedFunc != null) {
+	        onSeedChangedFunc();
+	    }
+	}
+	exports.setSeeds = setSeeds;
+	function endGame() {
+	    if (exports.scene === Scene.gameover) {
+	        return;
+	    }
+	    var isReplay = exports.scene === Scene.replay;
+	    exports.scene = Scene.gameover;
+	    exports.ticks = 0;
+	    sss.stopBgm();
+	    if (!isReplay && options.isReplayEnabled) {
+	        ir.saveAsUrl();
+	    }
+	}
+	exports.endGame = endGame;
+	function addScore(v, pos) {
+	    if (v === void 0) { v = 1; }
+	    if (pos === void 0) { pos = null; }
+	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
+	        exports.score += v;
+	        if (pos != null) {
+	            var t = new actor_1.Text("+" + v);
+	            t.pos.set(pos);
+	        }
+	    }
+	}
+	exports.addScore = addScore;
+	function addModule(module) {
+	    modules.push(module);
+	}
+	exports.addModule = addModule;
+	function clearModules() {
+	    modules = [];
+	}
+	exports.clearModules = clearModules;
+	function setup() {
+	    actor_1.Actor.init();
+	    initFunc();
+	    if (isDebugEnabled || !options.isShowingTitle) {
+	        beginGame();
+	    }
+	    else {
+	        if (options.isReplayEnabled && ir.loadFromUrl() === true) {
+	            beginReplay();
+	        }
+	        else {
+	            beginTitle();
+	            initGameFunc();
+	        }
+	    }
+	}
+	function beginGame() {
+	    exports.scene = Scene.game;
+	    exports.score = exports.ticks = 0;
+	    if (options.isPlayingBgm) {
+	        sss.playBgm();
+	    }
+	    ir.startRecord();
+	    clearModules();
+	    actor_1.Actor.clear();
+	    ui.isJustPressed = false;
+	    initGameFunc();
+	}
+	function beginTitle() {
+	    exports.scene = Scene.title;
+	    exports.ticks = 0;
+	}
+	function beginReplay() {
+	    var status = ir.startReplay();
+	    if (status !== false) {
+	        exports.scene = Scene.replay;
+	        actor_1.Actor.clear();
+	        initGameFunc();
+	        setStatus(status);
+	    }
+	}
+	function draw() {
+	    screen.clear();
+	    ui.update();
+	    handleScene();
+	    sss.update();
+	    updateFunc();
+	    _.forEach(modules, function (m) {
+	        m.update();
+	    });
+	    actor_1.Actor.updateLowerZero();
+	    ppe.update();
+	    actor_1.Actor.update();
+	    if (postUpdateFunc != null) {
+	        postUpdateFunc();
+	    }
+	    if (options.isShowingScore) {
+	        text.draw("" + exports.score, 1, 1, text.Align.left);
+	    }
+	    drawSceneText();
+	    exports.ticks++;
+	}
+	function handleScene() {
+	    if (exports.scene === Scene.title && ui.isJustPressed) {
+	        beginGame();
+	    }
+	    if (options.isReplayEnabled && exports.scene === Scene.game) {
+	        ir.record(getStatus(), ui.getReplayEvents());
+	    }
+	    if (exports.scene === Scene.gameover && (exports.ticks === 60 || ui.isJustPressed)) {
+	        beginTitle();
+	    }
+	    if (options.isReplayEnabled && exports.scene === Scene.title && exports.ticks === 120) {
+	        beginReplay();
+	    }
+	    if (exports.scene === Scene.replay) {
+	        var events = ir.getEvents();
+	        if (events !== false) {
+	            ui.setReplayEvents(events);
+	        }
+	        else {
+	            beginTitle();
+	        }
+	    }
+	}
+	function drawSceneText() {
+	    switch (exports.scene) {
+	        case Scene.title:
+	            if (titleCont == null) {
+	                text.draw(title, screen.size.x / 2, screen.size.y * 0.48);
+	            }
+	            else {
+	                text.draw(title, screen.size.x / 2, screen.size.y * 0.4);
+	                text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48);
+	            }
+	            break;
+	        case Scene.gameover:
+	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
+	            break;
+	        case Scene.replay:
+	            text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55);
+	            break;
+	    }
+	}
+	function getStatus() {
+	    var status = [exports.ticks, exports.score, exports.random.getStatus(), actor_1.Actor.getReplayStatus()];
+	    if (getReplayStatusFunc != null) {
+	        status.push(getReplayStatusFunc());
+	    }
+	    return status;
+	}
+	function setStatus(status) {
+	    actor_1.Actor.setReplayStatus(status[3], actorGeneratorFunc);
+	    if (setReplayStatusFunc != null) {
+	        setReplayStatusFunc(status[4]);
+	    }
+	    exports.ticks = status[0];
+	    exports.score = status[1];
+	    exports.random.setStatus(status[2]);
+	}
+
+
+/***/ },
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -20694,12 +20694,17 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var _ = __webpack_require__(5);
-	var pag = __webpack_require__(2);
-	var ppe = __webpack_require__(3);
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(4);
+	var ppe = __webpack_require__(5);
+	var sss = __webpack_require__(6);
 	var ir = __webpack_require__(8);
-	var s1 = __webpack_require__(4);
-	var screen = __webpack_require__(10);
+	var ob = __webpack_require__(7);
 	var p5;
 	var rotationNum = 16;
 	var Actor = (function () {
@@ -20712,10 +20717,11 @@
 	        this.priority = 1;
 	        this.ticks = 0;
 	        this.collision = new p5.Vector(8, 8);
-	        this.context = screen.context;
+	        this.context = ob.screen.context;
 	        this.modules = [];
 	        Actor.add(this);
 	        this.type = ('' + this.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
+	        this.addModule(new ob.RemoveWhenOut(this));
 	    }
 	    Actor.prototype.update = function () {
 	        this.pos.add(this.vel);
@@ -20775,7 +20781,7 @@
 	        ir.arrayToObject(status, this.replayPropertyNames, this);
 	    };
 	    Actor.init = function () {
-	        p5 = s1.p5;
+	        p5 = ob.p5;
 	        pag.defaultOptions.isMirrorY = true;
 	        pag.defaultOptions.rotationNum = rotationNum;
 	        pag.defaultOptions.scale = 2;
@@ -20836,8 +20842,117 @@
 	    };
 	    return Actor;
 	}());
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = Actor;
+	exports.Actor = Actor;
+	var Player = (function (_super) {
+	    __extends(Player, _super);
+	    function Player() {
+	        _super.call(this);
+	        this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
+	        this.type = 'player';
+	    }
+	    Player.prototype.update = function () {
+	        this.emitParticles('t_pl');
+	        _super.prototype.update.call(this);
+	        if (this.testCollision('enemy').length > 0) {
+	            this.onDestroyed();
+	        }
+	    };
+	    Player.prototype.onDestroyed = function () {
+	        sss.play('u_pl_d');
+	        this.emitParticles('e_pl_d', { sizeScale: 2 });
+	        this.remove();
+	        ob.endGame();
+	    };
+	    return Player;
+	}(Actor));
+	exports.Player = Player;
+	var Enemy = (function (_super) {
+	    __extends(Enemy, _super);
+	    function Enemy() {
+	        _super.call(this);
+	        this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
+	        this.type = 'enemy';
+	    }
+	    Enemy.prototype.update = function () {
+	        this.emitParticles('t_en');
+	        _super.prototype.update.call(this);
+	        var cs = this.testCollision('shot');
+	        if (cs.length > 0) {
+	            this.onDestroyed();
+	            _.forEach(cs, function (s) {
+	                s.remove();
+	            });
+	        }
+	    };
+	    Enemy.prototype.onDestroyed = function () {
+	        sss.play('e_en_d');
+	        this.emitParticles('e_en_d');
+	        ob.addScore(1, this.pos);
+	        this.remove();
+	    };
+	    return Enemy;
+	}(Actor));
+	exports.Enemy = Enemy;
+	var Shot = (function (_super) {
+	    __extends(Shot, _super);
+	    function Shot(actor, speed) {
+	        if (speed === void 0) { speed = 2; }
+	        _super.call(this);
+	        this.pixels = pag.generate(['xxx'], { hue: 0.4 });
+	        this.type = 'shot';
+	        this.pos.set(actor.pos);
+	        this.angle = actor.angle;
+	        this.speed = speed;
+	    }
+	    Shot.prototype.update = function () {
+	        this.emitParticles('t_st');
+	        _super.prototype.update.call(this);
+	    };
+	    return Shot;
+	}(Actor));
+	exports.Shot = Shot;
+	var Star = (function (_super) {
+	    __extends(Star, _super);
+	    function Star() {
+	        _super.call(this);
+	        this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
+	        this.vel.y = ob.p.random(0.5, 1.5);
+	        this.clearModules();
+	        this.addModule(new ob.WrapPos(this));
+	        var colorStrs = ['00', '7f', 'ff'];
+	        this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
+	        this.priority = -1;
+	    }
+	    Star.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        ob.p.fill(this.color);
+	        ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 2, 2);
+	    };
+	    return Star;
+	}(Actor));
+	exports.Star = Star;
+	var Text = (function (_super) {
+	    __extends(Text, _super);
+	    function Text(str, duration, align) {
+	        if (duration === void 0) { duration = 30; }
+	        if (align === void 0) { align = null; }
+	        _super.call(this);
+	        this.str = str;
+	        this.duration = duration;
+	        this.align = align;
+	        this.vel.y = -2;
+	    }
+	    Text.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        this.vel.mult(0.9);
+	        ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
+	        if (this.ticks >= this.duration) {
+	            this.remove();
+	        }
+	    };
+	    return Text;
+	}(Actor));
+	exports.Text = Text;
 
 
 /***/ },
@@ -20845,9 +20960,90 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var ppe = __webpack_require__(3);
-	var s1 = __webpack_require__(4);
-	var text = __webpack_require__(11);
+	var ir = __webpack_require__(8);
+	var Random = (function () {
+	    function Random() {
+	        this.propNames = ['x', 'y', 'z', 'w'];
+	        this.setSeed();
+	    }
+	    Random.prototype.get = function (fromOrTo, to) {
+	        if (fromOrTo === void 0) { fromOrTo = 1; }
+	        if (to === void 0) { to = null; }
+	        if (to == null) {
+	            to = fromOrTo;
+	            fromOrTo = 0;
+	        }
+	        return this.getToMaxInt() / 0x7fffffff * (to - fromOrTo) + fromOrTo;
+	    };
+	    Random.prototype.getInt = function (fromOrTo, to) {
+	        if (fromOrTo === void 0) { fromOrTo = 1; }
+	        if (to === void 0) { to = null; }
+	        return Math.floor(this.get(fromOrTo, to));
+	    };
+	    Random.prototype.setSeed = function (v) {
+	        if (v === void 0) { v = -0x7fffffff; }
+	        if (v === -0x7fffffff) {
+	            v = Math.floor(Math.random() * 0x7fffffff);
+	        }
+	        this.x = v = 1812433253 * (v ^ (v >> 30));
+	        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
+	        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
+	        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
+	        return this;
+	    };
+	    Random.prototype.getToMaxInt = function () {
+	        var t = this.x ^ (this.x << 11);
+	        this.x = this.y;
+	        this.y = this.z;
+	        this.z = this.w;
+	        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
+	        return this.w;
+	    };
+	    Random.prototype.getStatus = function () {
+	        return ir.objectToArray(this, this.propNames);
+	    };
+	    Random.prototype.setStatus = function (status) {
+	        ir.arrayToObject(status, this.propNames, this);
+	    };
+	    return Random;
+	}());
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = Random;
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var ob = __webpack_require__(7);
+	exports.isPressed = false;
+	exports.isJustPressed = false;
+	function update() {
+	    var pp = exports.isPressed;
+	    exports.isPressed = ob.p.keyIsPressed || ob.p.mouseIsPressed;
+	    exports.isJustPressed = (!pp && exports.isPressed);
+	}
+	exports.update = update;
+	function getReplayEvents() {
+	    return [exports.isPressed, exports.isJustPressed];
+	}
+	exports.getReplayEvents = getReplayEvents;
+	function setReplayEvents(events) {
+	    exports.isPressed = events[0];
+	    exports.isJustPressed = events[1];
+	}
+	exports.setReplayEvents = setReplayEvents;
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var ppe = __webpack_require__(5);
+	var s1 = __webpack_require__(7);
+	var text = __webpack_require__(13);
 	var p5;
 	var p;
 	var backgroundColor;
@@ -20874,7 +21070,7 @@
 
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -20978,87 +21174,6 @@
 
 
 /***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var ir = __webpack_require__(8);
-	var Random = (function () {
-	    function Random() {
-	        this.propNames = ['x', 'y', 'z', 'w'];
-	        this.setSeed();
-	    }
-	    Random.prototype.get = function (fromOrTo, to) {
-	        if (fromOrTo === void 0) { fromOrTo = 1; }
-	        if (to === void 0) { to = null; }
-	        if (to == null) {
-	            to = fromOrTo;
-	            fromOrTo = 0;
-	        }
-	        return this.getToMaxInt() / 0x7fffffff * (to - fromOrTo) + fromOrTo;
-	    };
-	    Random.prototype.getInt = function (fromOrTo, to) {
-	        if (fromOrTo === void 0) { fromOrTo = 1; }
-	        if (to === void 0) { to = null; }
-	        return Math.floor(this.get(fromOrTo, to));
-	    };
-	    Random.prototype.setSeed = function (v) {
-	        if (v === void 0) { v = -0x7fffffff; }
-	        if (v === -0x7fffffff) {
-	            v = Math.floor(Math.random() * 0x7fffffff);
-	        }
-	        this.x = v = 1812433253 * (v ^ (v >> 30));
-	        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
-	        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
-	        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
-	        return this;
-	    };
-	    Random.prototype.getToMaxInt = function () {
-	        var t = this.x ^ (this.x << 11);
-	        this.x = this.y;
-	        this.y = this.z;
-	        this.z = this.w;
-	        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
-	        return this.w;
-	    };
-	    Random.prototype.getStatus = function () {
-	        return ir.objectToArray(this, this.propNames);
-	    };
-	    Random.prototype.setStatus = function (status) {
-	        ir.arrayToObject(status, this.propNames, this);
-	    };
-	    return Random;
-	}());
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.default = Random;
-
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var ob = __webpack_require__(4);
-	exports.isPressed = false;
-	exports.isJustPressed = false;
-	function update() {
-	    var pp = exports.isPressed;
-	    exports.isPressed = ob.p.keyIsPressed || ob.p.mouseIsPressed;
-	    exports.isJustPressed = (!pp && exports.isPressed);
-	}
-	exports.update = update;
-	function getReplayEvents() {
-	    return [exports.isPressed, exports.isJustPressed];
-	}
-	exports.getReplayEvents = getReplayEvents;
-	function setReplayEvents(events) {
-	    exports.isPressed = events[0];
-	    exports.isJustPressed = events[1];
-	}
-	exports.setReplayEvents = setReplayEvents;
-
-
-/***/ },
 /* 14 */
 /***/ function(module, exports) {
 
@@ -21099,10 +21214,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var _ = __webpack_require__(5);
-	var ob = __webpack_require__(4);
-	var Actor = __webpack_require__(16);
-	exports.Actor = Actor;
+	var ob = __webpack_require__(7);
 	function isIn(v, low, high) {
 	    return v >= low && v <= high;
 	}
@@ -21135,6 +21247,15 @@
 	    return Vector;
 	}());
 	exports.Vector = Vector;
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var _ = __webpack_require__(2);
+	var ob = __webpack_require__(7);
 	var DoInterval = (function () {
 	    function DoInterval(actor, func, interval, isStartRandomized, isChangedByDifficulty) {
 	        if (interval === void 0) { interval = 60; }
@@ -21155,7 +21276,7 @@
 	            }
 	            var i = this.interval;
 	            if (this.isChangedByDifficulty) {
-	                i /= getDifficulty();
+	                i /= ob.getDifficulty();
 	            }
 	            this.ticks += i;
 	        }
@@ -21170,8 +21291,8 @@
 	        this.padding = padding;
 	    }
 	    RemoveWhenOut.prototype.update = function () {
-	        if (!isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
-	            !isIn(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding)) {
+	        if (!ob.isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
+	            !ob.isIn(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding)) {
 	            this.actor.remove();
 	        }
 	    };
@@ -21186,9 +21307,9 @@
 	    }
 	    WrapPos.prototype.update = function () {
 	        this.actor.pos.x =
-	            wrap(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding);
+	            ob.wrap(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding);
 	        this.actor.pos.y =
-	            wrap(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding);
+	            ob.wrap(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding);
 	    };
 	    return WrapPos;
 	}());
@@ -21228,96 +21349,6 @@
 	    });
 	    return { value: value, name: name };
 	}
-
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var _ = __webpack_require__(5);
-	var pag = __webpack_require__(2);
-	var sss = __webpack_require__(7);
-	var ob = __webpack_require__(4);
-	var Player = (function (_super) {
-	    __extends(Player, _super);
-	    function Player() {
-	        _super.call(this);
-	        this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
-	        this.type = 'player';
-	    }
-	    Player.prototype.update = function () {
-	        this.emitParticles('t_pl');
-	        _super.prototype.update.call(this);
-	        if (this.testCollision('enemy').length > 0) {
-	            sss.play('u_pl_d');
-	            this.emitParticles('e_pl_d', { sizeScale: 2 });
-	            this.remove();
-	        }
-	    };
-	    return Player;
-	}(ob.Actor));
-	exports.Player = Player;
-	var Enemy = (function (_super) {
-	    __extends(Enemy, _super);
-	    function Enemy() {
-	        _super.call(this);
-	        this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
-	        this.type = 'enemy';
-	    }
-	    Enemy.prototype.update = function () {
-	        this.emitParticles('t_en');
-	        _super.prototype.update.call(this);
-	    };
-	    return Enemy;
-	}(ob.Actor));
-	exports.Enemy = Enemy;
-	var Star = (function (_super) {
-	    __extends(Star, _super);
-	    function Star() {
-	        _super.call(this);
-	        this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
-	        this.vel.y = ob.p.random(0.5, 1.5);
-	        this.addModule(new ob.m.WrapPos(this));
-	        var colorStrs = ['00', '7f', 'ff'];
-	        this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
-	        this.priority = -1;
-	    }
-	    Star.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        ob.p.fill(this.color);
-	        ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 2, 2);
-	    };
-	    return Star;
-	}(ob.Actor));
-	exports.Star = Star;
-	var Text = (function (_super) {
-	    __extends(Text, _super);
-	    function Text(str, duration, align) {
-	        if (duration === void 0) { duration = 30; }
-	        if (align === void 0) { align = null; }
-	        _super.call(this);
-	        this.str = str;
-	        this.duration = duration;
-	        this.align = align;
-	        this.vel.y = -2;
-	    }
-	    Text.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        this.vel.mult(0.9);
-	        ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
-	        if (this.ticks >= this.duration) {
-	            this.remove();
-	        }
-	    };
-	    return Text;
-	}(ob.Actor));
-	exports.Text = Text;
 
 
 /***/ },

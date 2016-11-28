@@ -4,14 +4,16 @@ import * as ppe from 'ppe';
 import * as sss from 'sss';
 import * as ir from 'ir';
 
-import Actor from './actor';
+import { Actor, Text } from './actor';
 import Random from './random';
 import * as ui from './ui';
 import * as screen from './screen';
 import * as text from './text';
 import * as debug from './debug';
-import * as m from './modules';
-export { Actor, Random, ui, screen, text, debug, m };
+export * from './util';
+export * from './actor';
+export * from './modules/index';
+export { Random, ui, screen, text, debug };
 
 declare const require: any;
 export const p5 = require('p5');
@@ -122,7 +124,7 @@ export function addScore(v: number = 1, pos: p5.Vector = null) {
   if (scene === Scene.game || scene === Scene.replay) {
     score += v;
     if (pos != null) {
-      const t = new m.Actor.Text(`+${v}`);
+      const t = new Text(`+${v}`);
       t.pos.set(pos);
     }
   }
@@ -160,6 +162,7 @@ function beginGame() {
   ir.startRecord();
   clearModules();
   Actor.clear();
+  (<any>ui).isJustPressed = false;
   initGameFunc();
 }
 
@@ -201,13 +204,13 @@ function draw() {
 }
 
 function handleScene() {
-  if (scene !== Scene.game && ui.isJustPressed) {
+  if (scene === Scene.title && ui.isJustPressed) {
     beginGame();
   }
   if (options.isReplayEnabled && scene === Scene.game) {
     ir.record(getStatus(), ui.getReplayEvents());
   }
-  if (scene === Scene.gameover && ticks === 60) {
+  if (scene === Scene.gameover && (ticks === 60 || ui.isJustPressed)) {
     beginTitle();
   }
   if (options.isReplayEnabled && scene === Scene.title && ticks === 120) {
@@ -219,11 +222,6 @@ function handleScene() {
       ui.setReplayEvents(events);
     } else {
       beginTitle();
-    }
-  }
-  if (scene === Scene.game) {
-    if (Actor.get('player').length <= 0) {
-      endGame();
     }
   }
 }
