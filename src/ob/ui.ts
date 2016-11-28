@@ -9,6 +9,10 @@ export function update() {
   isJustPressed = (!pp && isPressed);
 }
 
+export function clearJustPressed() {
+  isJustPressed = false;
+}
+
 export function getReplayEvents() {
   return [isPressed, isJustPressed];
 }
