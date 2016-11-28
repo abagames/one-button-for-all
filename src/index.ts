@@ -6,7 +6,6 @@ import * as ob from './ob/index';
 
 ob.init(init, initGame, update);
 let p: p5 = ob.p;
-let m = ob.m;
 
 function init() {
   ob.screen.init(128, 128);
@@ -24,9 +23,9 @@ function init() {
 }
 
 function initGame() {
-  _.times(64, () => new m.Actor.Star());
+  _.times(64, () => new ob.Star());
   new Player();
-  ob.addModule(new m.DoInterval(null, () => {
+  ob.addModule(new ob.DoInterval(null, () => {
     new Enemy();
   }, 60, false, true));
 }
@@ -34,13 +33,13 @@ function initGame() {
 function update() {
 }
 
-class Player extends m.Actor.Player {
+class Player extends ob.Player {
   ms;
   nextAsAngle = p.HALF_PI;
 
   constructor() {
     super();
-    this.ms = new m.MoveSin(this, 'pos.x');
+    this.ms = new ob.MoveSin(this, 'pos.x');
     this.addModule(this.ms);
     this.pos.y = 100;
     this.angle = -p.HALF_PI;
@@ -53,16 +52,18 @@ class Player extends m.Actor.Player {
       this.nextAsAngle += p.PI;
       sss.play('c1');
     }
+    if (ob.ui.isJustPressed) {
+      new ob.Shot(this);
+    }
     super.update();
   }
 }
 
-class Enemy extends m.Actor.Enemy {
+class Enemy extends ob.Enemy {
   constructor() {
     super();
     this.pos.x = p.random(128);
-    this.vel.y = p.random(1, m.getDifficulty());
-    this.addModule(new m.RemoveWhenOut(this))
+    this.vel.y = p.random(1, ob.getDifficulty());
     this.angle = p.HALF_PI;
   }
 }
