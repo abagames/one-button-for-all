@@ -162,6 +162,7 @@ function beginGame() {
   ir.startRecord();
   clearModules();
   Actor.clear();
+  ppe.clear();
   ui.clearJustPressed();
   initGameFunc();
 }

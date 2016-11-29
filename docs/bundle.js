@@ -17758,9 +17758,13 @@
 		exports.setSeed = setSeed;
 		function reset() {
 		    emitters = {};
-		    Particle.s = [];
+		    clear();
 		}
 		exports.reset = reset;
+		function clear() {
+		    Particle.s = [];
+		}
+		exports.clear = clear;
 		function setOptions(_options) {
 		    for (var attr in _options) {
 		        exports.options[attr] = _options[attr];
@@ -19872,7 +19876,8 @@
 	    ir.startRecord();
 	    clearModules();
 	    actor_1.Actor.clear();
-	    ui.isJustPressed = false;
+	    ppe.clear();
+	    ui.clearJustPressed();
 	    initGameFunc();
 	}
 	function beginTitle() {
@@ -21025,6 +21030,10 @@
 	    exports.isJustPressed = (!pp && exports.isPressed);
 	}
 	exports.update = update;
+	function clearJustPressed() {
+	    exports.isJustPressed = false;
+	}
+	exports.clearJustPressed = clearJustPressed;
 	function getReplayEvents() {
 	    return [exports.isPressed, exports.isJustPressed];
 	}
