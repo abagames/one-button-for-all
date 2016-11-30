@@ -171,7 +171,8 @@ export class Player extends Actor {
   update() {
     this.emitParticles('t_pl');
     super.update();
-    if (this.testCollision('enemy').length > 0) {
+    if (this.testCollision('enemy').length > 0 ||
+      this.testCollision('bullet').length > 0) {
       this.onDestroyed();
     }
   }
@@ -212,17 +213,37 @@ export class Enemy extends Actor {
 }
 
 export class Shot extends Actor {
-  constructor(actor, speed = 2) {
+  constructor(actor, speed = 2, angle = null) {
     super();
     this.pixels = pag.generate(['xxx'], { hue: 0.4 });
     this.type = 'shot';
     this.pos.set(actor.pos);
-    this.angle = actor.angle;
+    this.angle = angle == null ? actor.angle : angle;
     this.speed = speed;
+    this.emitParticles('m_sh');
+    sss.play('l_st');
   }
 
   update() {
     this.emitParticles('t_st');
+    super.update();
+  }
+}
+
+export class Bullet extends Actor {
+  constructor(actor, speed = 2, angle = null) {
+    super();
+    this.pixels = pag.generate(['xxx'], { hue: 0.1 });
+    this.type = 'bullet';
+    this.pos.set(actor.pos);
+    this.angle = angle == null ? actor.angle : angle;
+    this.speed = speed;
+    this.emitParticles('m_bl');
+    sss.play('l_bl');
+  }
+
+  update() {
+    this.emitParticles('t_bl');
     super.update();
   }
 }

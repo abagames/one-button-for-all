@@ -73,6 +73,7 @@
 	var ob = __webpack_require__(7);
 	ob.init(init, initGame, update);
 	var p = ob.p;
+	var player;
 	function init() {
 	    ob.screen.init(128, 128);
 	    ob.setTitle('ONE BUTTON', 'FOR ALL');
@@ -89,7 +90,10 @@
 	}
 	function initGame() {
 	    _.times(64, function () { return new ob.Star(); });
-	    new Player();
+	    player = new Player();
+	    if (ob.scene != ob.Scene.game) {
+	        player.remove();
+	    }
 	    ob.addModule(new ob.DoInterval(null, function () {
 	        new Enemy();
 	    }, 60, false, true));
@@ -123,13 +127,39 @@
 	var Enemy = (function (_super) {
 	    __extends(Enemy, _super);
 	    function Enemy() {
+	        var _this = this;
 	        _super.call(this);
 	        this.pos.x = p.random(128);
 	        this.vel.y = p.random(1, ob.getDifficulty());
 	        this.angle = p.HALF_PI;
+	        this.addModule(new ob.DoInterval(this, function (di) {
+	            if (_this.pos.y > 64) {
+	                di.isEnabled = false;
+	            }
+	            else {
+	                new Bullet(_this);
+	            }
+	        }, 60, true, true));
 	    }
 	    return Enemy;
 	}(ob.Enemy));
+	var Bullet = (function (_super) {
+	    __extends(Bullet, _super);
+	    function Bullet(enemy) {
+	        _super.call(this, enemy);
+	        this.angle = ob.Vector.getAngle(enemy.pos, player.pos);
+	        this.collision.set(4, 4);
+	    }
+	    Bullet.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        if (this.testCollision('shot').length > 0) {
+	            this.emitParticles('e_bl', { sizeScale: 0.5 });
+	            ob.addScore(1, this.pos);
+	            this.remove();
+	        }
+	    };
+	    return Bullet;
+	}(ob.Bullet));
 
 
 /***/ },
@@ -20858,7 +20888,8 @@
 	    Player.prototype.update = function () {
 	        this.emitParticles('t_pl');
 	        _super.prototype.update.call(this);
-	        if (this.testCollision('enemy').length > 0) {
+	        if (this.testCollision('enemy').length > 0 ||
+	            this.testCollision('bullet').length > 0) {
 	            this.onDestroyed();
 	        }
 	    };
@@ -20900,14 +20931,17 @@
 	exports.Enemy = Enemy;
 	var Shot = (function (_super) {
 	    __extends(Shot, _super);
-	    function Shot(actor, speed) {
+	    function Shot(actor, speed, angle) {
 	        if (speed === void 0) { speed = 2; }
+	        if (angle === void 0) { angle = null; }
 	        _super.call(this);
 	        this.pixels = pag.generate(['xxx'], { hue: 0.4 });
 	        this.type = 'shot';
 	        this.pos.set(actor.pos);
-	        this.angle = actor.angle;
+	        this.angle = angle == null ? actor.angle : angle;
 	        this.speed = speed;
+	        this.emitParticles('m_sh');
+	        sss.play('l_st');
 	    }
 	    Shot.prototype.update = function () {
 	        this.emitParticles('t_st');
@@ -20916,6 +20950,27 @@
 	    return Shot;
 	}(Actor));
 	exports.Shot = Shot;
+	var Bullet = (function (_super) {
+	    __extends(Bullet, _super);
+	    function Bullet(actor, speed, angle) {
+	        if (speed === void 0) { speed = 2; }
+	        if (angle === void 0) { angle = null; }
+	        _super.call(this);
+	        this.pixels = pag.generate(['xxx'], { hue: 0.1 });
+	        this.type = 'bullet';
+	        this.pos.set(actor.pos);
+	        this.angle = angle == null ? actor.angle : angle;
+	        this.speed = speed;
+	        this.emitParticles('m_bl');
+	        sss.play('l_bl');
+	    }
+	    Bullet.prototype.update = function () {
+	        this.emitParticles('t_bl');
+	        _super.prototype.update.call(this);
+	    };
+	    return Bullet;
+	}(Actor));
+	exports.Bullet = Bullet;
 	var Star = (function (_super) {
 	    __extends(Star, _super);
 	    function Star() {
@@ -21246,8 +21301,9 @@
 	var Vector = (function () {
 	    function Vector() {
 	    }
-	    Vector.getAngle = function (v) {
-	        return Math.atan2(v.y, v.x);
+	    Vector.getAngle = function (v, to) {
+	        if (to === void 0) { to = null; }
+	        return to == null ? Math.atan2(v.y, v.x) : Math.atan2(to.y - v.y, to.x - v.x);
 	    };
 	    Vector.constrain = function (v, lowX, highX, lowY, highY) {
 	        v.x = ob.p.constrain(v.x, lowX, highX);
@@ -21281,7 +21337,7 @@
 	        this.ticks--;
 	        if (this.ticks <= 0) {
 	            if (this.isEnabled) {
-	                this.func();
+	                this.func(this);
 	            }
 	            var i = this.interval;
 	            if (this.isChangedByDifficulty) {

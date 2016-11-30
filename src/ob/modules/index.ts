@@ -15,7 +15,7 @@ export class DoInterval {
     this.ticks--;
     if (this.ticks <= 0) {
       if (this.isEnabled) {
-        this.func();
+        this.func(this);
       }
       let i = this.interval;
       if (this.isChangedByDifficulty) {

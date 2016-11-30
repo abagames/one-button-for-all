@@ -6,6 +6,7 @@ import * as ob from './ob/index';
 
 ob.init(init, initGame, update);
 let p: p5 = ob.p;
+let player: Player;
 
 function init() {
   ob.screen.init(128, 128);
@@ -24,7 +25,10 @@ function init() {
 
 function initGame() {
   _.times(64, () => new ob.Star());
-  new Player();
+  player = new Player();
+  if (ob.scene != ob.Scene.game) {
+    player.remove();
+  }
   ob.addModule(new ob.DoInterval(null, () => {
     new Enemy();
   }, 60, false, true));
@@ -65,5 +69,29 @@ class Enemy extends ob.Enemy {
     this.pos.x = p.random(128);
     this.vel.y = p.random(1, ob.getDifficulty());
     this.angle = p.HALF_PI;
+    this.addModule(new ob.DoInterval(this, (di) => {
+      if (this.pos.y > 64) {
+        di.isEnabled = false;
+      } else {
+        new Bullet(this);
+      }
+    }, 60, true, true));
+  }
+}
+
+class Bullet extends ob.Bullet {
+  constructor(enemy) {
+    super(enemy);
+    this.angle = ob.Vector.getAngle(enemy.pos, player.pos);
+    this.collision.set(4, 4);
+  }
+
+  update() {
+    super.update();
+    if (this.testCollision('shot').length > 0) {
+      this.emitParticles('e_bl', { sizeScale: 0.5 });
+      ob.addScore(1, this.pos);
+      this.remove();
+    }
   }
 }

@@ -19,8 +19,8 @@ export function getDifficulty() {
 }
 
 export class Vector {
-  static getAngle(v: p5.Vector) {
-    return Math.atan2(v.y, v.x);
+  static getAngle(v: p5.Vector, to: p5.Vector = null) {
+    return to == null ? Math.atan2(v.y, v.x) : Math.atan2(to.y - v.y, to.x - v.x);
   }
 
   static constrain
