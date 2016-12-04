@@ -26,7 +26,7 @@ export class Actor {
   constructor() {
     Actor.add(this);
     this.type = ('' + this.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
-    this.addModule(new ob.RemoveWhenOut(this));
+    new ob.RemoveWhenOut(this);
   }
 
   update() {
@@ -46,10 +46,6 @@ export class Actor {
     this.isAlive = false;
   }
 
-  addModule(module) {
-    this.modules.push(module);
-  }
-
   clearModules() {
     this.modules = [];
   }
@@ -63,6 +59,10 @@ export class Actor {
 
   emitParticles(patternName: string, options: ppe.EmitOptions = {}) {
     (<any>ppe.emit)(patternName, this.pos.x, this.pos.y, this.angle, options);
+  }
+
+  _addModule(module) {
+    this.modules.push(module);
   }
 
   drawPixels(x: number = null, y: number = null) {
@@ -256,7 +256,7 @@ export class Star extends Actor {
     this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
     this.vel.y = ob.p.random(0.5, 1.5);
     this.clearModules();
-    this.addModule(new ob.WrapPos(this));
+    new ob.WrapPos(this);
     const colorStrs = ['00', '7f', 'ff'];
     this.color = '#' + _.times(3, () => colorStrs[Math.floor(ob.p.random(3))]).join('');
     this.priority = -1;
@@ -269,6 +269,16 @@ export class Star extends Actor {
   }
 }
 
+export class Panel extends Actor {
+  constructor(x, y) {
+    super();
+    this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], { isMirrorX: true, value: 0.5 });
+    this.pos.set(x, y);
+    new ob.WrapPos(this);
+    this.vel.y = 1;
+    this.priority = -1;
+  }
+}
 
 export class Text extends Actor {
   constructor
