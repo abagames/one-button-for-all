@@ -1,4 +1,3 @@
-var LiveReloadPlugin = require('webpack-livereload-plugin');
 var glob = require('glob');
 
 module.exports = {
@@ -11,6 +10,9 @@ module.exports = {
     extensions: ['.ts', '', '.webpack.js', '.web.js', '.js']
   },
   devtool: 'source-map',
+  devServer: {
+    contentBase: 'docs'
+  },
   module: {
     loaders: [
       {
@@ -19,8 +21,5 @@ module.exports = {
         loader: 'ts-loader'
       }
     ]
-  },
-  plugins: [
-    new LiveReloadPlugin()
-  ]
+  }
 };
