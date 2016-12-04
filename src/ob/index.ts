@@ -47,7 +47,7 @@ export enum Scene {
 };
 
 export function init
-  (_initFunc: () => void, _initGameFunc: () => void, _updateFunc: () => void,
+  (_initFunc: () => void, _initGameFunc: () => void, _updateFunc: () => void = null,
   _postUpdateFunc: () => void = null) {
   initFunc = _initFunc;
   initGameFunc = _initGameFunc;
@@ -130,12 +130,12 @@ export function addScore(v: number = 1, pos: p5.Vector = null) {
   }
 }
 
-export function addModule(module) {
-  modules.push(module);
-}
-
 export function clearModules() {
   modules = [];
+}
+
+export function _addModule(module) {
+  modules.push(module);
 }
 
 function setup() {
@@ -187,7 +187,9 @@ function draw() {
   ui.update();
   handleScene();
   sss.update();
-  updateFunc();
+  if (updateFunc != null) {
+    updateFunc();
+  }
   _.forEach(modules, m => {
     m.update();
   });

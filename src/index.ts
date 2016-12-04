@@ -4,7 +4,7 @@ import * as ppe from 'ppe';
 import * as sss from 'sss';
 import * as ob from './ob/index';
 
-ob.init(init, initGame, update);
+ob.init(init, initGame);
 let p: p5 = ob.p;
 let player: Player;
 
@@ -15,26 +15,18 @@ function init() {
   //ob.setSeeds(0);
   ob.enableDebug(() => {
   });
-  pag.setDefaultOptions({
-    isLimitingColors: true
-  });
-  ppe.setOptions({
-    isLimitingColors: true
-  });
+  ob.limitColors();
 }
 
 function initGame() {
-  _.times(64, () => new ob.Star());
+  ob.fillStar();
   player = new Player();
   if (ob.scene != ob.Scene.game) {
     player.remove();
   }
-  ob.addModule(new ob.DoInterval(null, () => {
+  new ob.DoInterval(null, () => {
     new Enemy();
-  }, 60, false, true));
-}
-
-function update() {
+  }, 60, false, true);
 }
 
 class Player extends ob.Player {
@@ -44,8 +36,7 @@ class Player extends ob.Player {
   constructor() {
     super();
     this.ms = new ob.MoveSin(this, 'pos.x');
-    this.addModule(this.ms);
-    this.pos.y = 100;
+    this.pos.y = 110;
     this.angle = -p.HALF_PI;
   }
 
@@ -69,13 +60,11 @@ class Enemy extends ob.Enemy {
     this.pos.x = p.random(128);
     this.vel.y = p.random(1, ob.getDifficulty());
     this.angle = p.HALF_PI;
-    this.addModule(new ob.DoInterval(this, (di) => {
-      if (this.pos.y > 64) {
-        di.isEnabled = false;
-      } else {
+    new ob.DoInterval(this, (di) => {
+      if (this.pos.y < 64) {
         new Bullet(this);
       }
-    }, 60, true, true));
+    }, 60, true, true);
   }
 }
 

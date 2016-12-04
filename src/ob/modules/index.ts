@@ -1,13 +1,24 @@
 import * as _ from 'lodash';
 import * as ob from '../index';
 
-export class DoInterval {
+class Module {
+  constructor(public actor: ob.Actor) {
+    if (actor == null) {
+      ob._addModule(this);
+    } else {
+      actor._addModule(this);
+    }
+  }
+}
+
+export class DoInterval extends Module {
   ticks: number;
   isEnabled = true;
 
-  constructor(public actor: ob.Actor, public func: Function,
+  constructor(actor: ob.Actor, public func: Function,
     public interval = 60, isStartRandomized = false,
     public isChangedByDifficulty = false) {
+    super(actor);
     this.ticks = isStartRandomized ? ob.random.getInt(interval) : interval;
   }
 
@@ -26,8 +37,10 @@ export class DoInterval {
   }
 }
 
-export class RemoveWhenOut {
-  constructor(public actor: ob.Actor, public padding = 8) { }
+export class RemoveWhenOut extends Module {
+  constructor(actor: ob.Actor, public padding = 8) {
+    super(actor);
+  }
 
   update() {
     if (!ob.isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
@@ -37,8 +50,10 @@ export class RemoveWhenOut {
   }
 }
 
-export class WrapPos {
-  constructor(public actor: ob.Actor, public padding = 8) { }
+export class WrapPos extends Module {
+  constructor(actor: ob.Actor, public padding = 8) {
+    super(actor);
+  }
 
   update() {
     this.actor.pos.x =
@@ -48,14 +63,15 @@ export class WrapPos {
   }
 }
 
-export class MoveSin {
+export class MoveSin extends Module {
   prop;
   angle: number;
 
   constructor
-    (public actor: ob.Actor, prop: string,
+    (actor: ob.Actor, prop: string,
     public center = 64, public width = 48,
     public speed = 0.1, startAngle = 0) {
+    super(actor);
     this.prop = getPropValue(actor, prop);
     this.prop.value[this.prop.name] = this.center;
     this.angle = startAngle;
