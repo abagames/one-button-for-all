@@ -38,13 +38,29 @@ export class DoInterval extends Module {
 }
 
 export class RemoveWhenOut extends Module {
-  constructor(actor: ob.Actor, public padding = 8) {
+  constructor(actor: ob.Actor, padding = 8,
+    public paddingRight: number = null, public paddingBottom: number = null,
+    public paddingLeft: number = null, public paddingTop: number = null) {
     super(actor);
+    if (this.paddingRight == null) {
+      this.paddingRight = padding;
+    }
+    if (this.paddingBottom == null) {
+      this.paddingBottom = padding;
+    }
+    if (this.paddingLeft == null) {
+      this.paddingLeft = padding;
+    }
+    if (this.paddingTop == null) {
+      this.paddingTop = padding;
+    }
   }
 
   update() {
-    if (!ob.isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
-      !ob.isIn(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding)) {
+    if (!ob.isIn(this.actor.pos.x, -this.paddingLeft,
+      ob.screen.size.x + this.paddingRight) ||
+      !ob.isIn(this.actor.pos.y, -this.paddingTop,
+        ob.screen.size.y + this.paddingBottom)) {
       this.actor.remove();
     }
   }

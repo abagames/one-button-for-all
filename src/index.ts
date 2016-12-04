@@ -65,6 +65,9 @@ class Enemy extends ob.Enemy {
         new Bullet(this);
       }
     }, 60, true, true);
+    this.onDestroyed = () => {
+      new Bonus(this.pos);
+    };
   }
 }
 
@@ -82,5 +85,13 @@ class Bullet extends ob.Bullet {
       ob.addScore(1, this.pos);
       this.remove();
     }
+  }
+}
+
+class Bonus extends ob.Bonus {
+  constructor(pos) {
+    super(pos, p.createVector(0, -1), p.createVector(0, 0.02));
+    this.clearModules();
+    new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
   }
 }

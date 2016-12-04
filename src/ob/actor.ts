@@ -162,6 +162,8 @@ export class Actor {
 }
 
 export class Player extends Actor {
+  onDestroyed: Function;
+
   constructor() {
     super();
     this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
@@ -173,19 +175,24 @@ export class Player extends Actor {
     super.update();
     if (this.testCollision('enemy').length > 0 ||
       this.testCollision('bullet').length > 0) {
-      this.onDestroyed();
+      this.destroy();
     }
   }
 
-  onDestroyed() {
+  destroy() {
     sss.play('u_pl_d');
     this.emitParticles('e_pl_d', { sizeScale: 2 });
+    if (this.onDestroyed != null) {
+      this.onDestroyed();
+    }
     this.remove();
     ob.endGame();
   }
 }
 
 export class Enemy extends Actor {
+  onDestroyed: Function;
+
   constructor() {
     super();
     this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
@@ -197,17 +204,20 @@ export class Enemy extends Actor {
     super.update();
     const cs = this.testCollision('shot');
     if (cs.length > 0) {
-      this.onDestroyed();
+      this.destroy();
       _.forEach(cs, s => {
         s.remove();
       });
     }
   }
 
-  onDestroyed() {
+  destroy() {
     sss.play('e_en_d');
     this.emitParticles('e_en_d');
     ob.addScore(1, this.pos);
+    if (this.onDestroyed != null) {
+      this.onDestroyed();
+    }
     this.remove();
   }
 }
@@ -248,6 +258,47 @@ export class Bullet extends Actor {
   }
 }
 
+export class Bonus extends Actor {
+  absorbingTicks = 0;
+
+  constructor(pos: p5.Vector, vel: p5.Vector = null, public gravity: p5.Vector = null) {
+    super();
+    this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
+    this.type = 'bonus';
+    this.pos.set(pos);
+    if (vel != null) {
+      this.vel = vel;
+    }
+    this.collision.set(10, 10);
+  }
+
+  update() {
+    this.vel.add(this.gravity);
+    const players = ob.Actor.get('player');
+    if (players.length > 0) {
+      const player = players[0];
+      if (this.absorbingTicks > 0) {
+        const r = this.absorbingTicks * 0.01;
+        this.pos.x += (player.pos.x - this.pos.x) * r;
+        this.pos.y += (player.pos.y - this.pos.y) * r;
+        this.absorbingTicks++;
+      } else if (this.pos.dist(player.pos) < 32) {
+        this.absorbingTicks = 1;
+      }
+    }
+    this.vel.mult(0.99);
+    this.emitParticles('t_bn');
+    super.update();
+    if (this.testCollision('player').length > 0) {
+      ob.addScore(1, this.pos);
+      this.emitParticles('s_bn');
+      sss.play('c_bn');
+      this.remove();
+    }
+    super.update();
+  }
+}
+
 export class Star extends Actor {
   color;
 
@@ -272,7 +323,8 @@ export class Star extends Actor {
 export class Panel extends Actor {
   constructor(x, y) {
     super();
-    this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], { isMirrorX: true, value: 0.5 });
+    this.pixels = pag.generate(['ooo', 'oxx', 'oxx'],
+      { isMirrorX: true, value: 0.5, colorLighting: 0 });
     this.pos.set(x, y);
     new ob.WrapPos(this);
     this.vel.y = 1;
