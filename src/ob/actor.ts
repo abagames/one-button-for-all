@@ -168,6 +168,7 @@ export class Player extends Actor {
     super();
     this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
     this.type = 'player';
+    this.collision.set(5, 5);
   }
 
   update() {
@@ -232,6 +233,7 @@ export class Shot extends Actor {
     this.speed = speed;
     this.emitParticles('m_sh');
     sss.play('l_st');
+    this.priority = 0.6;
   }
 
   update() {
@@ -267,6 +269,7 @@ export class Bonus extends Actor {
     if (vel != null) {
       this.vel = vel;
     }
+    this.priority = 0.3;
     this.collision.set(10, 10);
   }
 
@@ -278,7 +281,7 @@ export class Bonus extends Actor {
     if (this.testCollision('player').length > 0) {
       ob.addScore(1, this.pos);
       this.emitParticles('s_bn');
-      sss.play('c_bn');
+      sss.play('s_bn');
       this.remove();
     }
     super.update();

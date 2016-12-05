@@ -12,9 +12,9 @@ function init() {
   ob.screen.init(128, 128);
   ob.setTitle('ONE BUTTON', 'FOR ALL');
   //ob.setReplayFuncs(generateActor, getReplayStatus, setReplayStatus);
-  //ob.setSeeds(0);
-  ob.enableDebug(() => {
-  });
+  ob.setSeeds(8850148);
+  //ob.enableDebug(() => {
+  //});
   ob.limitColors();
 }
 
@@ -61,7 +61,7 @@ class Enemy extends ob.Enemy {
     this.vel.y = p.random(1, ob.getDifficulty());
     this.angle = p.HALF_PI;
     new ob.DoInterval(this, (di) => {
-      if (this.pos.y < 64) {
+      if (this.pos.y < 50) {
         new Bullet(this);
       }
     }, 60, true, true);
