@@ -259,8 +259,6 @@ export class Bullet extends Actor {
 }
 
 export class Bonus extends Actor {
-  absorbingTicks = 0;
-
   constructor(pos: p5.Vector, vel: p5.Vector = null, public gravity: p5.Vector = null) {
     super();
     this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
@@ -274,18 +272,6 @@ export class Bonus extends Actor {
 
   update() {
     this.vel.add(this.gravity);
-    const players = ob.Actor.get('player');
-    if (players.length > 0) {
-      const player = players[0];
-      if (this.absorbingTicks > 0) {
-        const r = this.absorbingTicks * 0.01;
-        this.pos.x += (player.pos.x - this.pos.x) * r;
-        this.pos.y += (player.pos.y - this.pos.y) * r;
-        this.absorbingTicks++;
-      } else if (this.pos.dist(player.pos) < 32) {
-        this.absorbingTicks = 1;
-      }
-    }
     this.vel.mult(0.99);
     this.emitParticles('t_bn');
     super.update();

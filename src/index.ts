@@ -93,5 +93,6 @@ class Bonus extends ob.Bonus {
     super(pos, p.createVector(0, -1), p.createVector(0, 0.02));
     this.clearModules();
     new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
+    new ob.AbsorbPos(this);
   }
 }

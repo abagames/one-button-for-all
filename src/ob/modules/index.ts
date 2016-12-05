@@ -99,6 +99,29 @@ export class MoveSin extends Module {
   }
 }
 
+export class AbsorbPos extends Module {
+  absorbingTicks = 0;
+
+  constructor(actor: ob.Actor, public type: string = 'player', public dist = 32) {
+    super(actor);
+  }
+
+  update() {
+    const absorbingTos = ob.Actor.get(this.type);
+    if (absorbingTos.length > 0) {
+      const to = absorbingTos[0];
+      if (this.absorbingTicks > 0) {
+        const r = this.absorbingTicks * 0.01;
+        this.actor.pos.x += (to.pos.x - this.actor.pos.x) * r;
+        this.actor.pos.y += (to.pos.y - this.actor.pos.y) * r;
+        this.absorbingTicks++;
+      } else if (this.actor.pos.dist(to.pos) < this.dist) {
+        this.absorbingTicks = 1;
+      }
+    }
+  }
+}
+
 function getPropValue(obj, prop: string) {
   let value = obj;
   let name;
