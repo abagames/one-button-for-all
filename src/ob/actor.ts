@@ -95,9 +95,11 @@ export class Actor {
 
   static init() {
     p5 = ob.p5;
-    pag.defaultOptions.isMirrorY = true;
-    pag.defaultOptions.rotationNum = rotationNum;
-    pag.defaultOptions.scale = 2;
+    pag.setDefaultOptions({
+      isMirrorY: true,
+      rotationNum,
+      scale: 2
+    });
     Actor.clear();
   }
 

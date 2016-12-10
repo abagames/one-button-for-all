@@ -17,7 +17,7 @@
     "p5": "^0.5.4"
   },
   "scripts": {
-    "wds": "webpack-dev-server",
+    "wds": "webpack-dev-server --inline",
     "build": "webpack"
   }
 }
