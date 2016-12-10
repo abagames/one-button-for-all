@@ -1,5 +1,3 @@
-import * as ir from 'ir';
-
 export default class Random {
   x: number;
   y: number;
@@ -40,15 +38,5 @@ export default class Random {
 
   constructor() {
     this.setSeed();
-  }
-
-  propNames = ['x', 'y', 'z', 'w'];
-
-  getStatus() {
-    return ir.objectToArray(this, this.propNames);
-  }
-
-  setStatus(status) {
-    ir.arrayToObject(status, this.propNames, this);
   }
 }

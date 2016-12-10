@@ -2,6 +2,7 @@ import * as ob from './index';
 
 export let isPressed = false;
 export let isJustPressed = false;
+export let _isPressedInReplay = false;
 
 export function update() {
   const pp = isPressed;
@@ -9,15 +10,18 @@ export function update() {
   isJustPressed = (!pp && isPressed);
 }
 
+export function updateInReplay(events) {
+  const pp = isPressed;
+  _isPressedInReplay = ob.p.keyIsPressed || ob.p.mouseIsPressed;
+  isPressed = events === '1';
+  isJustPressed = (!pp && isPressed);
+}
+
 export function clearJustPressed() {
   isJustPressed = false;
+  isPressed = true;
 }
 
 export function getReplayEvents() {
-  return [isPressed, isJustPressed];
-}
-
-export function setReplayEvents(events) {
-  isPressed = events[0];
-  isJustPressed = events[1];
+  return isPressed ? '1' : '0';
 }

@@ -11,17 +11,18 @@ let player: Player;
 function init() {
   ob.screen.init(128, 128);
   ob.setTitle('ONE BUTTON', 'FOR ALL');
-  //ob.setReplayFuncs(generateActor, getReplayStatus, setReplayStatus);
+  ob.setOptions({
+    isReplayEnabled: true
+  });
   ob.setSeeds(8850148);
-  //ob.enableDebug(() => {
-  //});
+  //ob.enableDebug();
   ob.limitColors();
 }
 
 function initGame() {
   ob.fillStar();
   player = new Player();
-  if (ob.scene != ob.Scene.game) {
+  if (ob.scene === ob.Scene.title) {
     player.remove();
   }
   new ob.DoInterval(null, () => {
@@ -57,8 +58,8 @@ class Player extends ob.Player {
 class Enemy extends ob.Enemy {
   constructor() {
     super();
-    this.pos.x = p.random(128);
-    this.vel.y = p.random(1, ob.getDifficulty());
+    this.pos.x = ob.random.get(128);
+    this.vel.y = ob.random.get(1, ob.getDifficulty());
     this.angle = p.HALF_PI;
     new ob.DoInterval(this, (di) => {
       if (this.pos.y < 50) {

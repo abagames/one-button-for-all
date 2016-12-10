@@ -74,16 +74,17 @@
 	function init() {
 	    ob.screen.init(128, 128);
 	    ob.setTitle('ONE BUTTON', 'FOR ALL');
-	    //ob.setReplayFuncs(generateActor, getReplayStatus, setReplayStatus);
-	    //ob.setSeeds(0);
-	    ob.enableDebug(function () {
+	    ob.setOptions({
+	        isReplayEnabled: true
 	    });
+	    ob.setSeeds(8850148);
+	    //ob.enableDebug();
 	    ob.limitColors();
 	}
 	function initGame() {
 	    ob.fillStar();
 	    player = new Player();
-	    if (ob.scene != ob.Scene.game) {
+	    if (ob.scene === ob.Scene.title) {
 	        player.remove();
 	    }
 	    new ob.DoInterval(null, function () {
@@ -118,14 +119,17 @@
 	    function Enemy() {
 	        var _this = this;
 	        _super.call(this);
-	        this.pos.x = p.random(128);
-	        this.vel.y = p.random(1, ob.getDifficulty());
+	        this.pos.x = ob.random.get(128);
+	        this.vel.y = ob.random.get(1, ob.getDifficulty());
 	        this.angle = p.HALF_PI;
 	        new ob.DoInterval(this, function (di) {
-	            if (_this.pos.y < 64) {
+	            if (_this.pos.y < 50) {
 	                new Bullet(_this);
 	            }
 	        }, 60, true, true);
+	        this.onDestroyed = function () {
+	            new Bonus(_this.pos);
+	        };
 	    }
 	    return Enemy;
 	}(ob.Enemy));
@@ -146,6 +150,16 @@
 	    };
 	    return Bullet;
 	}(ob.Bullet));
+	var Bonus = (function (_super) {
+	    __extends(Bonus, _super);
+	    function Bonus(pos) {
+	        _super.call(this, pos, p.createVector(0, -1), p.createVector(0, 0.02));
+	        this.clearModules();
+	        new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
+	        new ob.AbsorbPos(this);
+	    }
+	    return Bonus;
+	}(ob.Bonus));
 
 
 /***/ },
@@ -1808,13 +1822,12 @@
 	var updateFunc;
 	var postUpdateFunc;
 	var onSeedChangedFunc;
-	var actorGeneratorFunc;
-	var getReplayStatusFunc;
-	var setReplayStatusFunc;
 	var title = 'N/A';
 	var titleCont;
 	var isDebugEnabled = false;
 	var modules = [];
+	var initialStatus = { r: 0, s: 0 };
+	var replayScore;
 	(function (Scene) {
 	    Scene[Scene["title"] = 0] = "title";
 	    Scene[Scene["game"] = 1] = "game";
@@ -1831,7 +1844,12 @@
 	    updateFunc = _updateFunc;
 	    postUpdateFunc = _postUpdateFunc;
 	    exports.random = new random_1.default();
+	    exports.seedRandom = new random_1.default();
 	    sss.init();
+	    ir.setOptions({
+	        frameCount: -1,
+	        isRecordingEventsAsString: true
+	    });
 	    new exports.p5(function (_p) {
 	        exports.p = _p;
 	        exports.p.setup = setup;
@@ -1848,15 +1866,6 @@
 	    titleCont = _titleCont;
 	}
 	exports.setTitle = setTitle;
-	function setReplayFuncs(_actorGeneratorFunc, _getReplayStatusFunc, _setReplayStatusFunc) {
-	    if (_getReplayStatusFunc === void 0) { _getReplayStatusFunc = null; }
-	    if (_setReplayStatusFunc === void 0) { _setReplayStatusFunc = null; }
-	    options.isReplayEnabled = true;
-	    actorGeneratorFunc = _actorGeneratorFunc;
-	    getReplayStatusFunc = _getReplayStatusFunc;
-	    setReplayStatusFunc = _setReplayStatusFunc;
-	}
-	exports.setReplayFuncs = setReplayFuncs;
 	function enableDebug(_onSeedChangedFunc) {
 	    if (_onSeedChangedFunc === void 0) { _onSeedChangedFunc = null; }
 	    onSeedChangedFunc = _onSeedChangedFunc;
@@ -1894,6 +1903,8 @@
 	    exports.ticks = 0;
 	    sss.stopBgm();
 	    if (!isReplay && options.isReplayEnabled) {
+	        initialStatus.s = exports.score;
+	        ir.recordInitialStatus(initialStatus);
 	        ir.saveAsUrl();
 	    }
 	}
@@ -1935,34 +1946,45 @@
 	    }
 	}
 	function beginGame() {
+	    clearGameStatus();
 	    exports.scene = Scene.game;
-	    exports.score = exports.ticks = 0;
+	    var seed = exports.seedRandom.getInt(9999999);
+	    console.log(seed);
+	    exports.random.setSeed(seed);
+	    if (options.isReplayEnabled) {
+	        ir.startRecord();
+	        initialStatus.r = seed;
+	    }
 	    if (options.isPlayingBgm) {
 	        sss.playBgm();
 	    }
-	    ir.startRecord();
+	    initGameFunc();
+	}
+	function clearGameStatus() {
 	    clearModules();
 	    actor_1.Actor.clear();
 	    ppe.clear();
 	    ui.clearJustPressed();
-	    initGameFunc();
+	    exports.score = exports.ticks = 0;
 	}
 	function beginTitle() {
 	    exports.scene = Scene.title;
 	    exports.ticks = 0;
 	}
 	function beginReplay() {
-	    var status = ir.startReplay();
-	    if (status !== false) {
-	        exports.scene = Scene.replay;
-	        actor_1.Actor.clear();
-	        initGameFunc();
-	        setStatus(status);
+	    if (options.isReplayEnabled) {
+	        var status_1 = ir.startReplay();
+	        if (status_1 !== false) {
+	            clearGameStatus();
+	            exports.scene = Scene.replay;
+	            exports.random.setSeed(status_1.r);
+	            replayScore = status_1.s;
+	            initGameFunc();
+	        }
 	    }
 	}
 	function draw() {
 	    screen.clear();
-	    ui.update();
 	    handleScene();
 	    sss.update();
 	    if (updateFunc != null) {
@@ -1984,11 +2006,9 @@
 	    exports.ticks++;
 	}
 	function handleScene() {
-	    if (exports.scene === Scene.title && ui.isJustPressed) {
+	    if ((exports.scene === Scene.title && ui.isJustPressed) ||
+	        (exports.scene === Scene.replay && ui._isPressedInReplay)) {
 	        beginGame();
-	    }
-	    if (options.isReplayEnabled && exports.scene === Scene.game) {
-	        ir.record(getStatus(), ui.getReplayEvents());
 	    }
 	    if (exports.scene === Scene.gameover && (exports.ticks === 60 || ui.isJustPressed)) {
 	        beginTitle();
@@ -1999,10 +2019,16 @@
 	    if (exports.scene === Scene.replay) {
 	        var events = ir.getEvents();
 	        if (events !== false) {
-	            ui.setReplayEvents(events);
+	            ui.updateInReplay(events);
 	        }
 	        else {
 	            beginTitle();
+	        }
+	    }
+	    else {
+	        ui.update();
+	        if (options.isReplayEnabled && exports.scene === Scene.game) {
+	            ir.recordEvents(ui.getReplayEvents());
 	        }
 	    }
 	}
@@ -2021,25 +2047,15 @@
 	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
 	            break;
 	        case Scene.replay:
-	            text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55);
+	            if (exports.ticks < 60) {
+	                text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.4);
+	                text.draw("SCORE:" + replayScore, screen.size.x / 2, screen.size.y * 0.5);
+	            }
+	            else {
+	                text.draw('REPLAY', 0, screen.size.y - 6, text.Align.left);
+	            }
 	            break;
 	    }
-	}
-	function getStatus() {
-	    var status = [exports.ticks, exports.score, exports.random.getStatus(), actor_1.Actor.getReplayStatus()];
-	    if (getReplayStatusFunc != null) {
-	        status.push(getReplayStatusFunc());
-	    }
-	    return status;
-	}
-	function setStatus(status) {
-	    actor_1.Actor.setReplayStatus(status[3], actorGeneratorFunc);
-	    if (setReplayStatusFunc != null) {
-	        setReplayStatusFunc(status[4]);
-	    }
-	    exports.ticks = status[0];
-	    exports.score = status[1];
-	    exports.random.setStatus(status[2]);
 	}
 
 
@@ -20055,7 +20071,7 @@
 	/******/ 	__webpack_require__.c = installedModules;
 	
 	/******/ 	// __webpack_public_path__
-	/******/ 	__webpack_require__.p = "";
+	/******/ 	__webpack_require__.p = "/libs/";
 	
 	/******/ 	// Load entry module and return exports
 	/******/ 	return __webpack_require__(0);
@@ -20075,12 +20091,25 @@
 		"use strict";
 		var LZString = __webpack_require__(2);
 		exports.options = {
-		    frameCount: 180
+		    frameCount: 180,
+		    isRecordingEventsAsString: false,
+		    maxUrlLength: 2000
 		};
 		var statuses;
 		var events;
 		var recordingIndex;
 		var replayingIndex;
+		function setOptions(_options) {
+		    forOwn(_options, function (v, k) {
+		        exports.options[k] = v;
+		    });
+		}
+		exports.setOptions = setOptions;
+		function forOwn(obj, func) {
+		    for (var p in obj) {
+		        func(obj[p], p);
+		    }
+		}
 		function startRecord() {
 		    initStatusesAndEvents();
 		    recordingIndex = replayingIndex = 0;
@@ -20089,9 +20118,11 @@
 		function initStatusesAndEvents() {
 		    statuses = [];
 		    events = [];
-		    for (var i = 0; i < exports.options.frameCount; i++) {
-		        statuses.push(null);
-		        events.push(null);
+		    if (exports.options.frameCount > 0) {
+		        for (var i = 0; i < exports.options.frameCount; i++) {
+		            statuses.push(null);
+		            events.push(null);
+		        }
 		    }
 		}
 		function record(status, _events) {
@@ -20103,6 +20134,14 @@
 		    }
 		}
 		exports.record = record;
+		function recordInitialStatus(status) {
+		    statuses.push(status);
+		}
+		exports.recordInitialStatus = recordInitialStatus;
+		function recordEvents(_events) {
+		    events.push(_events);
+		}
+		exports.recordEvents = recordEvents;
 		function startReplay() {
 		    if (events == null || events[0] == null) {
 		        return false;
@@ -20111,7 +20150,22 @@
 		    return statuses[replayingIndex];
 		}
 		exports.startReplay = startReplay;
+		function calcStartingReplayIndex() {
+		    if (exports.options.frameCount > 0) {
+		        replayingIndex = recordingIndex + 1;
+		        if (replayingIndex >= exports.options.frameCount || events[replayingIndex] == null) {
+		            replayingIndex = 0;
+		        }
+		    }
+		    else {
+		        replayingIndex = 0;
+		    }
+		}
 		function getEvents() {
+		    return exports.options.frameCount > 0 ? getEventsFrameCount() : getEventsAllFrames();
+		}
+		exports.getEvents = getEvents;
+		function getEventsFrameCount() {
 		    if (replayingIndex === recordingIndex) {
 		        return false;
 		    }
@@ -20122,12 +20176,13 @@
 		    }
 		    return e;
 		}
-		exports.getEvents = getEvents;
-		function calcStartingReplayIndex() {
-		    replayingIndex = recordingIndex + 1;
-		    if (replayingIndex >= exports.options.frameCount || events[replayingIndex] == null) {
-		        replayingIndex = 0;
+		function getEventsAllFrames() {
+		    if (replayingIndex >= events.length) {
+		        return false;
 		    }
+		    var e = events[replayingIndex];
+		    replayingIndex++;
+		    return e;
 		}
 		function objectToArray(object, propertyNames) {
 		    var array = [];
@@ -20168,8 +20223,26 @@
 		    }
 		    var baseUrl = window.location.href.split('?')[0];
 		    calcStartingReplayIndex();
-		    var encDataStr = LZString.compressToEncodedURIComponent(JSON.stringify({ st: statuses[replayingIndex], ev: events, idx: recordingIndex }));
+		    var data = { st: statuses[replayingIndex] };
+		    if (exports.options.frameCount > 0) {
+		        data.idx = recordingIndex;
+		    }
+		    if (!exports.options.isRecordingEventsAsString) {
+		        data.ev = events;
+		    }
+		    else {
+		        data.esl = events[0].length;
+		    }
+		    var encDataStr = LZString.compressToEncodedURIComponent(JSON.stringify(data));
 		    var url = baseUrl + "?d=" + encDataStr;
+		    if (exports.options.isRecordingEventsAsString) {
+		        var eventsDataStr = LZString.compressToEncodedURIComponent(events.join(''));
+		        url += "&e=" + eventsDataStr;
+		    }
+		    if (url.length > exports.options.maxUrlLength) {
+		        console.log('too long to record. url length: ' + url.length);
+		        return false;
+		    }
 		    try {
 		        window.history.replaceState({}, '', url);
 		    }
@@ -20186,11 +20259,15 @@
 		    }
 		    var params = query.split('&');
 		    var encDataStr;
+		    var eventsDataStr;
 		    for (var i = 0; i < params.length; i++) {
 		        var param = params[i];
 		        var pair = param.split('=');
 		        if (pair[0] === 'd') {
 		            encDataStr = pair[1];
+		        }
+		        if (pair[0] === 'e') {
+		            eventsDataStr = pair[1];
 		        }
 		    }
 		    if (encDataStr == null) {
@@ -20199,8 +20276,16 @@
 		    try {
 		        var data = JSON.parse(LZString.decompressFromEncodedURIComponent(encDataStr));
 		        initStatusesAndEvents();
-		        recordingIndex = data.idx;
-		        events = data.ev;
+		        if (exports.options.frameCount > 0) {
+		            recordingIndex = data.idx;
+		        }
+		        if (data.ev != null) {
+		            events = data.ev;
+		        }
+		        if (eventsDataStr != null) {
+		            var eventsStr = LZString.decompressFromEncodedURIComponent(eventsDataStr);
+		            events = eventsStr.match(new RegExp(".{1," + data.esl + "}", 'g'));
+		        }
 		        calcStartingReplayIndex();
 		        statuses[replayingIndex] = data.st;
 		        return true;
@@ -20818,9 +20903,11 @@
 	    };
 	    Actor.init = function () {
 	        p5 = ob.p5;
-	        pag.defaultOptions.isMirrorY = true;
-	        pag.defaultOptions.rotationNum = rotationNum;
-	        pag.defaultOptions.scale = 2;
+	        pag.setDefaultOptions({
+	            isMirrorY: true,
+	            rotationNum: rotationNum,
+	            scale: 2
+	        });
 	        Actor.clear();
 	    };
 	    Actor.add = function (actor) {
@@ -20885,18 +20972,22 @@
 	        _super.call(this);
 	        this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
 	        this.type = 'player';
+	        this.collision.set(5, 5);
 	    }
 	    Player.prototype.update = function () {
 	        this.emitParticles('t_pl');
 	        _super.prototype.update.call(this);
 	        if (this.testCollision('enemy').length > 0 ||
 	            this.testCollision('bullet').length > 0) {
-	            this.onDestroyed();
+	            this.destroy();
 	        }
 	    };
-	    Player.prototype.onDestroyed = function () {
+	    Player.prototype.destroy = function () {
 	        sss.play('u_pl_d');
 	        this.emitParticles('e_pl_d', { sizeScale: 2 });
+	        if (this.onDestroyed != null) {
+	            this.onDestroyed();
+	        }
 	        this.remove();
 	        ob.endGame();
 	    };
@@ -20915,16 +21006,19 @@
 	        _super.prototype.update.call(this);
 	        var cs = this.testCollision('shot');
 	        if (cs.length > 0) {
-	            this.onDestroyed();
+	            this.destroy();
 	            _.forEach(cs, function (s) {
 	                s.remove();
 	            });
 	        }
 	    };
-	    Enemy.prototype.onDestroyed = function () {
+	    Enemy.prototype.destroy = function () {
 	        sss.play('e_en_d');
 	        this.emitParticles('e_en_d');
 	        ob.addScore(1, this.pos);
+	        if (this.onDestroyed != null) {
+	            this.onDestroyed();
+	        }
 	        this.remove();
 	    };
 	    return Enemy;
@@ -20943,6 +21037,7 @@
 	        this.speed = speed;
 	        this.emitParticles('m_sh');
 	        sss.play('l_st');
+	        this.priority = 0.6;
 	    }
 	    Shot.prototype.update = function () {
 	        this.emitParticles('t_st');
@@ -20972,6 +21067,38 @@
 	    return Bullet;
 	}(Actor));
 	exports.Bullet = Bullet;
+	var Bonus = (function (_super) {
+	    __extends(Bonus, _super);
+	    function Bonus(pos, vel, gravity) {
+	        if (vel === void 0) { vel = null; }
+	        if (gravity === void 0) { gravity = null; }
+	        _super.call(this);
+	        this.gravity = gravity;
+	        this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
+	        this.type = 'bonus';
+	        this.pos.set(pos);
+	        if (vel != null) {
+	            this.vel = vel;
+	        }
+	        this.priority = 0.3;
+	        this.collision.set(10, 10);
+	    }
+	    Bonus.prototype.update = function () {
+	        this.vel.add(this.gravity);
+	        this.vel.mult(0.99);
+	        this.emitParticles('t_bn');
+	        _super.prototype.update.call(this);
+	        if (this.testCollision('player').length > 0) {
+	            ob.addScore(1, this.pos);
+	            this.emitParticles('s_bn');
+	            sss.play('s_bn');
+	            this.remove();
+	        }
+	        _super.prototype.update.call(this);
+	    };
+	    return Bonus;
+	}(Actor));
+	exports.Bonus = Bonus;
 	var Star = (function (_super) {
 	    __extends(Star, _super);
 	    function Star() {
@@ -20996,7 +21123,7 @@
 	    __extends(Panel, _super);
 	    function Panel(x, y) {
 	        _super.call(this);
-	        this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], { isMirrorX: true, value: 0.5 });
+	        this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], { isMirrorX: true, value: 0.5, colorLighting: 0 });
 	        this.pos.set(x, y);
 	        new ob.WrapPos(this);
 	        this.vel.y = 1;
@@ -21031,13 +21158,11 @@
 
 /***/ },
 /* 10 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	"use strict";
-	var ir = __webpack_require__(8);
 	var Random = (function () {
 	    function Random() {
-	        this.propNames = ['x', 'y', 'z', 'w'];
 	        this.setSeed();
 	    }
 	    Random.prototype.get = function (fromOrTo, to) {
@@ -21073,12 +21198,6 @@
 	        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
 	        return this.w;
 	    };
-	    Random.prototype.getStatus = function () {
-	        return ir.objectToArray(this, this.propNames);
-	    };
-	    Random.prototype.setStatus = function (status) {
-	        ir.arrayToObject(status, this.propNames, this);
-	    };
 	    return Random;
 	}());
 	Object.defineProperty(exports, "__esModule", { value: true });
@@ -21093,25 +21212,29 @@
 	var ob = __webpack_require__(3);
 	exports.isPressed = false;
 	exports.isJustPressed = false;
+	exports._isPressedInReplay = false;
 	function update() {
 	    var pp = exports.isPressed;
 	    exports.isPressed = ob.p.keyIsPressed || ob.p.mouseIsPressed;
 	    exports.isJustPressed = (!pp && exports.isPressed);
 	}
 	exports.update = update;
+	function updateInReplay(events) {
+	    var pp = exports.isPressed;
+	    exports._isPressedInReplay = ob.p.keyIsPressed || ob.p.mouseIsPressed;
+	    exports.isPressed = events === '1';
+	    exports.isJustPressed = (!pp && exports.isPressed);
+	}
+	exports.updateInReplay = updateInReplay;
 	function clearJustPressed() {
 	    exports.isJustPressed = false;
+	    exports.isPressed = true;
 	}
 	exports.clearJustPressed = clearJustPressed;
 	function getReplayEvents() {
-	    return [exports.isPressed, exports.isJustPressed];
+	    return exports.isPressed ? '1' : '0';
 	}
 	exports.getReplayEvents = getReplayEvents;
-	function setReplayEvents(events) {
-	    exports.isPressed = events[0];
-	    exports.isJustPressed = events[1];
-	}
-	exports.setReplayEvents = setReplayEvents;
 
 
 /***/ },
@@ -21408,14 +21531,33 @@
 	exports.DoInterval = DoInterval;
 	var RemoveWhenOut = (function (_super) {
 	    __extends(RemoveWhenOut, _super);
-	    function RemoveWhenOut(actor, padding) {
+	    function RemoveWhenOut(actor, padding, paddingRight, paddingBottom, paddingLeft, paddingTop) {
 	        if (padding === void 0) { padding = 8; }
+	        if (paddingRight === void 0) { paddingRight = null; }
+	        if (paddingBottom === void 0) { paddingBottom = null; }
+	        if (paddingLeft === void 0) { paddingLeft = null; }
+	        if (paddingTop === void 0) { paddingTop = null; }
 	        _super.call(this, actor);
-	        this.padding = padding;
+	        this.paddingRight = paddingRight;
+	        this.paddingBottom = paddingBottom;
+	        this.paddingLeft = paddingLeft;
+	        this.paddingTop = paddingTop;
+	        if (this.paddingRight == null) {
+	            this.paddingRight = padding;
+	        }
+	        if (this.paddingBottom == null) {
+	            this.paddingBottom = padding;
+	        }
+	        if (this.paddingLeft == null) {
+	            this.paddingLeft = padding;
+	        }
+	        if (this.paddingTop == null) {
+	            this.paddingTop = padding;
+	        }
 	    }
 	    RemoveWhenOut.prototype.update = function () {
-	        if (!ob.isIn(this.actor.pos.x, -this.padding, ob.screen.size.x + this.padding) ||
-	            !ob.isIn(this.actor.pos.y, -this.padding, ob.screen.size.y + this.padding)) {
+	        if (!ob.isIn(this.actor.pos.x, -this.paddingLeft, ob.screen.size.x + this.paddingRight) ||
+	            !ob.isIn(this.actor.pos.y, -this.paddingTop, ob.screen.size.y + this.paddingBottom)) {
 	            this.actor.remove();
 	        }
 	    };
@@ -21460,6 +21602,34 @@
 	    return MoveSin;
 	}(Module));
 	exports.MoveSin = MoveSin;
+	var AbsorbPos = (function (_super) {
+	    __extends(AbsorbPos, _super);
+	    function AbsorbPos(actor, type, dist) {
+	        if (type === void 0) { type = 'player'; }
+	        if (dist === void 0) { dist = 32; }
+	        _super.call(this, actor);
+	        this.type = type;
+	        this.dist = dist;
+	        this.absorbingTicks = 0;
+	    }
+	    AbsorbPos.prototype.update = function () {
+	        var absorbingTos = ob.Actor.get(this.type);
+	        if (absorbingTos.length > 0) {
+	            var to = absorbingTos[0];
+	            if (this.absorbingTicks > 0) {
+	                var r = this.absorbingTicks * 0.01;
+	                this.actor.pos.x += (to.pos.x - this.actor.pos.x) * r;
+	                this.actor.pos.y += (to.pos.y - this.actor.pos.y) * r;
+	                this.absorbingTicks++;
+	            }
+	            else if (this.actor.pos.dist(to.pos) < this.dist) {
+	                this.absorbingTicks = 1;
+	            }
+	        }
+	    };
+	    return AbsorbPos;
+	}(Module));
+	exports.AbsorbPos = AbsorbPos;
 	function getPropValue(obj, prop) {
 	    var value = obj;
 	    var name;

@@ -21,6 +21,7 @@ export let p: p5;
 export let ticks = 0;
 export let score = 0;
 export let random: Random;
+export let seedRandom: Random;
 export let scene: Scene;
 
 let options = {
@@ -34,13 +35,12 @@ let initGameFunc: Function;
 let updateFunc: Function;
 let postUpdateFunc: Function;
 let onSeedChangedFunc: Function;
-let actorGeneratorFunc: Function;
-let getReplayStatusFunc: Function;
-let setReplayStatusFunc: Function;
 let title: string = 'N/A';
 let titleCont: string;
 let isDebugEnabled = false;
 let modules = [];
+let initialStatus = { r: 0, s: 0 };
+let replayScore: number;
 
 export enum Scene {
   title, game, gameover, replay
@@ -54,7 +54,12 @@ export function init
   updateFunc = _updateFunc;
   postUpdateFunc = _postUpdateFunc;
   random = new Random();
+  seedRandom = new Random();
   sss.init();
+  ir.setOptions({
+    frameCount: -1,
+    isRecordingEventsAsString: true
+  });
   new p5(_p => {
     p = _p;
     p.setup = setup;
@@ -68,16 +73,6 @@ export function init
 export function setTitle(_title: string, _titleCont: string = null) {
   title = _title;
   titleCont = _titleCont;
-}
-
-export function setReplayFuncs(
-  _actorGeneratorFunc: (type: string, status: any) => void,
-  _getReplayStatusFunc: () => any = null,
-  _setReplayStatusFunc: (status: any) => void = null) {
-  options.isReplayEnabled = true;
-  actorGeneratorFunc = _actorGeneratorFunc;
-  getReplayStatusFunc = _getReplayStatusFunc;
-  setReplayStatusFunc = _setReplayStatusFunc;
 }
 
 export function enableDebug(_onSeedChangedFunc = null) {
@@ -116,6 +111,8 @@ export function endGame() {
   ticks = 0;
   sss.stopBgm();
   if (!isReplay && options.isReplayEnabled) {
+    initialStatus.s = score;
+    ir.recordInitialStatus(initialStatus);
     ir.saveAsUrl();
   }
 }
@@ -154,17 +151,27 @@ function setup() {
 }
 
 function beginGame() {
+  clearGameStatus();
   scene = Scene.game;
-  score = ticks = 0;
+  const seed = seedRandom.getInt(9999999);
+  console.log(seed);
+  random.setSeed(seed);
+  if (options.isReplayEnabled) {
+    ir.startRecord();
+    initialStatus.r = seed;
+  }
   if (options.isPlayingBgm) {
     sss.playBgm();
   }
-  ir.startRecord();
+  initGameFunc();
+}
+
+function clearGameStatus() {
   clearModules();
   Actor.clear();
   ppe.clear();
   ui.clearJustPressed();
-  initGameFunc();
+  score = ticks = 0;
 }
 
 function beginTitle() {
@@ -173,18 +180,20 @@ function beginTitle() {
 }
 
 function beginReplay() {
-  const status = ir.startReplay();
-  if (status !== false) {
-    scene = Scene.replay;
-    Actor.clear();
-    initGameFunc();
-    setStatus(status);
+  if (options.isReplayEnabled) {
+    const status = ir.startReplay();
+    if (status !== false) {
+      clearGameStatus();
+      scene = Scene.replay;
+      random.setSeed(status.r);
+      replayScore = status.s;
+      initGameFunc();
+    }
   }
 }
 
 function draw() {
   screen.clear();
-  ui.update();
   handleScene();
   sss.update();
   if (updateFunc != null) {
@@ -207,11 +216,9 @@ function draw() {
 }
 
 function handleScene() {
-  if (scene === Scene.title && ui.isJustPressed) {
+  if ((scene === Scene.title && ui.isJustPressed) ||
+    (scene === Scene.replay && ui._isPressedInReplay)) {
     beginGame();
-  }
-  if (options.isReplayEnabled && scene === Scene.game) {
-    ir.record(getStatus(), ui.getReplayEvents());
   }
   if (scene === Scene.gameover && (ticks === 60 || ui.isJustPressed)) {
     beginTitle();
@@ -222,9 +229,14 @@ function handleScene() {
   if (scene === Scene.replay) {
     const events = ir.getEvents();
     if (events !== false) {
-      ui.setReplayEvents(events);
+      ui.updateInReplay(events);
     } else {
       beginTitle();
+    }
+  } else {
+    ui.update();
+    if (options.isReplayEnabled && scene === Scene.game) {
+      ir.recordEvents(ui.getReplayEvents());
     }
   }
 }
@@ -243,25 +255,12 @@ function drawSceneText() {
       text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
       break;
     case Scene.replay:
-      text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.55);
+      if (ticks < 60) {
+        text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.4);
+        text.draw(`SCORE:${replayScore}`, screen.size.x / 2, screen.size.y * 0.5);
+      } else {
+        text.draw('REPLAY', 0, screen.size.y - 6, text.Align.left);
+      }
       break;
   }
-}
-
-function getStatus() {
-  const status = [ticks, score, random.getStatus(), Actor.getReplayStatus()];
-  if (getReplayStatusFunc != null) {
-    status.push(getReplayStatusFunc());
-  }
-  return status;
-}
-
-function setStatus(status) {
-  Actor.setReplayStatus(status[3], actorGeneratorFunc);
-  if (setReplayStatusFunc != null) {
-    setReplayStatusFunc(status[4]);
-  }
-  ticks = status[0];
-  score = status[1];
-  random.setStatus(status[2]);
 }
