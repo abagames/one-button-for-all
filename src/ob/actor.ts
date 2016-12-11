@@ -47,6 +47,10 @@ export class Actor {
     this.isAlive = false;
   }
 
+  destroy() {
+    this.remove();
+  }
+
   clearModules() {
     this.modules = [];
   }
@@ -73,12 +77,16 @@ export class Actor {
     if (y == null) {
       y = this.pos.y;
     }
-    let a = this.angle;
-    if (a < 0) {
-      a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
+    if (this.pixels.length <= 1) {
+      pag.draw(this.context, this.pixels, x, y, 0);
+    } else {
+      let a = this.angle;
+      if (a < 0) {
+        a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
+      }
+      const ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
+      pag.draw(this.context, this.pixels, x, y, ri);
     }
-    const ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
-    pag.draw(this.context, this.pixels, x, y, ri);
   }
 
   getReplayStatus() {
@@ -169,8 +177,6 @@ export class Actor {
 }
 
 export class Player extends Actor {
-  onDestroyed: Function;
-
   constructor() {
     super();
     this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
@@ -190,17 +196,12 @@ export class Player extends Actor {
   destroy() {
     sss.play(`u_${this.type}_d`);
     this.emitParticles(`e_${this.type}_d`, { sizeScale: 2 });
-    if (this.onDestroyed != null) {
-      this.onDestroyed();
-    }
-    this.remove();
+    super.destroy();
     ob.endGame();
   }
 }
 
 export class Enemy extends Actor {
-  onDestroyed: Function;
-
   constructor() {
     super();
     this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
@@ -213,8 +214,8 @@ export class Enemy extends Actor {
     const cs = this.testCollision('shot');
     if (cs.length > 0) {
       this.destroy();
-      _.forEach(cs, s => {
-        s.remove();
+      _.forEach(cs, (s: Shot) => {
+        s.destroy();
       });
     }
   }
@@ -223,10 +224,7 @@ export class Enemy extends Actor {
     sss.play(`e_${this.type}_d`);
     this.emitParticles(`e_${this.type}_d`);
     ob.addScore(1, this.pos);
-    if (this.onDestroyed != null) {
-      this.onDestroyed();
-    }
-    this.remove();
+    super.destroy();
   }
 }
 
@@ -316,7 +314,7 @@ export class Star extends Actor {
   update() {
     super.update();
     ob.p.fill(this.color);
-    ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 2, 2);
+    ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 1, 1);
   }
 }
 

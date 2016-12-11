@@ -136,6 +136,7 @@ export function _addModule(module) {
 }
 
 function setup() {
+  p.noStroke();
   Actor.init();
   initFunc();
   if (isDebugEnabled || !options.isShowingTitle) {
@@ -154,7 +155,6 @@ function beginGame() {
   clearGameStatus();
   scene = Scene.game;
   const seed = seedRandom.getInt(9999999);
-  console.log(seed);
   random.setSeed(seed);
   if (options.isReplayEnabled) {
     ir.startRecord();
