@@ -18,7 +18,7 @@ export function wrap(v: number, low: number, high: number) {
 }
 
 export function getDifficulty() {
-  return Math.sqrt(ob.ticks * 0.001 + 1);
+  return ob.scene === ob.Scene.title ? 1 : ob.ticks * 0.001 + 1;
 }
 
 export function limitColors() {

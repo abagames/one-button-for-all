@@ -18,6 +18,7 @@ export class Actor {
   ticks = 0;
   pixels: pag.Pixel[][][];
   type: string;
+  collisionType: string;
   collision: p5.Vector = new p5.Vector(8, 8);
   context: CanvasRenderingContext2D = ob.screen.context;
   replayPropertyNames: string[];
@@ -51,7 +52,7 @@ export class Actor {
   }
 
   testCollision(type: string) {
-    return _.filter<Actor>(Actor.get(type), a =>
+    return _.filter<Actor>(Actor.getByCollitionType(type), a =>
       Math.abs(this.pos.x - a.pos.x) < (this.collision.x + a.collision.x) / 2 &&
       Math.abs(this.pos.y - a.pos.y) < (this.collision.y + a.collision.y) / 2
     );
@@ -145,6 +146,10 @@ export class Actor {
     return _.filter<Actor>(Actor.actors, a => a.type === type);
   }
 
+  static getByCollitionType(collitionType: string) {
+    return _.filter<Actor>(Actor.actors, a => a.collisionType == collitionType);
+  }
+
   static getReplayStatus() {
     let status = [];
     _.forEach(Actor.actors, (a: Actor) => {
@@ -169,12 +174,12 @@ export class Player extends Actor {
   constructor() {
     super();
     this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
-    this.type = 'player';
+    this.type = this.collisionType = 'player';
     this.collision.set(5, 5);
   }
 
   update() {
-    this.emitParticles('t_pl');
+    this.emitParticles(`t_${this.type}`);
     super.update();
     if (this.testCollision('enemy').length > 0 ||
       this.testCollision('bullet').length > 0) {
@@ -183,8 +188,8 @@ export class Player extends Actor {
   }
 
   destroy() {
-    sss.play('u_pl_d');
-    this.emitParticles('e_pl_d', { sizeScale: 2 });
+    sss.play(`u_${this.type}_d`);
+    this.emitParticles(`e_${this.type}_d`, { sizeScale: 2 });
     if (this.onDestroyed != null) {
       this.onDestroyed();
     }
@@ -199,11 +204,11 @@ export class Enemy extends Actor {
   constructor() {
     super();
     this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
-    this.type = 'enemy';
+    this.type = this.collisionType = 'enemy';
   }
 
   update() {
-    this.emitParticles('t_en');
+    this.emitParticles(`t_${this.type}`);
     super.update();
     const cs = this.testCollision('shot');
     if (cs.length > 0) {
@@ -215,8 +220,8 @@ export class Enemy extends Actor {
   }
 
   destroy() {
-    sss.play('e_en_d');
-    this.emitParticles('e_en_d');
+    sss.play(`e_${this.type}_d`);
+    this.emitParticles(`e_${this.type}_d`);
     ob.addScore(1, this.pos);
     if (this.onDestroyed != null) {
       this.onDestroyed();
@@ -229,17 +234,19 @@ export class Shot extends Actor {
   constructor(actor, speed = 2, angle = null) {
     super();
     this.pixels = pag.generate(['xxx'], { hue: 0.4 });
-    this.type = 'shot';
+    this.type = this.collisionType = 'shot';
     this.pos.set(actor.pos);
     this.angle = angle == null ? actor.angle : angle;
     this.speed = speed;
-    this.emitParticles('m_sh');
-    sss.play('l_st');
     this.priority = 0.6;
   }
 
   update() {
-    this.emitParticles('t_st');
+    if (this.ticks === 0) {
+      this.emitParticles(`m_${this.type}`);
+      sss.play(`l_${this.type}`);
+    }
+    this.emitParticles(`t_${this.type}`);
     super.update();
   }
 }
@@ -248,25 +255,27 @@ export class Bullet extends Actor {
   constructor(actor, speed = 2, angle = null) {
     super();
     this.pixels = pag.generate(['xxx'], { hue: 0.1 });
-    this.type = 'bullet';
+    this.type = this.collisionType = 'bullet';
     this.pos.set(actor.pos);
     this.angle = angle == null ? actor.angle : angle;
     this.speed = speed;
-    this.emitParticles('m_bl');
-    sss.play('l_bl');
   }
 
   update() {
-    this.emitParticles('t_bl');
+    if (this.ticks === 0) {
+      this.emitParticles(`m_${this.type}`);
+      sss.play(`l_${this.type}`);
+    }
+    this.emitParticles(`t_${this.type}`);
     super.update();
   }
 }
 
-export class Bonus extends Actor {
+export class Item extends Actor {
   constructor(pos: p5.Vector, vel: p5.Vector = null, public gravity: p5.Vector = null) {
     super();
     this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
-    this.type = 'bonus';
+    this.type = this.collisionType = 'item';
     this.pos.set(pos);
     if (vel != null) {
       this.vel = vel;
@@ -278,12 +287,12 @@ export class Bonus extends Actor {
   update() {
     this.vel.add(this.gravity);
     this.vel.mult(0.99);
-    this.emitParticles('t_bn');
+    this.emitParticles(`t_${this.type}`);
     super.update();
     if (this.testCollision('player').length > 0) {
       ob.addScore(1, this.pos);
-      this.emitParticles('s_bn');
-      sss.play('s_bn');
+      this.emitParticles(`s_${this.type}`);
+      sss.play(`s_${this.type}`);
       this.remove();
     }
     super.update();

@@ -89,7 +89,7 @@ class Bullet extends ob.Bullet {
   }
 }
 
-class Bonus extends ob.Bonus {
+class Bonus extends ob.Item {
   constructor(pos) {
     super(pos, p.createVector(0, -1), p.createVector(0, 0.02));
     this.clearModules();
