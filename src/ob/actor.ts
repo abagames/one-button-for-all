@@ -288,12 +288,16 @@ export class Item extends Actor {
     this.emitParticles(`t_${this.type}`);
     super.update();
     if (this.testCollision('player').length > 0) {
-      ob.addScore(1, this.pos);
       this.emitParticles(`s_${this.type}`);
       sss.play(`s_${this.type}`);
-      this.remove();
+      this.destroy();
     }
     super.update();
+  }
+
+  destroy() {
+    ob.addScore(1, this.pos);
+    super.destroy();
   }
 }
 

@@ -122,6 +122,16 @@ export class AbsorbPos extends Module {
   }
 }
 
+export class DrawText extends Module {
+  constructor(actor: ob.Actor, public text: string) {
+    super(actor);
+  }
+
+  update() {
+    ob.text.draw(this.text, this.actor.pos.x + 1, this.actor.pos.y - 3);
+  }
+}
+
 function getPropValue(obj, prop: string) {
   let value = obj;
   let name;

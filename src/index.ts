@@ -76,6 +76,10 @@ class Player extends ob.Player {
     }
     super.update();
   }
+
+  changeWeapon(type) {
+    this.weaponType = type;
+  }
 }
 
 class Napalm extends ob.Shot {
@@ -191,7 +195,9 @@ class Enemy extends ob.Enemy {
   }
 
   destroy() {
-    new Bonus(this.pos);
+    if (ob.random.get() < 0.1) {
+      new WeaponItem(this.pos);
+    }
     super.destroy();
   }
 }
@@ -253,7 +259,8 @@ class Bullet extends ob.Bullet {
     const ss = this.testCollision('shot');
     if (ss.length > 0) {
       this.emitParticles('e_bl', { sizeScale: 0.5 });
-      ob.addScore(1, this.pos);
+      new Bonus(this.pos);
+      //ob.addScore(1, this.pos);
       this.remove();
       _.forEach(ss, s => {
         if (s.type === 'napalm') {
@@ -270,5 +277,25 @@ class Bonus extends ob.Item {
     this.clearModules();
     new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
     new ob.AbsorbPos(this);
+  }
+}
+
+class WeaponItem extends ob.Item {
+  weaponType: number;
+
+  constructor(pos) {
+    super(pos, p.createVector(0, -1), p.createVector(0, 0.02));
+    this.pixels = pag.generate(['oo', 'ox'], { isMirrorX: true, hue: 0.4, value: 0.5 });
+    this.clearModules();
+    new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
+    new ob.AbsorbPos(this);
+    this.weaponType = ob.random.getInt(3);
+    const texts = ['N', 'L', 'W'];
+    new ob.DrawText(this, texts[this.weaponType]);
+  }
+
+  destroy() {
+    player.changeWeapon(this.weaponType);
+    super.destroy();
   }
 }
