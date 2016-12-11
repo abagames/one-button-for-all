@@ -20,6 +20,7 @@ export const p5 = require('p5');
 export let p: p5;
 export let ticks = 0;
 export let score = 0;
+export let scoreMultiplier = 1;
 export let random: Random;
 export let seedRandom: Random;
 export let scene: Scene;
@@ -119,12 +120,24 @@ export function endGame() {
 
 export function addScore(v: number = 1, pos: p5.Vector = null) {
   if (scene === Scene.game || scene === Scene.replay) {
-    score += v;
+    score += v * scoreMultiplier;
     if (pos != null) {
-      const t = new Text(`+${v}`);
+      let s = '+';
+      if (scoreMultiplier <= 1) {
+        s += `${v}`;
+      } else if (v <= 1) {
+        s += `${scoreMultiplier}`;
+      } else {
+        s += `${v}X${scoreMultiplier}`;
+      }
+      const t = new Text(s);
       t.pos.set(pos);
     }
   }
+}
+
+export function addScoreMultiplier(v: number = 1) {
+  scoreMultiplier += v;
 }
 
 export function clearModules() {
@@ -172,6 +185,7 @@ function clearGameStatus() {
   ppe.clear();
   ui.clearJustPressed();
   score = ticks = 0;
+  scoreMultiplier = 1;
 }
 
 function beginTitle() {
@@ -210,6 +224,9 @@ function draw() {
   }
   if (options.isShowingScore) {
     text.draw(`${score}`, 1, 1, text.Align.left);
+    if (scoreMultiplier > 1) {
+      text.draw(`X${scoreMultiplier}`, 127, 1, text.Align.right);
+    }
   }
   drawSceneText();
   ticks++;

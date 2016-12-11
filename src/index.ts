@@ -38,8 +38,8 @@ function initGame() {
 
 class Player extends ob.Player {
   ms;
-  nextAsAngle = p.HALF_PI;
   weaponType = 0;
+  weaponLevel = 1;
 
   constructor() {
     super();
@@ -50,26 +50,21 @@ class Player extends ob.Player {
 
   update() {
     this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
-    if (this.ms.angle >= this.nextAsAngle) {
-      ob.addScore(1, this.pos);
-      this.nextAsAngle += p.PI;
-      sss.play('c1');
-    }
     if (ob.ui.isJustPressed) {
       switch (this.weaponType) {
         case 0:
           if (ob.Actor.get('napalm').length < 3) {
-            new Napalm(this);
+            new Napalm(this, this.weaponLevel);
           }
           break;
         case 1:
           if (ob.Actor.get('laser').length < 1) {
-            new Laser();
+            new Laser(this.weaponLevel);
           }
           break;
         case 2:
           if (ob.Actor.get('wave').length < 2) {
-            new Wave(this);
+            new Wave(this, this.weaponLevel);
           }
           break;
       }
@@ -79,37 +74,43 @@ class Player extends ob.Player {
 
   changeWeapon(type) {
     this.weaponType = type;
+    if (this.weaponLevel < 10) {
+      this.weaponLevel++;
+    }
+    const name = ['NAPALM', 'LASER', 'WAVE'];
+    let t = new ob.Text(`${name[type]} LV${this.weaponLevel}`, 60);
+    t.pos.set(this.pos);
   }
 }
 
 class Napalm extends ob.Shot {
-  constructor(actor) {
+  constructor(actor, public level: number) {
     super(actor);
     this.type = 'napalm';
   }
 
   destroy() {
-    new Explosion(this);
+    new Explosion(this, this.level);
     super.destroy();
   }
 }
 
 class Explosion extends ob.Actor {
   radius = 0;
-  colors = ['#fff', '#f88', '#88f'];
+  colors = ['#7f7', '#070'];
 
-  constructor(actor) {
+  constructor(actor, public level: number) {
     super();
     this.pos.set(actor.pos);
     this.collisionType = 'shot';
-    this.priority = 0.6;
+    this.priority = 0.3;
     sss.play('e_ex');
   }
 
   update() {
-    this.radius += this.ticks < 30 ? 1.5 : -1.5;
+    this.radius += this.ticks < 30 ? 1 + this.level * 0.1 : -1 + this.level * 0.1;
     this.collision.set(this.radius, this.radius);
-    p.fill(this.colors[ob.random.getInt(3)]);
+    p.fill(this.colors[ob.random.getInt(2)]);
     p.ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
     if (this.ticks >= 60) {
       this.remove();
@@ -121,11 +122,11 @@ class Explosion extends ob.Actor {
 }
 
 class Laser extends ob.Actor {
-  constructor() {
+  constructor(public level: number) {
     super();
     this.collisionType = 'shot';
     this.type = 'laser';
-    this.priority = 0.6;
+    this.priority = 0.3;
     sss.play('l_ls');
     sss.play('s_ls');
     this.pos.y = player.pos.y / 2;
@@ -133,17 +134,21 @@ class Laser extends ob.Actor {
 
   update() {
     this.pos.x = player.pos.x;
-    let w = (1 - this.ticks / 30) * 20;
-    let br = this.ticks < 10 ? 1 - this.ticks / 50 : 0.3 - this.ticks / 100;
-    const rb = Math.floor(50 + br * 200);
-    const g = Math.floor(200 + br * 50);
-    p.fill(`rgb(${rb},${g},${rb})`);
-    p.rect(this.pos.x - w / 2, 0, w, player.pos.y);
-    if (this.ticks < 10) {
+    let w = (1 - this.ticks / 30) * (15 + this.level * 1.5);
+    if (this.ticks < 11) {
+      p.fill('#7f7');
       this.collision.set(w, this.pos.y * 2);
     } else {
+      if (this.ticks === 11) {
+        _.times(16, i => {
+          ppe.emit('m_ls', this.pos.x, player.pos.y / 16 * i, -p.HALF_PI,
+            { hue: 0.4, countScale: 0.5 });
+        });
+      }
+      p.fill('#070');
       this.collision.set(0, 0);
     }
+    p.rect(this.pos.x - w / 2, 0, w, player.pos.y);
     if (this.ticks >= 30) {
       this.remove();
     }
@@ -154,12 +159,21 @@ class Laser extends ob.Actor {
 }
 
 class Wave extends ob.Shot {
-  constructor(actor) {
+  width: number;
+  colors = ['#7f7', '#070'];
+
+  constructor(actor, public level: number) {
     super(actor, 3);
     this.type = 'wave';
-    this.pixels = pag.generate(['oooo', 'oxxx'],
-      { isMirrorX: true, isMirrorY: false, hue: 0.4, rotationNum: 1 });
-    this.collision.set(16, 4);
+    this.pixels = null;
+    this.width = 12 + level * 1.2;
+    this.collision.set(this.width, 4);
+  }
+
+  update() {
+    super.update();
+    p.fill(this.colors[ob.random.getInt(2)]);
+    p.rect(this.pos.x - this.width / 2, this.pos.y - 2, this.width, 4);
   }
 
   destroy() { }
@@ -180,9 +194,9 @@ class Enemy extends ob.Enemy {
       this.vel.y = ob.random.get(1, ob.getDifficulty());
     }
     if (enemyMove.isXSin) {
-      this.vel.x = ob.random.get(ob.getDifficulty() - 1) * ob.random.getPm();
+      this.vel.x = ob.random.get(ob.getDifficulty() - 1) * ob.random.getPm() * 0.5;
     } else {
-      const w = ob.random.get(1, ob.getDifficulty()) * 16;
+      const w = ob.random.get(ob.getDifficulty() - 1) * 16;
       new ob.MoveSin(this, 'pos.x', ob.random.get(16 + w, 128 - 16 - w), w, ob.random.get(0.03, 0.05));
     }
     this.angle = p.HALF_PI;
@@ -195,7 +209,7 @@ class Enemy extends ob.Enemy {
   }
 
   destroy() {
-    if (ob.random.get() < 0.1) {
+    if (ob.random.get() < 0.12) {
       new WeaponItem(this.pos);
     }
     super.destroy();
@@ -219,10 +233,10 @@ class BulletPattern {
   speed: number;
 
   constructor() {
-    this.way = ob.random.getInt(1, ob.getDifficulty() * 2);
-    this.angle = ob.random.get(ob.getDifficulty() * p.HALF_PI / 4);
-    this.whip = ob.random.getInt(1, ob.getDifficulty());
-    this.speed = ob.random.get(ob.getDifficulty() / 4);
+    this.way = ob.random.getInt(1, ob.getDifficulty());
+    this.angle = ob.random.get(ob.getDifficulty() * p.HALF_PI * 0.2);
+    this.whip = ob.random.getInt(1, ob.getDifficulty() * 2);
+    this.speed = ob.random.get(ob.getDifficulty() * 0.1);
   }
 
   fire(actor) {
@@ -260,7 +274,6 @@ class Bullet extends ob.Bullet {
     if (ss.length > 0) {
       this.emitParticles('e_bl', { sizeScale: 0.5 });
       new Bonus(this.pos);
-      //ob.addScore(1, this.pos);
       this.remove();
       _.forEach(ss, s => {
         if (s.type === 'napalm') {
@@ -278,6 +291,11 @@ class Bonus extends ob.Item {
     new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
     new ob.AbsorbPos(this);
   }
+
+  destroy() {
+    ob.addScoreMultiplier();
+    this.remove();
+  }
 }
 
 class WeaponItem extends ob.Item {
@@ -292,10 +310,11 @@ class WeaponItem extends ob.Item {
     this.weaponType = ob.random.getInt(3);
     const texts = ['N', 'L', 'W'];
     new ob.DrawText(this, texts[this.weaponType]);
+    this.priority = 0.7;
   }
 
   destroy() {
     player.changeWeapon(this.weaponType);
-    super.destroy();
+    this.remove();
   }
 }

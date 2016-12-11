@@ -236,7 +236,7 @@ export class Shot extends Actor {
     this.pos.set(actor.pos);
     this.angle = angle == null ? actor.angle : angle;
     this.speed = speed;
-    this.priority = 0.6;
+    this.priority = 0.3;
   }
 
   update() {
@@ -244,7 +244,7 @@ export class Shot extends Actor {
       this.emitParticles(`m_${this.type}`);
       sss.play(`l_${this.type}`);
     }
-    this.emitParticles(`t_${this.type}`);
+    this.emitParticles(`t_${this.type}`);//, { hue: 0.4 });
     super.update();
   }
 }
@@ -252,7 +252,7 @@ export class Shot extends Actor {
 export class Bullet extends Actor {
   constructor(actor, speed = 2, angle = null) {
     super();
-    this.pixels = pag.generate(['xxx'], { hue: 0.1 });
+    this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
     this.type = this.collisionType = 'bullet';
     this.pos.set(actor.pos);
     this.angle = angle == null ? actor.angle : angle;
@@ -278,7 +278,7 @@ export class Item extends Actor {
     if (vel != null) {
       this.vel = vel;
     }
-    this.priority = 0.3;
+    this.priority = 0.6;
     this.collision.set(10, 10);
   }
 
