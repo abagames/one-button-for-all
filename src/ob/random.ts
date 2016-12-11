@@ -16,6 +16,10 @@ export default class Random {
     return Math.floor(this.get(fromOrTo, to));
   }
 
+  getPm() {
+    return this.get(2) * 2 - 1;
+  }
+
   setSeed(v: number = -0x7fffffff) {
     if (v === -0x7fffffff) {
       v = Math.floor(Math.random() * 0x7fffffff);

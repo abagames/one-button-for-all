@@ -25,6 +25,12 @@ function initGame() {
   if (ob.scene === ob.Scene.title) {
     player.remove();
   }
+  enemyMove = new EnemyMove();
+  bulletPattern = new BulletPattern();
+  new ob.DoInterval(null, () => {
+    enemyMove = new EnemyMove();
+    bulletPattern = new BulletPattern();
+  }, 60 * 5);
   new ob.DoInterval(null, () => {
     new Enemy();
   }, 60, false, true);
@@ -155,15 +161,31 @@ class Wave extends ob.Shot {
   destroy() { }
 }
 
+let enemyMove: EnemyMove;
+let bulletPattern: BulletPattern;
+
 class Enemy extends ob.Enemy {
+  bulletPattern: BulletPattern;
+
   constructor() {
     super();
     this.pos.x = ob.random.get(16, 128 - 16);
-    this.vel.y = ob.random.get(1, ob.getDifficulty());
+    if (enemyMove.isYSin) {
+      new ob.MoveSin(this, 'pos.y', 0, 64, ob.random.get(0.015, 0.03));
+    } else {
+      this.vel.y = ob.random.get(1, ob.getDifficulty());
+    }
+    if (enemyMove.isXSin) {
+      this.vel.x = ob.random.get(ob.getDifficulty() - 1) * ob.random.getPm();
+    } else {
+      const w = ob.random.get(1, ob.getDifficulty()) * 16;
+      new ob.MoveSin(this, 'pos.x', ob.random.get(16 + w, 128 - 16 - w), w, ob.random.get(0.03, 0.05));
+    }
     this.angle = p.HALF_PI;
+    this.bulletPattern = bulletPattern;
     new ob.DoInterval(this, (di) => {
       if (this.pos.y < 50) {
-        new Bullet(this);
+        this.bulletPattern.fire(this);
       }
     }, 60, true, true);
   }
@@ -174,10 +196,55 @@ class Enemy extends ob.Enemy {
   }
 }
 
+class EnemyMove {
+  isXSin: boolean;
+  isYSin: boolean;
+
+  constructor() {
+    this.isYSin = ob.random.get() < 1 / ob.getDifficulty();
+    this.isXSin = ob.random.get() > 1 / ob.getDifficulty();
+  }
+}
+
+class BulletPattern {
+  way: number;
+  angle: number;
+  whip: number;
+  speed: number;
+
+  constructor() {
+    this.way = ob.random.getInt(1, ob.getDifficulty() * 2);
+    this.angle = ob.random.get(ob.getDifficulty() * p.HALF_PI / 4);
+    this.whip = ob.random.getInt(1, ob.getDifficulty());
+    this.speed = ob.random.get(ob.getDifficulty() / 4);
+  }
+
+  fire(actor) {
+    let a = ob.Vector.getAngle(actor.pos, player.pos);
+    let va = 0;
+    if (this.way > 1) {
+      a += this.angle;
+      va = this.angle * 2 / (this.way - 1);
+    }
+    _.times(this.way, i => {
+      let s = 1;
+      let vs = 0;
+      if (this.whip > 1) {
+        s += this.speed;
+        vs = this.speed * 2 / (this.whip - 1);
+      }
+      _.times(this.whip, () => {
+        new Bullet(actor, s * 2, a);
+        s -= vs;
+      });
+      a -= va;
+    });
+  }
+}
+
 class Bullet extends ob.Bullet {
-  constructor(enemy) {
-    super(enemy);
-    this.angle = ob.Vector.getAngle(enemy.pos, player.pos);
+  constructor(enemy, speed, angle) {
+    super(enemy, speed, angle);
     this.collision.set(4, 4);
   }
 
