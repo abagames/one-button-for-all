@@ -1,4 +1,14 @@
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["ob"] = factory();
+	else
+		root["ob"] = factory();
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -45,15 +55,14 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(1);
-	__webpack_require__(9);
-	__webpack_require__(14);
-	__webpack_require__(3);
-	__webpack_require__(16);
-	__webpack_require__(10);
-	__webpack_require__(12);
 	__webpack_require__(13);
+	__webpack_require__(8);
+	__webpack_require__(15);
+	__webpack_require__(9);
 	__webpack_require__(11);
-	module.exports = __webpack_require__(15);
+	__webpack_require__(12);
+	__webpack_require__(10);
+	module.exports = __webpack_require__(14);
 
 
 /***/ },
@@ -66,2001 +75,356 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var sss = __webpack_require__(2);
-	var ob = __webpack_require__(3);
-	ob.init(init, initGame);
-	var p = ob.p;
-	var player;
-	function init() {
-	    ob.screen.init(128, 128);
-	    ob.setTitle('ONE BUTTON', 'FOR ALL');
-	    ob.setOptions({
-	        isReplayEnabled: true
-	    });
-	    ob.setSeeds(8850148);
-	    //ob.enableDebug();
-	    ob.limitColors();
-	}
-	function initGame() {
-	    ob.fillStar();
-	    player = new Player();
-	    if (ob.scene === ob.Scene.title) {
-	        player.remove();
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(4);
+	var ppe = __webpack_require__(5);
+	var sss = __webpack_require__(6);
+	var ir = __webpack_require__(7);
+	var ob = __webpack_require__(8);
+	var p5;
+	var rotationNum = 16;
+	var Actor = (function () {
+	    function Actor() {
+	        this.pos = new p5.Vector();
+	        this.vel = new p5.Vector();
+	        this.angle = 0;
+	        this.speed = 0;
+	        this.isAlive = true;
+	        this.priority = 1;
+	        this.ticks = 0;
+	        this.collision = new p5.Vector(8, 8);
+	        this.context = ob.screen.context;
+	        this.modules = [];
+	        Actor.add(this);
+	        this.type = ('' + this.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
+	        new ob.RemoveWhenOut(this);
 	    }
-	    new ob.DoInterval(null, function () {
-	        new Enemy();
-	    }, 60, false, true);
-	}
+	    Actor.prototype.update = function () {
+	        this.pos.add(this.vel);
+	        this.pos.x += Math.cos(this.angle) * this.speed;
+	        this.pos.y += Math.sin(this.angle) * this.speed;
+	        if (this.pixels != null) {
+	            this.drawPixels();
+	        }
+	        _.forEach(this.modules, function (m) {
+	            m.update();
+	        });
+	        this.ticks++;
+	    };
+	    Actor.prototype.remove = function () {
+	        this.isAlive = false;
+	    };
+	    Actor.prototype.destroy = function () {
+	        this.remove();
+	    };
+	    Actor.prototype.clearModules = function () {
+	        this.modules = [];
+	    };
+	    Actor.prototype.testCollision = function (type) {
+	        var _this = this;
+	        return _.filter(Actor.getByCollitionType(type), function (a) {
+	            return Math.abs(_this.pos.x - a.pos.x) < (_this.collision.x + a.collision.x) / 2 &&
+	                Math.abs(_this.pos.y - a.pos.y) < (_this.collision.y + a.collision.y) / 2;
+	        });
+	    };
+	    Actor.prototype.emitParticles = function (patternName, options) {
+	        if (options === void 0) { options = {}; }
+	        ppe.emit(patternName, this.pos.x, this.pos.y, this.angle, options);
+	    };
+	    Actor.prototype._addModule = function (module) {
+	        this.modules.push(module);
+	    };
+	    Actor.prototype.drawPixels = function (x, y) {
+	        if (x === void 0) { x = null; }
+	        if (y === void 0) { y = null; }
+	        if (x == null) {
+	            x = this.pos.x;
+	        }
+	        if (y == null) {
+	            y = this.pos.y;
+	        }
+	        if (this.pixels.length <= 1) {
+	            pag.draw(this.context, this.pixels, x, y, 0);
+	        }
+	        else {
+	            var a = this.angle;
+	            if (a < 0) {
+	                a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
+	            }
+	            var ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
+	            pag.draw(this.context, this.pixels, x, y, ri);
+	        }
+	    };
+	    Actor.prototype.getReplayStatus = function () {
+	        if (this.replayPropertyNames == null) {
+	            return null;
+	        }
+	        return ir.objectToArray(this, this.replayPropertyNames);
+	    };
+	    Actor.prototype.setReplayStatus = function (status) {
+	        ir.arrayToObject(status, this.replayPropertyNames, this);
+	    };
+	    Actor.init = function () {
+	        p5 = ob.p5;
+	        pag.setDefaultOptions({
+	            isMirrorY: true,
+	            rotationNum: rotationNum,
+	            scale: 2
+	        });
+	        Actor.clear();
+	    };
+	    Actor.add = function (actor) {
+	        Actor.actors.push(actor);
+	    };
+	    Actor.clear = function () {
+	        Actor.actors = [];
+	    };
+	    Actor.updateLowerZero = function () {
+	        Actor.actors.sort(function (a, b) { return a.priority - b.priority; });
+	        Actor.updateSorted(true);
+	    };
+	    Actor.update = function () {
+	        Actor.updateSorted();
+	    };
+	    Actor.updateSorted = function (isLowerZero) {
+	        if (isLowerZero === void 0) { isLowerZero = false; }
+	        for (var i = 0; i < Actor.actors.length;) {
+	            var a = Actor.actors[i];
+	            if (isLowerZero && a.priority >= 0) {
+	                return;
+	            }
+	            if (!isLowerZero && a.priority < 0) {
+	                i++;
+	                continue;
+	            }
+	            if (a.isAlive !== false) {
+	                a.update();
+	            }
+	            if (a.isAlive === false) {
+	                Actor.actors.splice(i, 1);
+	            }
+	            else {
+	                i++;
+	            }
+	        }
+	    };
+	    Actor.get = function (type) {
+	        return _.filter(Actor.actors, function (a) { return a.type === type; });
+	    };
+	    Actor.getByCollitionType = function (collitionType) {
+	        return _.filter(Actor.actors, function (a) { return a.collisionType == collitionType; });
+	    };
+	    Actor.getReplayStatus = function () {
+	        var status = [];
+	        _.forEach(Actor.actors, function (a) {
+	            var array = a.getReplayStatus();
+	            if (array != null) {
+	                status.push([a.type, array]);
+	            }
+	        });
+	        return status;
+	    };
+	    Actor.setReplayStatus = function (status, actorGeneratorFunc) {
+	        _.forEach(status, function (s) {
+	            actorGeneratorFunc(s[0], s[1]);
+	        });
+	    };
+	    return Actor;
+	}());
+	exports.Actor = Actor;
 	var Player = (function (_super) {
 	    __extends(Player, _super);
 	    function Player() {
 	        _super.call(this);
-	        this.nextAsAngle = p.HALF_PI;
-	        this.ms = new ob.MoveSin(this, 'pos.x');
-	        this.pos.y = 110;
-	        this.angle = -p.HALF_PI;
+	        this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
+	        this.type = this.collisionType = 'player';
+	        this.collision.set(5, 5);
 	    }
 	    Player.prototype.update = function () {
-	        this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
-	        if (this.ms.angle >= this.nextAsAngle) {
-	            ob.addScore(1, this.pos);
-	            this.nextAsAngle += p.PI;
-	            sss.play('c1');
-	        }
-	        if (ob.ui.isJustPressed) {
-	            new ob.Shot(this);
-	        }
+	        this.emitParticles("t_" + this.type);
 	        _super.prototype.update.call(this);
+	        if (this.testCollision('enemy').length > 0 ||
+	            this.testCollision('bullet').length > 0) {
+	            this.destroy();
+	        }
+	    };
+	    Player.prototype.destroy = function () {
+	        sss.play("u_" + this.type + "_d");
+	        this.emitParticles("e_" + this.type + "_d", { sizeScale: 2 });
+	        _super.prototype.destroy.call(this);
+	        ob.endGame();
 	    };
 	    return Player;
-	}(ob.Player));
+	}(Actor));
+	exports.Player = Player;
 	var Enemy = (function (_super) {
 	    __extends(Enemy, _super);
 	    function Enemy() {
-	        var _this = this;
 	        _super.call(this);
-	        this.pos.x = ob.random.get(128);
-	        this.vel.y = ob.random.get(1, ob.getDifficulty());
-	        this.angle = p.HALF_PI;
-	        new ob.DoInterval(this, function (di) {
-	            if (_this.pos.y < 50) {
-	                new Bullet(_this);
-	            }
-	        }, 60, true, true);
-	        this.onDestroyed = function () {
-	            new Bonus(_this.pos);
-	        };
+	        this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
+	        this.type = this.collisionType = 'enemy';
 	    }
+	    Enemy.prototype.update = function () {
+	        this.emitParticles("t_" + this.type);
+	        _super.prototype.update.call(this);
+	        var cs = this.testCollision('shot');
+	        if (cs.length > 0) {
+	            this.destroy();
+	            _.forEach(cs, function (s) {
+	                s.destroy();
+	            });
+	        }
+	    };
+	    Enemy.prototype.destroy = function () {
+	        sss.play("e_" + this.type + "_d");
+	        this.emitParticles("e_" + this.type + "_d");
+	        ob.addScore(1, this.pos);
+	        _super.prototype.destroy.call(this);
+	    };
 	    return Enemy;
-	}(ob.Enemy));
+	}(Actor));
+	exports.Enemy = Enemy;
+	var Shot = (function (_super) {
+	    __extends(Shot, _super);
+	    function Shot(actor, speed, angle) {
+	        if (speed === void 0) { speed = 2; }
+	        if (angle === void 0) { angle = null; }
+	        _super.call(this);
+	        this.pixels = pag.generate(['xxx'], { hue: 0.4 });
+	        this.type = this.collisionType = 'shot';
+	        this.pos.set(actor.pos);
+	        this.angle = angle == null ? actor.angle : angle;
+	        this.speed = speed;
+	        this.priority = 0.3;
+	    }
+	    Shot.prototype.update = function () {
+	        if (this.ticks === 0) {
+	            this.emitParticles("m_" + this.type);
+	            sss.play("l_" + this.type);
+	        }
+	        this.emitParticles("t_" + this.type); //, { hue: 0.4 });
+	        _super.prototype.update.call(this);
+	    };
+	    return Shot;
+	}(Actor));
+	exports.Shot = Shot;
 	var Bullet = (function (_super) {
 	    __extends(Bullet, _super);
-	    function Bullet(enemy) {
-	        _super.call(this, enemy);
-	        this.angle = ob.Vector.getAngle(enemy.pos, player.pos);
-	        this.collision.set(4, 4);
+	    function Bullet(actor, speed, angle) {
+	        if (speed === void 0) { speed = 2; }
+	        if (angle === void 0) { angle = null; }
+	        _super.call(this);
+	        this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
+	        this.type = this.collisionType = 'bullet';
+	        this.pos.set(actor.pos);
+	        this.angle = angle == null ? actor.angle : angle;
+	        this.speed = speed;
 	    }
 	    Bullet.prototype.update = function () {
+	        if (this.ticks === 0) {
+	            this.emitParticles("m_" + this.type);
+	            sss.play("l_" + this.type);
+	        }
+	        this.emitParticles("t_" + this.type);
 	        _super.prototype.update.call(this);
-	        if (this.testCollision('shot').length > 0) {
-	            this.emitParticles('e_bl', { sizeScale: 0.5 });
-	            ob.addScore(1, this.pos);
+	    };
+	    return Bullet;
+	}(Actor));
+	exports.Bullet = Bullet;
+	var Item = (function (_super) {
+	    __extends(Item, _super);
+	    function Item(pos, vel, gravity) {
+	        if (vel === void 0) { vel = null; }
+	        if (gravity === void 0) { gravity = null; }
+	        _super.call(this);
+	        this.gravity = gravity;
+	        this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
+	        this.type = this.collisionType = 'item';
+	        this.pos.set(pos);
+	        if (vel != null) {
+	            this.vel = vel;
+	        }
+	        this.priority = 0.6;
+	        this.collision.set(10, 10);
+	    }
+	    Item.prototype.update = function () {
+	        this.vel.add(this.gravity);
+	        this.vel.mult(0.99);
+	        this.emitParticles("t_" + this.type);
+	        _super.prototype.update.call(this);
+	        if (this.testCollision('player').length > 0) {
+	            this.emitParticles("s_" + this.type);
+	            sss.play("s_" + this.type);
+	            this.destroy();
+	        }
+	        _super.prototype.update.call(this);
+	    };
+	    Item.prototype.destroy = function () {
+	        ob.addScore(1, this.pos);
+	        _super.prototype.destroy.call(this);
+	    };
+	    return Item;
+	}(Actor));
+	exports.Item = Item;
+	var Star = (function (_super) {
+	    __extends(Star, _super);
+	    function Star() {
+	        _super.call(this);
+	        this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
+	        this.vel.y = ob.p.random(0.5, 1.5);
+	        this.clearModules();
+	        new ob.WrapPos(this);
+	        var colorStrs = ['00', '7f', 'ff'];
+	        this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
+	        this.priority = -1;
+	    }
+	    Star.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        ob.p.fill(this.color);
+	        ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 1, 1);
+	    };
+	    return Star;
+	}(Actor));
+	exports.Star = Star;
+	var Panel = (function (_super) {
+	    __extends(Panel, _super);
+	    function Panel(x, y) {
+	        _super.call(this);
+	        this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], { isMirrorX: true, value: 0.5, colorLighting: 0 });
+	        this.pos.set(x, y);
+	        new ob.WrapPos(this);
+	        this.vel.y = 1;
+	        this.priority = -1;
+	    }
+	    return Panel;
+	}(Actor));
+	exports.Panel = Panel;
+	var Text = (function (_super) {
+	    __extends(Text, _super);
+	    function Text(str, duration, align) {
+	        if (duration === void 0) { duration = 30; }
+	        if (align === void 0) { align = null; }
+	        _super.call(this);
+	        this.str = str;
+	        this.duration = duration;
+	        this.align = align;
+	        this.vel.y = -2;
+	    }
+	    Text.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        this.vel.mult(0.9);
+	        ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
+	        if (this.ticks >= this.duration) {
 	            this.remove();
 	        }
 	    };
-	    return Bullet;
-	}(ob.Bullet));
-	var Bonus = (function (_super) {
-	    __extends(Bonus, _super);
-	    function Bonus(pos) {
-	        _super.call(this, pos, p.createVector(0, -1), p.createVector(0, 0.02));
-	        this.clearModules();
-	        new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
-	        new ob.AbsorbPos(this);
-	    }
-	    return Bonus;
-	}(ob.Bonus));
+	    return Text;
+	}(Actor));
+	exports.Text = Text;
 
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
-
-	(function webpackUniversalModuleDefinition(root, factory) {
-		if(true)
-			module.exports = factory();
-		else if(typeof define === 'function' && define.amd)
-			define([], factory);
-		else if(typeof exports === 'object')
-			exports["sss"] = factory();
-		else
-			root["sss"] = factory();
-	})(this, function() {
-	return /******/ (function(modules) { // webpackBootstrap
-	/******/ 	// The module cache
-	/******/ 	var installedModules = {};
-	
-	/******/ 	// The require function
-	/******/ 	function __webpack_require__(moduleId) {
-	
-	/******/ 		// Check if module is in cache
-	/******/ 		if(installedModules[moduleId])
-	/******/ 			return installedModules[moduleId].exports;
-	
-	/******/ 		// Create a new module (and put it into the cache)
-	/******/ 		var module = installedModules[moduleId] = {
-	/******/ 			exports: {},
-	/******/ 			id: moduleId,
-	/******/ 			loaded: false
-	/******/ 		};
-	
-	/******/ 		// Execute the module function
-	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-	
-	/******/ 		// Flag the module as loaded
-	/******/ 		module.loaded = true;
-	
-	/******/ 		// Return the exports of the module
-	/******/ 		return module.exports;
-	/******/ 	}
-	
-	
-	/******/ 	// expose the modules object (__webpack_modules__)
-	/******/ 	__webpack_require__.m = modules;
-	
-	/******/ 	// expose the module cache
-	/******/ 	__webpack_require__.c = installedModules;
-	
-	/******/ 	// __webpack_public_path__
-	/******/ 	__webpack_require__.p = "/libs/";
-	
-	/******/ 	// Load entry module and return exports
-	/******/ 	return __webpack_require__(0);
-	/******/ })
-	/************************************************************************/
-	/******/ ([
-	/* 0 */
-	/***/ function(module, exports, __webpack_require__) {
-	
-		module.exports = __webpack_require__(2);
-	
-	
-	/***/ },
-	/* 1 */,
-	/* 2 */
-	/***/ function(module, exports, __webpack_require__) {
-	
-		"use strict";
-		var __extends = (this && this.__extends) || function (d, b) {
-		    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-		    function __() { this.constructor = d; }
-		    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-		};
-		var jsfx = __webpack_require__(3);
-		exports.Preset = jsfx.Preset;
-		var live;
-		var random;
-		var buffers = {};
-		var tracks = [];
-		var schedulingInterval;
-		var seed;
-		var playPrefixes = {
-		    c: exports.Preset.Coin,
-		    l: exports.Preset.Laser,
-		    e: exports.Preset.Explosion,
-		    p: exports.Preset.Powerup,
-		    h: exports.Preset.Hit,
-		    j: exports.Preset.Jump,
-		    s: exports.Preset.Select,
-		    u: exports.Preset.Lucky,
-		};
-		var playprefixeArray = values(playPrefixes);
-		var quantize = 0.5;
-		var isEmptyPlayed = false;
-		var prevPlayingFileName;
-		function init(_seed, tempo, fps) {
-		    if (_seed === void 0) { _seed = 0; }
-		    if (tempo === void 0) { tempo = 120; }
-		    if (fps === void 0) { fps = 60; }
-		    live = jsfx.Live({});
-		    setVolume(0.1);
-		    seed = _seed;
-		    random = new Random();
-		    jsfx.setRandomFunc(random.get01);
-		    exports.playInterval = 60 / tempo;
-		    schedulingInterval = 1 / fps * 2;
-		}
-		exports.init = init;
-		function setSeed(_seed) {
-		    if (_seed === void 0) { _seed = 0; }
-		    seed = _seed;
-		}
-		exports.setSeed = setSeed;
-		function play(name, mult, params) {
-		    if (name === void 0) { name = '0'; }
-		    if (mult === void 0) { mult = 2; }
-		    if (params === void 0) { params = null; }
-		    if (live == null) {
-		        return;
-		    }
-		    if (buffers[name] != null) {
-		        buffers[name].play();
-		        return;
-		    }
-		    random.setSeed(seed + getHashFromString(name));
-		    if (params == null) {
-		        var p = playPrefixes[name[0]];
-		        if (typeof p === 'undefined') {
-		            p = random.sample(playprefixeArray);
-		        }
-		        params = nArray(mult, p);
-		    }
-		    buffers[name] = new Sound(params);
-		    buffers[name].play();
-		}
-		exports.play = play;
-		function setVolume(volume) {
-		    if (live == null) {
-		        return;
-		    }
-		    live._volume.gain.value = volume;
-		}
-		exports.setVolume = setVolume;
-		function setQuantize(_quantize) {
-		    quantize = _quantize;
-		}
-		exports.setQuantize = setQuantize;
-		function playBgm(name, interval, params, tracksNum) {
-		    if (name === void 0) { name = '0'; }
-		    if (interval === void 0) { interval = 0.25; }
-		    if (params === void 0) { params = [exports.Preset.Laser, exports.Preset.Hit]; }
-		    if (tracksNum === void 0) { tracksNum = 8; }
-		    if (live == null) {
-		        return;
-		    }
-		    stopBgm();
-		    random.setSeed(seed + getHashFromString(name));
-		    tracks = [];
-		    times(tracksNum, function () { return addRandomTrack(interval, params); });
-		    forEach(tracks, function (t) { return t.play(); });
-		}
-		exports.playBgm = playBgm;
-		function stopBgm() {
-		    if (live == null) {
-		        return;
-		    }
-		    forEach(tracks, function (t) { return t.stop(); });
-		}
-		exports.stopBgm = stopBgm;
-		function update() {
-		    if (live == null) {
-		        return;
-		    }
-		    var currentTime = live._context.currentTime;
-		    var schedulingTime = currentTime + schedulingInterval;
-		    forOwn(buffers, function (b) { return b.update(currentTime, schedulingTime); });
-		    forEach(tracks, function (t) { return t.update(currentTime, schedulingTime); });
-		    return currentTime;
-		}
-		exports.update = update;
-		function reset() {
-		    stopBgm();
-		    buffers = {};
-		    tracks = [];
-		}
-		exports.reset = reset;
-		function playEmpty() {
-		    if (live == null) {
-		        return;
-		    }
-		    if (isEmptyPlayed) {
-		        return;
-		    }
-		    var eb = live._createEmptyBuffer();
-		    live._playBuffer(eb, 0);
-		    isEmptyPlayed = true;
-		}
-		exports.playEmpty = playEmpty;
-		function playParam(param) {
-		    if (live == null) {
-		        return;
-		    }
-		    live._play(param);
-		}
-		exports.playParam = playParam;
-		function addRandomTrack(interval, params) {
-		    addTrack(random.sample(params), createRandomPattern(), interval);
-		}
-		function createRandomPattern() {
-		    var len = 64;
-		    var pattern = nArray(len, false);
-		    var pi = 4;
-		    while (pi <= len) {
-		        pattern = reversePattern(pattern, pi);
-		        pi *= 2;
-		    }
-		    return pattern;
-		}
-		function reversePattern(pattern, interval) {
-		    var pt = nArray(interval, false);
-		    var pr = 0.5;
-		    for (var i = 0; i < interval / 2; i++) {
-		        if (random.f() < pr) {
-		            pt[random.i(interval - 1)] = true;
-		        }
-		        pr *= 0.5;
-		    }
-		    return map(pattern, function (p, i) { return pt[i % interval] ? !p : p; });
-		}
-		function addTrack(param, pattern, interval) {
-		    if (interval === void 0) { interval = 0.25; }
-		    var track = new Track(param);
-		    track.patternInterval = interval;
-		    if (typeof pattern === 'string') {
-		        track.pattern = mapString(pattern, function (p) { return p === '1'; });
-		    }
-		    else {
-		        track.pattern = pattern;
-		    }
-		    tracks.push(track);
-		}
-		exports.addTrack = addTrack;
-		var Sound = (function () {
-		    function Sound(params) {
-		        this.isPlaying = false;
-		        this.playedTime = null;
-		        if (!Array.isArray(params)) {
-		            params = [params];
-		        }
-		        this.buffers = map(params, function (p) { return live._createBuffer(p); });
-		    }
-		    Sound.prototype.play = function () {
-		        this.isPlaying = true;
-		    };
-		    Sound.prototype.stop = function () {
-		        this.isPlaying = false;
-		    };
-		    Sound.prototype.update = function (currentTime, schedulingTime) {
-		        if (!this.isPlaying) {
-		            return;
-		        }
-		        this.isPlaying = false;
-		        var interval = exports.playInterval * quantize;
-		        var time = interval > 0 ?
-		            Math.ceil(currentTime / interval) * interval : currentTime;
-		        if (this.playedTime == null || time > this.playedTime) {
-		            this.playLater(time);
-		            this.playedTime = time;
-		        }
-		    };
-		    Sound.prototype.playLater = function (when) {
-		        forEach(this.buffers, function (b) { return live._playBuffer(b, when); });
-		    };
-		    return Sound;
-		}());
-		var Track = (function (_super) {
-		    __extends(Track, _super);
-		    function Track() {
-		        _super.apply(this, arguments);
-		        this.patternIndex = 0;
-		        this.patternInterval = 0.25;
-		        this.scheduledTime = null;
-		    }
-		    Track.prototype.update = function (currentTime, schedulingTime) {
-		        if (!this.isPlaying) {
-		            return;
-		        }
-		        if (this.scheduledTime == null) {
-		            this.calcFirstScheduledTime(currentTime);
-		        }
-		        for (var i = 0; i < 99; i++) {
-		            if (this.scheduledTime >= currentTime) {
-		                break;
-		            }
-		            this.calcNextScheduledTime();
-		        }
-		        if (this.scheduledTime < currentTime) {
-		            this.scheduledTime = null;
-		        }
-		        else {
-		            while (this.scheduledTime <= schedulingTime) {
-		                this.playLater(this.scheduledTime);
-		                this.calcNextScheduledTime();
-		            }
-		        }
-		    };
-		    Track.prototype.calcFirstScheduledTime = function (currentTime) {
-		        this.scheduledTime = Math.ceil(currentTime / exports.playInterval) * exports.playInterval -
-		            exports.playInterval * this.patternInterval;
-		        this.patternIndex = 0;
-		        this.calcNextScheduledTime();
-		    };
-		    Track.prototype.calcNextScheduledTime = function () {
-		        var pl = this.pattern.length;
-		        var pi = exports.playInterval * this.patternInterval;
-		        for (var i = 0; i < pl; i++) {
-		            this.scheduledTime += pi;
-		            var p = this.pattern[this.patternIndex];
-		            this.patternIndex++;
-		            if (this.patternIndex >= pl) {
-		                this.patternIndex = 0;
-		            }
-		            if (p) {
-		                break;
-		            }
-		        }
-		    };
-		    return Track;
-		}(Sound));
-		var Random = (function () {
-		    function Random() {
-		        this.setSeed();
-		        this.get01 = this.get01.bind(this);
-		        this.f = this.f.bind(this);
-		        this.i = this.i.bind(this);
-		    }
-		    Random.prototype.setSeed = function (v) {
-		        if (v === void 0) { v = -0x7fffffff; }
-		        if (v === -0x7fffffff) {
-		            v = Math.floor(Math.random() * 0x7fffffff);
-		        }
-		        this.x = v = 1812433253 * (v ^ (v >> 30));
-		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
-		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
-		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
-		        return this;
-		    };
-		    Random.prototype.f = function (minOrMax, max) {
-		        if (minOrMax === void 0) { minOrMax = null; }
-		        if (max === void 0) { max = null; }
-		        if (minOrMax == null) {
-		            return this.get01();
-		        }
-		        if (max == null) {
-		            return this.get01() * minOrMax;
-		        }
-		        return this.get01() * (max - minOrMax) + minOrMax;
-		    };
-		    Random.prototype.i = function (minOrMax, max) {
-		        if (minOrMax === void 0) { minOrMax = null; }
-		        if (max === void 0) { max = null; }
-		        return Math.floor(this.f(minOrMax, max + 1));
-		    };
-		    Random.prototype.sample = function (array) {
-		        return array[this.i(array.length - 1)];
-		    };
-		    Random.prototype.getInt = function () {
-		        var t = this.x ^ (this.x << 11);
-		        this.x = this.y;
-		        this.y = this.z;
-		        this.z = this.w;
-		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
-		        return this.w;
-		    };
-		    Random.prototype.get01 = function () {
-		        return this.getInt() / 0x7fffffff;
-		    };
-		    return Random;
-		}());
-		function getHashFromString(str) {
-		    var hash = 0;
-		    var len = str.length;
-		    for (var i = 0; i < len; i++) {
-		        var chr = str.charCodeAt(i);
-		        hash = ((hash << 5) - hash) + chr;
-		        hash |= 0;
-		    }
-		    return hash;
-		}
-		function values(obj) {
-		    var vs = [];
-		    for (var p in obj) {
-		        if (obj.hasOwnProperty(p)) {
-		            vs.push(obj[p]);
-		        }
-		    }
-		    return vs;
-		}
-		function nArray(n, v) {
-		    var a = [];
-		    for (var i = 0; i < n; i++) {
-		        a.push(v);
-		    }
-		    return a;
-		}
-		function times(n, func) {
-		    for (var i = 0; i < n; i++) {
-		        func();
-		    }
-		}
-		function forEach(array, func) {
-		    for (var i = 0; i < array.length; i++) {
-		        func(array[i]);
-		    }
-		}
-		function forOwn(obj, func) {
-		    for (var p in obj) {
-		        func(obj[p]);
-		    }
-		}
-		function map(array, func) {
-		    var result = [];
-		    for (var i = 0; i < array.length; i++) {
-		        result.push(func(array[i], i));
-		    }
-		    return result;
-		}
-		function mapString(str, func) {
-		    var result = [];
-		    for (var i = 0; i < str.length; i++) {
-		        result.push(func(str.charAt(i), i));
-		    }
-		    return result;
-		}
-	
-	
-	/***/ },
-	/* 3 */
-	/***/ function(module, exports) {
-	
-		// original ver.: https://github.com/loov/jsfx
-		// these functions/variables are added by @abagames
-		//  - module.exports
-		//  - Live._createBuffer
-		//  - Live._createEmptyBuffer
-		//  - Live._playBuffer
-		//  - setRandomFunc
-		//  - webkitAudioContext
-		var jsfx = {};
-		(function (jsfx) {
-		  'use strict';
-	
-		  var chr = String.fromCharCode;
-		  var TAU = +Math.PI * 2;
-		  var bitsPerSample = 16 | 0;
-		  var numChannels = 1 | 0;
-		  var sin = Math.sin;
-		  var pow = Math.pow;
-		  var abs = Math.abs;
-		  var EPSILON = 0.000001;
-	
-		  jsfx.SampleRate = 0 | 0;
-		  jsfx.Sec = 0 | 0;
-	
-		  jsfx.SetSampleRate = function (sampleRate) {
-		    jsfx.SampleRate = sampleRate | 0;
-		    jsfx.Sec = sampleRate | 0;
-		  };
-		  jsfx.SetSampleRate(getDefaultSampleRate());
-	
-		  // MAIN API
-	
-		  // Creates a new Audio object based on the params
-		  // params can be a params generating function or the actual parameters
-		  jsfx.Sound = function (params) {
-		    var processor = new Processor(params, jsfx.DefaultModules);
-		    var block = createFloatArray(processor.getSamplesLeft());
-		    processor.generate(block);
-		    return CreateAudio(block);
-		  };
-	
-		  // Same as Sounds, but avoids locking the browser for too long
-		  // in case you have a large amount of sounds to generate
-		  jsfx.Sounds = function (library, ondone, onprogress) {
-		    var audio = {};
-		    var player = {};
-		    player._audio = audio;
-	
-		    var toLoad = [];
-	
-		    // create playing functions
-		    map_object(library, function (_, name) {
-		      player[name] = function () {
-		        if (typeof audio[name] !== "undefined") {
-		          audio[name].currentTime = 0.0;
-		          audio[name].play();
-		        }
-		      };
-		      toLoad.push(name);
-		    });
-	
-		    var loaded = 0, total = toLoad.length;
-		    function next() {
-		      if (toLoad.length == 0) {
-		        ondone && ondone(sounds);
-		        return;
-		      }
-		      var name = toLoad.shift();
-		      audio[name] = jsfx.Sound(library[name]);
-		      loaded++;
-		      onprogress && onprogress(name, loaded, total);
-	
-		      window.setTimeout(next, 30);
-		    }
-		    next();
-	
-		    return player;
-		  }
-	
-		  // SoundsImmediate takes a named set of params, and generates multiple
-		  // sound objects at once.
-		  jsfx.SoundsImmediate = function (library) {
-		    var audio = {};
-		    var player = {};
-		    player._audio = audio;
-		    map_object(library, function (params, name) {
-		      audio[name] = jsfx.Sound(params);
-		      player[name] = function () {
-		        if (typeof audio[name] !== "undefined") {
-		          audio[name].currentTime = 0.0;
-		          audio[name].play();
-		        }
-		      };
-		    })
-		    return player;
-		  };
-	
-		  var AudioContext = window.AudioContext || window.webkitAudioContext;
-		  if (typeof AudioContext !== "undefined") {
-		    // Node creates a new AudioContext ScriptProcessor that outputs the
-		    // sound. It will automatically disconnect, unless otherwise specified.
-		    jsfx.Node = function (audioContext, params, modules, bufferSize, stayConnected) {
-		      var node = audioContext.createScriptProcessor(bufferSize, 0, 1);
-		      var gen = new Processor(params, modules || jsfx.DefaultModules);
-		      node.onaudioprocess = function (ev) {
-		        var block = ev.outputBuffer.getChannelData(0);
-		        gen.generate(block);
-		        if (!stayConnected && gen.finished) {
-		          // we need to do an async disconnect, otherwise Chrome may
-		          // glitch
-		          setTimeout(function () { node.disconnect(); }, 30);
-		        }
-		      }
-		      return node;
-		    }
-	
-		    // Live creates an managed AudioContext for playing.
-		    // This is useful, when you want to use procedurally generated sounds.
-		    jsfx.Live = function (library, modules, BufferSize) {
-		      //TODO: add limit for number of notes played at the same time
-		      BufferSize = BufferSize || 2048;
-		      var player = {};
-	
-		      var context = new AudioContext();
-		      var volume = context.createGain();
-		      volume.connect(context.destination);
-	
-		      player._context = context;
-		      player._volume = volume;
-	
-		      map_object(library, function (params, name) {
-		        player[name] = function () {
-		          var node = jsfx.Node(context, params, modules, BufferSize);
-		          node.connect(volume);
-		        };
-		      });
-	
-		      player._close = function () {
-		        context.close();
-		      };
-	
-		      player._play = function (params) {
-		        var node = jsfx.Node(context, params, modules, BufferSize);
-		        node.connect(volume);
-		      };
-	
-		      player._createBuffer = function (params) {
-		        var processor = new Processor(params, jsfx.DefaultModules);
-		        var block = createFloatArray(processor.getSamplesLeft());
-		        processor.generate(block);
-		        return player._createBufferFromBlock(block);
-		      }
-	
-		      player._createEmptyBuffer = function () {
-		        return player._createBufferFromBlock([0]);
-		      }
-	
-		      player._createBufferFromBlock = function (block) {
-		        var buffer = context.createBuffer(1, block.length, jsfx.SampleRate);
-		        var channelData = buffer.getChannelData(0);
-		        channelData.set(block);
-		        return buffer;
-		      }
-	
-		      function createBufferSource(buffer, when) {
-		        var bufSrc = context.createBufferSource();
-		        bufSrc.buffer = buffer;
-		        bufSrc.start = bufSrc.start || bufSrc.noteOn;
-		        bufSrc.start(when);
-		        bufSrc.onended = function () {
-		          bufSrc.disconnect();
-		        };
-		        return bufSrc;
-		      }
-	
-		      player._playBuffer = function (buffer, when) {
-		        var bufSrc = createBufferSource(buffer, when);
-		        bufSrc.connect(volume);
-		      }
-	
-		      return player;
-		    }
-		  } else {
-		    //jsfx.Live = jsfx.Sounds;
-		    jsfx.Live = function (library, modules, BufferSize) {
-		      return null;
-		    };
-		  }
-	
-		  // SOUND GENERATION
-		  jsfx.Module = {};
-	
-		  // generators
-		  jsfx.G = {};
-	
-		  var stage = jsfx.stage = {
-		    PhaseSpeed: 0,
-		    PhaseSpeedMod: 10,
-		    Generator: 20,
-		    SampleMod: 30,
-		    Volume: 40
-		  };
-		  function byStage(a, b) { return a.stage - b.stage; }
-	
-		  jsfx.InitDefaultParams = InitDefaultParams;
-		  function InitDefaultParams(params, modules) {
-		    // setup modules
-		    for (var i = 0; i < modules.length; i += 1) {
-		      var M = modules[i];
-		      var P = params[M.name] || {};
-	
-		      // add missing parameters
-		      map_object(M.params, function (def, name) {
-		        if (typeof P[name] === 'undefined') {
-		          P[name] = def.D;
-		        }
-		      });
-	
-		      params[M.name] = P;
-		    }
-		  }
-	
-		  // Generates a stateful sound effect processor
-		  // params can be a function that creates a parameter set
-		  jsfx.Processor = Processor;
-		  function Processor(params, modules) {
-		    params = params || {};
-		    modules = modules || jsfx.DefaultModules;
-	
-		    if (typeof params === 'function') {
-		      params = params();
-		    } else {
-		      params = JSON.parse(JSON.stringify(params))
-		    }
-		    this.finished = false;
-	
-		    this.state = {
-		      SampleRate: params.SampleRate || jsfx.SampleRate
-		    };
-	
-		    // sort modules
-		    modules = modules.slice();
-		    modules.sort(byStage)
-		    this.modules = modules;
-	
-		    // init missing params
-		    InitDefaultParams(params, modules);
-	
-		    // setup modules
-		    for (var i = 0; i < this.modules.length; i += 1) {
-		      var M = this.modules[i];
-		      this.modules[i].setup(this.state, params[M.name]);
-		    }
-		  }
-		  Processor.prototype = {
-		    //TODO: see whether this can be converted to a module
-		    generate: function (block) {
-		      for (var i = 0 | 0; i < block.length; i += 1) {
-		        block[i] = 0;
-		      }
-		      if (this.finished) { return; }
-	
-		      var $ = this.state,
-		        N = block.length | 0;
-		      for (var i = 0; i < this.modules.length; i += 1) {
-		        var M = this.modules[i];
-		        var n = M.process($, block.subarray(0, N)) | 0;
-		        N = Math.min(N, n);
-		      }
-		      if (N < block.length) {
-		        this.finished = true;
-		      }
-		      for (var i = N; i < block.length; i++) {
-		        block[i] = 0;
-		      }
-		    },
-		    getSamplesLeft: function () {
-		      var samples = 0;
-		      for (var i = 0; i < this.state.envelopes.length; i += 1) {
-		        samples += this.state.envelopes[i].N;
-		      }
-		      if (samples === 0) {
-		        samples = 3 * this.state.SampleRate;
-		      }
-		      return samples;
-		    }
-		  };
-	
-		  // Frequency
-		  jsfx.Module.Frequency = {
-		    name: 'Frequency',
-		    params: {
-		      Start: { L: 30, H: 1800, D: 440 },
-	
-		      Min: { L: 30, H: 1800, D: 30 },
-		      Max: { L: 30, H: 1800, D: 1800 },
-	
-		      Slide: { L: -1, H: 1, D: 0 },
-		      DeltaSlide: { L: -1, H: 1, D: 0 },
-	
-		      RepeatSpeed: { L: 0, H: 3.0, D: 0 },
-	
-		      ChangeAmount: { L: -12, H: 12, D: 0 },
-		      ChangeSpeed: { L: 0, H: 1, D: 0 }
-		    },
-		    stage: stage.PhaseSpeed,
-		    setup: function ($, P) {
-		      var SR = $.SampleRate;
-	
-		      $.phaseParams = P;
-	
-		      $.phaseSpeed = P.Start * TAU / SR;
-		      $.phaseSpeedMax = P.Max * TAU / SR;
-		      $.phaseSpeedMin = P.Min * TAU / SR;
-	
-		      $.phaseSpeedMin = Math.min($.phaseSpeedMin, $.phaseSpeed);
-		      $.phaseSpeedMax = Math.max($.phaseSpeedMax, $.phaseSpeed);
-	
-		      $.phaseSlide = 1.0 + pow(P.Slide, 3.0) * 64.0 / SR;
-		      $.phaseDeltaSlide = pow(P.DeltaSlide, 3.0) / (SR * 1000);
-	
-		      $.repeatTime = 0;
-		      $.repeatLimit = Infinity;
-		      if (P.RepeatSpeed > 0) {
-		        $.repeatLimit = P.RepeatSpeed * SR;
-		      }
-	
-		      $.arpeggiatorTime = 0;
-		      $.arpeggiatorLimit = P.ChangeSpeed * SR;
-		      if (P.ChangeAmount == 0) {
-		        $.arpeggiatorLimit = Infinity;
-		      }
-		      $.arpeggiatorMod = 1 + P.ChangeAmount / 12.0;
-		    },
-		    process: function ($, block) {
-		      var speed = +$.phaseSpeed,
-		        min = +$.phaseSpeedMin,
-		        max = +$.phaseSpeedMax,
-		        slide = +$.phaseSlide,
-		        deltaSlide = +$.phaseDeltaSlide;
-	
-		      var repeatTime = $.repeatTime,
-		        repeatLimit = $.repeatLimit;
-	
-		      var arpTime = $.arpeggiatorTime,
-		        arpLimit = $.arpeggiatorLimit,
-		        arpMod = $.arpeggiatorMod;
-	
-		      for (var i = 0; i < block.length; i++) {
-		        slide += deltaSlide;
-		        speed *= slide;
-		        speed = speed < min ? min : speed > max ? max : speed;
-	
-		        if (repeatTime > repeatLimit) {
-		          this.setup($, $.phaseParams);
-		          return i + this.process($, block.subarray(i)) - 1;
-		        }
-		        repeatTime++;
-	
-		        if (arpTime > arpLimit) {
-		          speed *= arpMod;
-		          arpTime = 0;
-		          arpLimit = Infinity;
-		        }
-		        arpTime++;
-	
-		        block[i] += speed;
-		      }
-	
-		      $.repeatTime = repeatTime;
-		      $.arpeggiatorTime = arpTime;
-		      $.arpeggiatorLimit = arpLimit;
-	
-		      $.phaseSpeed = speed;
-		      $.phaseSlide = slide;
-	
-		      return block.length;
-		    }
-		  };
-	
-		  // Vibrato
-		  jsfx.Module.Vibrato = {
-		    name: 'Vibrato',
-		    params: {
-		      Depth: { L: 0, H: 1, D: 0 },
-		      DepthSlide: { L: -1, H: 1, D: 0 },
-	
-		      Frequency: { L: 0.01, H: 48, D: 0 },
-		      FrequencySlide: { L: -1.00, H: 1, D: 0 }
-		    },
-		    stage: stage.PhaseSpeedMod,
-		    setup: function ($, P) {
-		      var SR = $.SampleRate;
-		      $.vibratoPhase = 0;
-		      $.vibratoDepth = P.Depth;
-		      $.vibratoPhaseSpeed = P.Frequency * TAU / SR;
-	
-		      $.vibratoPhaseSpeedSlide = 1.0 + pow(P.FrequencySlide, 3.0) * 3.0 / SR;
-		      $.vibratoDepthSlide = P.DepthSlide / SR;
-		    },
-		    process: function ($, block) {
-		      var phase = +$.vibratoPhase,
-		        depth = +$.vibratoDepth,
-		        speed = +$.vibratoPhaseSpeed,
-		        slide = +$.vibratoPhaseSpeedSlide,
-		        depthSlide = +$.vibratoDepthSlide;
-	
-		      if ((depth == 0) && (depthSlide <= 0)) {
-		        return block.length;
-		      }
-	
-		      for (var i = 0; i < block.length; i++) {
-		        phase += speed;
-		        if (phase > TAU) { phase -= TAU };
-		        block[i] += block[i] * sin(phase) * depth;
-	
-		        speed *= slide;
-		        depth += depthSlide;
-		        depth = clamp1(depth);
-		      }
-	
-		      $.vibratoPhase = phase;
-		      $.vibratoDepth = depth;
-		      $.vibratoPhaseSpeed = speed;
-		      return block.length;
-		    }
-		  };
-	
-		  // Generator
-		  jsfx.Module.Generator = {
-		    name: 'Generator',
-		    params: {
-		      // C = choose
-		      Func: { C: jsfx.G, D: 'square' },
-	
-		      A: { L: 0, H: 1, D: 0 },
-		      B: { L: 0, H: 1, D: 0 },
-	
-		      ASlide: { L: -1, H: 1, D: 0 },
-		      BSlide: { L: -1, H: 1, D: 0 }
-		    },
-		    stage: stage.Generator,
-		    setup: function ($, P) {
-		      $.generatorPhase = 0;
-	
-		      if (typeof P.Func === 'string') {
-		        $.generator = jsfx.G[P.Func];
-		      } else {
-		        $.generator = P.Func;
-		      }
-		      if (typeof $.generator === 'object') {
-		        $.generator = $.generator.create();
-		      }
-		      assert(typeof $.generator === 'function', 'generator must be a function')
-	
-		      $.generatorA = P.A;
-		      $.generatorASlide = P.ASlide;
-		      $.generatorB = P.B;
-		      $.generatorBSlide = P.BSlide;
-		    },
-		    process: function ($, block) {
-		      return $.generator($, block);
-		    }
-		  };
-	
-		  // Karplus Strong algorithm for string sound
-		  var GuitarBufferSize = 1 << 16;
-		  jsfx.Module.Guitar = {
-		    name: 'Guitar',
-		    params: {
-		      A: { L: 0.0, H: 1.0, D: 1 },
-		      B: { L: 0.0, H: 1.0, D: 1 },
-		      C: { L: 0.0, H: 1.0, D: 1 },
-		    },
-		    stage: stage.Generator,
-		    setup: function ($, P) {
-		      $.guitarA = P.A;
-		      $.guitarB = P.B;
-		      $.guitarC = P.C;
-	
-		      $.guitarBuffer = createFloatArray(GuitarBufferSize);
-		      $.guitarHead = 0;
-		      var B = $.guitarBuffer;
-		      for (var i = 0; i < B.length; i++) {
-		        B[i] = random() * 2 - 1;
-		      }
-		    },
-		    process: function ($, block) {
-		      var BS = GuitarBufferSize,
-		        BM = BS - 1;
-	
-		      var A = +$.guitarA, B = +$.guitarB, C = +$.guitarC;
-		      var T = A + B + C;
-		      var h = $.guitarHead;
-	
-		      var buffer = $.guitarBuffer;
-		      for (var i = 0; i < block.length; i++) {
-		        // buffer size
-		        var n = (TAU / block[i]) | 0;
-		        n = n > BS ? BS : n;
-	
-		        // tail
-		        var t = ((h - n) + BS) & BM;
-		        buffer[h] =
-		          (buffer[(t - 0 + BS) & BM] * A +
-		            buffer[(t - 1 + BS) & BM] * B +
-		            buffer[(t - 2 + BS) & BM] * C) / T;
-	
-		        block[i] = buffer[h];
-		        h = (h + 1) & BM;
-		      }
-	
-		      $.guitarHead = h;
-		      return block.length;
-		    }
-		  }
-	
-		  // Low/High-Pass Filter
-		  jsfx.Module.Filter = {
-		    name: 'Filter',
-		    params: {
-		      LP: { L: 0, H: 1, D: 1 },
-		      LPSlide: { L: -1, H: 1, D: 0 },
-		      LPResonance: { L: 0, H: 1, D: 0 },
-		      HP: { L: 0, H: 1, D: 0 },
-		      HPSlide: { L: -1, H: 1, D: 0 }
-		    },
-		    stage: stage.SampleMod + 0,
-		    setup: function ($, P) {
-		      $.FilterEnabled = (P.HP > EPSILON) || (P.LP < 1 - EPSILON);
-	
-		      $.LPEnabled = P.LP < 1 - EPSILON;
-		      $.LP = pow(P.LP, 3.0) / 10;
-		      $.LPSlide = 1.0 + P.LPSlide * 100 / $.SampleRate;
-		      $.LPPos = 0;
-		      $.LPPosSlide = 0;
-	
-		      $.LPDamping = 5.0 / (1.0 + pow(P.LPResonance, 2) * 20) * (0.01 + P.LP);
-		      $.LPDamping = 1.0 - Math.min($.LPDamping, 0.8);
-	
-		      $.HP = pow(P.HP, 2.0) / 10;
-		      $.HPPos = 0;
-		      $.HPSlide = 1.0 + P.HPSlide * 100 / $.SampleRate;
-		    },
-		    enabled: function ($) {
-		      return $.FilterEnabled;
-		    },
-		    process: function ($, block) {
-		      if (!this.enabled($)) { return block.length; }
-	
-		      var lp = +$.LP;
-		      var lpPos = +$.LPPos;
-		      var lpPosSlide = +$.LPPosSlide;
-		      var lpSlide = +$.LPSlide;
-		      var lpDamping = +$.LPDamping;
-		      var lpEnabled = +$.LPEnabled;
-	
-		      var hp = +$.HP;
-		      var hpPos = +$.HPPos;
-		      var hpSlide = +$.HPSlide;
-	
-		      for (var i = 0; i < block.length; i++) {
-		        if ((hp > EPSILON) || (hp < -EPSILON)) {
-		          hp *= hpSlide;
-		          hp = hp < EPSILON ? EPSILON : hp > 0.1 ? 0.1 : hp;
-		        }
-	
-		        var lpPos_ = lpPos;
-	
-		        lp *= lpSlide;
-		        lp = lp < 0 ? lp = 0 : lp > 0.1 ? 0.1 : lp;
-	
-		        var sample = block[i];
-		        if (lpEnabled) {
-		          lpPosSlide += (sample - lpPos) * lp;
-		          lpPosSlide *= lpDamping;
-		        } else {
-		          lpPos = sample;
-		          lpPosSlide = 0;
-		        }
-		        lpPos += lpPosSlide;
-	
-		        hpPos += lpPos - lpPos_;
-		        hpPos *= 1.0 - hp;
-	
-		        block[i] = hpPos;
-		      }
-	
-		      $.LPPos = lpPos;
-		      $.LPPosSlide = lpPosSlide;
-		      $.LP = lp;
-		      $.HP = hp;
-		      $.HPPos = hpPos;
-	
-		      return block.length;
-		    }
-		  };
-	
-		  // Phaser Effect
-		  var PhaserBufferSize = 1 << 10;
-		  jsfx.Module.Phaser = {
-		    name: 'Phaser',
-		    params: {
-		      Offset: { L: -1, H: 1, D: 0 },
-		      Sweep: { L: -1, H: 1, D: 0 }
-		    },
-		    stage: stage.SampleMod + 1,
-		    setup: function ($, P) {
-		      $.phaserBuffer = createFloatArray(PhaserBufferSize);
-		      $.phaserPos = 0;
-		      $.phaserOffset = pow(P.Offset, 2.0) * (PhaserBufferSize - 4);
-		      $.phaserOffsetSlide = pow(P.Sweep, 3.0) * 4000 / $.SampleRate;
-		    },
-		    enabled: function ($) {
-		      return (abs($.phaserOffsetSlide) > EPSILON) ||
-		        (abs($.phaserOffset) > EPSILON);
-		    },
-		    process: function ($, block) {
-		      if (!this.enabled($)) { return block.length; }
-	
-		      var BS = PhaserBufferSize,
-		        BM = BS - 1;
-	
-		      var buffer = $.phaserBuffer,
-		        pos = $.phaserPos | 0,
-		        offset = +$.phaserOffset,
-		        offsetSlide = +$.phaserOffsetSlide;
-	
-		      for (var i = 0; i < block.length; i++) {
-		        offset += offsetSlide;
-		        //TODO: check whether this is correct
-		        if (offset < 0) {
-		          offset = -offset;
-		          offsetSlide = -offsetSlide;
-		        }
-		        if (offset > BM) {
-		          offset = BM;
-		          offsetSlide = 0;
-		        }
-	
-		        buffer[pos] = block[i];
-		        var p = (pos - (offset | 0) + BS) & BM;
-		        block[i] += buffer[p];
-	
-		        pos = ((pos + 1) & BM) | 0;
-		      }
-	
-		      $.phaserPos = pos;
-		      $.phaserOffset = offset;
-		      return block.length;
-		    }
-		  };
-	
-		  // Volume dynamic control with Attack-Sustain-Decay
-		  //   ATTACK  | 0              - Volume + Punch
-		  //   SUSTAIN | Volume + Punch - Volume
-		  //   DECAY   | Volume         - 0
-		  jsfx.Module.Volume = {
-		    name: 'Volume',
-		    params: {
-		      Master: { L: 0, H: 1, D: 0.5 },
-		      Attack: { L: 0.001, H: 1, D: 0.01 },
-		      Sustain: { L: 0, H: 2, D: 0.3 },
-		      Punch: { L: 0, H: 3, D: 1.0 },
-		      Decay: { L: 0.001, H: 2, D: 1.0 }
-		    },
-		    stage: stage.Volume,
-		    setup: function ($, P) {
-		      var SR = $.SampleRate;
-		      var V = P.Master;
-		      var VP = V * (1 + P.Punch);
-		      $.envelopes = [
-		        // S = start volume, E = end volume, N = duration in samples
-		        { S: 0, E: V, N: (P.Attack * SR) | 0 }, // Attack
-		        { S: VP, E: V, N: (P.Sustain * SR) | 0 }, // Sustain
-		        { S: V, E: 0, N: (P.Decay * SR) | 0 }  // Decay
-		      ];
-		      // G = volume gradient
-		      for (var i = 0; i < $.envelopes.length; i += 1) {
-		        var e = $.envelopes[i];
-		        e.G = (e.E - e.S) / e.N;
-		      }
-		    },
-		    process: function ($, block) {
-		      var i = 0;
-		      while (($.envelopes.length > 0) && (i < block.length)) {
-		        var E = $.envelopes[0];
-		        var vol = E.S,
-		          grad = E.G;
-	
-		        var N = Math.min(block.length - i, E.N) | 0;
-		        var end = (i + N) | 0;
-		        for (; i < end; i += 1) {
-		          block[i] *= vol;
-		          vol += grad;
-		          vol = clamp(vol, 0, 10);
-		        }
-		        E.S = vol;
-		        E.N -= N;
-		        if (E.N <= 0) {
-		          $.envelopes.shift();
-		        }
-		      }
-		      return i;
-		    }
-		  };
-	
-		  // PRESETS
-	
-		  jsfx.DefaultModules = [
-		    jsfx.Module.Frequency,
-		    jsfx.Module.Vibrato,
-		    jsfx.Module.Generator,
-		    jsfx.Module.Filter,
-		    jsfx.Module.Phaser,
-		    jsfx.Module.Volume
-		  ];
-		  jsfx.DefaultModules.sort(byStage);
-	
-		  jsfx.EmptyParams = EmptyParams;
-		  function EmptyParams() {
-		    return map_object(jsfx.Module, function () { return {} });
-		  }
-	
-		  jsfx._RemoveEmptyParams = RemoveEmptyParams;
-		  function RemoveEmptyParams(params) {
-		    for (var name in params) {
-		      if (Object_keys(params[name]).length == 0) {
-		        delete params[name];
-		      }
-		    }
-		  };
-	
-		  jsfx.Preset = {
-		    Reset: function () {
-		      return EmptyParams();
-		    },
-		    Coin: function () {
-		      var p = EmptyParams();
-		      p.Frequency.Start = runif(880, 660);
-		      p.Volume.Sustain = runif(0.1);
-		      p.Volume.Decay = runif(0.4, 0.1);
-		      p.Volume.Punch = runif(0.3, 0.3);
-		      if (runif() < 0.5) {
-		        p.Frequency.ChangeSpeed = runif(0.15, 0.1);
-		        p.Frequency.ChangeAmount = runif(8, 4);
-		      }
-		      RemoveEmptyParams(p);
-		      return p;
-		    },
-		    Laser: function () {
-		      var p = EmptyParams();
-		      p.Generator.Func = rchoose(['square', 'saw', 'sine']);
-	
-		      if (runif() < 0.33) {
-		        p.Frequency.Start = runif(880, 440);
-		        p.Frequency.Min = runif(0.1);
-		        p.Frequency.Slide = runif(0.3, -0.8);
-		      } else {
-		        p.Frequency.Start = runif(1200, 440);
-		        p.Frequency.Min = p.Frequency.Start - runif(880, 440);
-		        if (p.Frequency.Min < 110) { p.Frequency.Min = 110; }
-		        p.Frequency.Slide = runif(0.3, -1);
-		      }
-	
-		      if (runif() < 0.5) {
-		        p.Generator.A = runif(0.5);
-		        p.Generator.ASlide = runif(0.2);
-		      } else {
-		        p.Generator.A = runif(0.5, 0.4);
-		        p.Generator.ASlide = runif(0.7);
-		      }
-	
-		      p.Volume.Sustain = runif(0.2, 0.1);
-		      p.Volume.Decay = runif(0.4);
-		      if (runif() < 0.5) {
-		        p.Volume.Punch = runif(0.3);
-		      }
-		      if (runif() < 0.33) {
-		        p.Phaser.Offset = runif(0.2);
-		        p.Phaser.Sweep = runif(0.2);
-		      }
-		      if (runif() < 0.5) {
-		        p.Filter.HP = runif(0.3);
-		      }
-		      RemoveEmptyParams(p);
-		      return p;
-		    },
-		    Explosion: function () {
-		      var p = EmptyParams();
-		      p.Generator.Func = 'noise';
-		      if (runif() < 0.5) {
-		        p.Frequency.Start = runif(440, 40);
-		        p.Frequency.Slide = runif(0.4, -0.1);
-		      } else {
-		        p.Frequency.Start = runif(1600, 220);
-		        p.Frequency.Slide = runif(-0.2, -0.2);
-		      }
-	
-		      if (runif() < 0.2) { p.Frequency.Slide = 0; }
-		      if (runif() < 0.3) { p.Frequency.RepeatSpeed = runif(0.5, 0.3); }
-	
-		      p.Volume.Sustain = runif(0.3, 0.1);
-		      p.Volume.Decay = runif(0.5);
-		      p.Volume.Punch = runif(0.6, 0.2);
-	
-		      if (runif() < 0.5) {
-		        p.Phaser.Offset = runif(0.9, -0.3);
-		        p.Phaser.Sweep = runif(-0.3);
-		      }
-	
-		      if (runif() < 0.33) {
-		        p.Frequency.ChangeSpeed = runif(0.3, 0.6);
-		        p.Frequency.ChangeAmount = runif(24, -12);
-		      }
-		      RemoveEmptyParams(p);
-		      return p;
-		    },
-		    Powerup: function () {
-		      var p = EmptyParams();
-		      if (runif() < 0.5) {
-		        p.Generator.Func = 'saw';
-		      } else {
-		        p.Generator.A = runif(0.6);
-		      }
-	
-		      p.Frequency.Start = runif(220, 440);
-		      if (runif() < 0.5) {
-		        p.Frequency.Slide = runif(0.5, 0.2);
-		        p.Frequency.RepeatSpeed = runif(0.4, 0.4);
-		      } else {
-		        p.Frequency.Slide = runif(0.2, 0.05);
-		        if (runif() < 0.5) {
-		          p.Vibrato.Depth = runif(0.6, 0.1);
-		          p.Vibrato.Frequency = runif(30, 10);
-		        }
-		      }
-	
-		      p.Volume.Sustain = runif(0.4);
-		      p.Volume.Decay = runif(0.4, 0.1);
-	
-		      RemoveEmptyParams(p);
-		      return p;
-		    },
-		    Hit: function () {
-		      var p = EmptyParams();
-		      p.Generator.Func = rchoose(['square', 'saw', 'noise']);
-		      p.Generator.A = runif(0.6);
-		      p.Generator.ASlide = runif(1, -0.5);
-	
-		      p.Frequency.Start = runif(880, 220);
-		      p.Frequency.Slide = -runif(0.4, 0.3);
-	
-		      p.Volume.Sustain = runif(0.1);
-		      p.Volume.Decay = runif(0.2, 0.1);
-	
-		      if (runif() < 0.5) {
-		        p.Filter.HP = runif(0.3);
-		      }
-	
-		      RemoveEmptyParams(p);
-		      return p;
-		    },
-		    Jump: function () {
-		      var p = EmptyParams();
-		      p.Generator.Func = 'square';
-		      p.Generator.A = runif(0.6);
-	
-		      p.Frequency.Start = runif(330, 330);
-		      p.Frequency.Slide = runif(0.4, 0.2);
-	
-		      p.Volume.Sustain = runif(0.3, 0.1);
-		      p.Volume.Decay = runif(0.2, 0.1);
-	
-		      if (runif() < 0.5) {
-		        p.Filter.HP = runif(0.3);
-		      }
-		      if (runif() < 0.3) {
-		        p.Filter.LP = runif(-0.6, 1);
-		      }
-	
-		      RemoveEmptyParams(p);
-		      return p;
-		    },
-		    Select: function () {
-		      var p = EmptyParams();
-		      p.Generator.Func = rchoose(['square', 'saw']);
-		      p.Generator.A = runif(0.6);
-	
-		      p.Frequency.Start = runif(660, 220);
-	
-		      p.Volume.Sustain = runif(0.1, 0.1);
-		      p.Volume.Decay = runif(0.2);
-	
-		      p.Filter.HP = 0.2;
-		      RemoveEmptyParams(p);
-		      return p;
-		    },
-		    Lucky: function () {
-		      var p = EmptyParams();
-		      map_object(p, function (out, moduleName) {
-		        var defs = jsfx.Module[moduleName].params;
-		        map_object(defs, function (def, name) {
-		          if (def.C) {
-		            var values = Object_keys(def.C);
-		            out[name] = values[(values.length * random()) | 0];
-		          } else {
-		            out[name] = random() * (def.H - def.L) + def.L;
-		          }
-		        });
-		      });
-		      p.Volume.Master = 0.4;
-		      p.Filter = {}; // disable filter, as it usually will clip everything
-		      RemoveEmptyParams(p);
-		      return p;
-		    }
-		  };
-	
-		  // GENERATORS
-	
-		  // uniform noise
-		  jsfx.G.unoise = newGenerator("sample = Math.random();");
-		  // sine wave
-		  jsfx.G.sine = newGenerator("sample = Math.sin(phase);");
-		  // saw wave
-		  jsfx.G.saw = newGenerator("sample = 2*(phase/TAU - ((phase/TAU + 0.5)|0));");
-		  // triangle wave
-		  jsfx.G.triangle = newGenerator("sample = Math.abs(4 * ((phase/TAU - 0.25)%1) - 2) - 1;");
-		  // square wave
-		  jsfx.G.square = newGenerator("var s = Math.sin(phase); sample = s > A ? 1.0 : s < A ? -1.0 : A;");
-		  // simple synth
-		  jsfx.G.synth = newGenerator("sample = Math.sin(phase) + .5*Math.sin(phase/2) + .3*Math.sin(phase/4);");
-	
-		  // STATEFUL
-		  var __noiseLast = 0;
-		  jsfx.G.noise = newGenerator("if(phase % TAU < 4){__noiseLast = Math.random() * 2 - 1;} sample = __noiseLast;");
-	
-		  // Karplus-Strong string
-		  jsfx.G.string = {
-		    create: function () {
-		      var BS = 1 << 16;
-		      var BM = BS - 1;
-	
-		      var buffer = createFloatArray(BS);
-		      for (var i = 0; i < buffer.length; i++) {
-		        buffer[i] = random() * 2 - 1;
-		      }
-	
-		      var head = 0;
-		      return function ($, block) {
-		        var TAU = Math.PI * 2;
-		        var A = +$.generatorA, ASlide = +$.generatorASlide,
-		          B = +$.generatorB, BSlide = +$.generatorBSlide;
-		        var buf = buffer;
-	
-		        for (var i = 0; i < block.length; i++) {
-		          var phaseSpeed = block[i];
-		          var n = (TAU / phaseSpeed) | 0;
-		          A += ASlide; B += BSlide;
-		          A = A < 0 ? 0 : A > 1 ? 1 : A;
-		          B = B < 0 ? 0 : B > 1 ? 1 : B;
-	
-		          var t = ((head - n) + BS) & BM;
-		          var sample = (
-		            buf[(t - 0 + BS) & BM] * 1 +
-		            buf[(t - 1 + BS) & BM] * A +
-		            buf[(t - 2 + BS) & BM] * B) / (1 + A + B);
-	
-		          buf[head] = sample;
-		          block[i] = buf[head];
-		          head = (head + 1) & BM;
-		        }
-	
-		        $.generatorA = A;
-		        $.generatorB = B;
-		        return block.length;
-		      }
-		    }
-		  };
-	
-		  // Generates samples using given frequency and generator
-		  function newGenerator(line) {
-		    return new Function("$", "block", "" +
-		      "var TAU = Math.PI * 2;\n" +
-		      "var sample;\n" +
-		      "var phase = +$.generatorPhase,\n" +
-		      "	A = +$.generatorA, ASlide = +$.generatorASlide,\n" +
-		      "	B = +$.generatorB, BSlide = +$.generatorBSlide;\n" +
-		      "\n" +
-		      "for(var i = 0; i < block.length; i++){\n" +
-		      "	var phaseSpeed = block[i];\n" +
-		      "	phase += phaseSpeed;\n" +
-		      "	if(phase > TAU){ phase -= TAU };\n" +
-		      "	A += ASlide; B += BSlide;\n" +
-		      "   A = A < 0 ? 0 : A > 1 ? 1 : A;\n" +
-		      "   B = B < 0 ? 0 : B > 1 ? 1 : B;\n" +
-		      line +
-		      "	block[i] = sample;\n" +
-		      "}\n" +
-		      "\n" +
-		      "$.generatorPhase = phase;\n" +
-		      "$.generatorA = A;\n" +
-		      "$.generatorB = B;\n" +
-		      "return block.length;\n" +
-		      "");
-		  }
-	
-		  // WAVE SUPPORT
-	
-		  // Creates an Audio element from audio data [-1.0 .. 1.0]
-		  jsfx.CreateAudio = CreateAudio;
-		  function CreateAudio(data) {
-		    if (typeof Float32Array !== "undefined") {
-		      assert(data instanceof Float32Array, 'data must be an Float32Array');
-		    }
-	
-		    var blockAlign = numChannels * bitsPerSample >> 3;
-		    var byteRate = jsfx.SampleRate * blockAlign;
-	
-		    var output = createByteArray(8 + 36 + data.length * 2);
-		    var p = 0;
-	
-		    // emits string to output
-		    function S(value) {
-		      for (var i = 0; i < value.length; i += 1) {
-		        output[p] = value.charCodeAt(i); p++;
-		      }
-		    }
-	
-		    // emits integer value to output
-		    function V(value, nBytes) {
-		      if (nBytes <= 0) { return; }
-		      output[p] = value & 0xFF; p++;
-		      V(value >> 8, nBytes - 1);
-		    }
-	
-		    S('RIFF'); V(36 + data.length * 2, 4);
-	
-		    S('WAVEfmt '); V(16, 4); V(1, 2);
-		    V(numChannels, 2); V(jsfx.SampleRate, 4);
-		    V(byteRate, 4); V(blockAlign, 2); V(bitsPerSample, 2);
-	
-		    S('data'); V(data.length * 2, 4);
-		    CopyFToU8(output.subarray(p), data);
-	
-		    return new Audio('data:audio/wav;base64,' + U8ToB64(output));
-		  };
-	
-		  jsfx.DownloadAsFile = function (audio) {
-		    assert(audio instanceof Audio, 'input must be an Audio object');
-		    document.location.href = audio.src;
-		  };
-	
-		  // HELPERS
-		  jsfx.Util = {};
-	
-		  // Copies array of Floats to a Uint8Array with 16bits per sample
-		  jsfx.Util.CopyFToU8 = CopyFToU8;
-		  function CopyFToU8(into, floats) {
-		    assert(into.length / 2 == floats.length,
-		      'the target buffer must be twice as large as the iinput');
-	
-		    var k = 0;
-		    for (var i = 0; i < floats.length; i++) {
-		      var v = +floats[i];
-		      var a = (v * 0x7FFF) | 0;
-		      a = a < -0x8000 ? -0x8000 : 0x7FFF < a ? 0x7FFF : a;
-		      a += a < 0 ? 0x10000 : 0;
-		      into[k] = a & 0xFF; k++;
-		      into[k] = a >> 8; k++;
-		    }
-		  }
-	
-		  function U8ToB64(data) {
-		    var CHUNK = 0x8000;
-		    var result = '';
-		    for (var start = 0; start < data.length; start += CHUNK) {
-		      var end = Math.min(start + CHUNK, data.length);
-		      result += String.fromCharCode.apply(null, data.subarray(start, end));
-		    }
-		    return btoa(result);
-		  }
-	
-		  // uses AudioContext sampleRate or 44100;
-		  function getDefaultSampleRate() {
-		    if (typeof AudioContext !== 'undefined') {
-		      return (new AudioContext()).sampleRate;
-		    }
-		    return 44100;
-		  }
-	
-		  // for checking pre/post conditions
-		  function assert(condition, message) {
-		    if (!condition) { throw new Error(message); }
-		  }
-	
-		  function clamp(v, min, max) {
-		    v = +v; min = +min; max = +max;
-		    if (v < min) { return +min; }
-		    if (v > max) { return +max; }
-		    return +v;
-		  }
-	
-		  function clamp1(v) {
-		    v = +v;
-		    if (v < +0.0) { return +0.0; }
-		    if (v > +1.0) { return +1.0; }
-		    return +v;
-		  }
-	
-		  function map_object(obj, fn) {
-		    var r = {};
-		    for (var name in obj) {
-		      if (obj.hasOwnProperty(name)) {
-		        r[name] = fn(obj[name], name);
-		      }
-		    }
-		    return r;
-		  }
-	
-		  // uniform random
-		  function runif(scale, offset) {
-		    var a = random();
-		    if (scale !== undefined)
-		      a *= scale;
-		    if (offset !== undefined)
-		      a += offset;
-		    return a;
-		  }
-	
-		  function rchoose(gens) {
-		    return gens[(gens.length * random()) | 0];
-		  }
-	
-		  function Object_keys(obj) {
-		    var r = [];
-		    for (var name in obj) { r.push(name); }
-		    return r;
-		  }
-	
-		  jsfx._createFloatArray = createFloatArray;
-		  function createFloatArray(N) {
-		    if (typeof Float32Array === "undefined") {
-		      var r = new Array(N);
-		      for (var i = 0; i < r.length; i++) {
-		        r[i] = 0.0;
-		      }
-		    }
-		    return new Float32Array(N);
-		  }
-	
-		  function createByteArray(N) {
-		    if (typeof Uint8Array === "undefined") {
-		      var r = new Array(N);
-		      for (var i = 0; i < r.length; i++) {
-		        r[i] = 0 | 0;
-		      }
-		    }
-		    return new Uint8Array(N);
-		  }
-	
-		  var randomFunc = Math.random;
-		  jsfx.setRandomFunc = function (func) {
-		    randomFunc = func;
-		  }
-	
-		  function random() {
-		    return randomFunc();
-		  }
-		})(jsfx = {});
-		module.exports = jsfx;
-	
-	
-	/***/ }
-	/******/ ])
-	});
-	;
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	function __export(m) {
-	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-	}
-	var _ = __webpack_require__(4);
-	var pag = __webpack_require__(6);
-	var ppe = __webpack_require__(7);
-	var sss = __webpack_require__(2);
-	var ir = __webpack_require__(8);
-	var actor_1 = __webpack_require__(9);
-	var random_1 = __webpack_require__(10);
-	exports.Random = random_1.default;
-	var ui = __webpack_require__(11);
-	exports.ui = ui;
-	var screen = __webpack_require__(12);
-	exports.screen = screen;
-	var text = __webpack_require__(13);
-	exports.text = text;
-	var debug = __webpack_require__(14);
-	exports.debug = debug;
-	__export(__webpack_require__(15));
-	__export(__webpack_require__(9));
-	__export(__webpack_require__(16));
-	exports.p5 = __webpack_require__(17);
-	exports.ticks = 0;
-	exports.score = 0;
-	var options = {
-	    isShowingScore: true,
-	    isShowingTitle: true,
-	    isReplayEnabled: false,
-	    isPlayingBgm: true
-	};
-	var initFunc;
-	var initGameFunc;
-	var updateFunc;
-	var postUpdateFunc;
-	var onSeedChangedFunc;
-	var title = 'N/A';
-	var titleCont;
-	var isDebugEnabled = false;
-	var modules = [];
-	var initialStatus = { r: 0, s: 0 };
-	var replayScore;
-	(function (Scene) {
-	    Scene[Scene["title"] = 0] = "title";
-	    Scene[Scene["game"] = 1] = "game";
-	    Scene[Scene["gameover"] = 2] = "gameover";
-	    Scene[Scene["replay"] = 3] = "replay";
-	})(exports.Scene || (exports.Scene = {}));
-	var Scene = exports.Scene;
-	;
-	function init(_initFunc, _initGameFunc, _updateFunc, _postUpdateFunc) {
-	    if (_updateFunc === void 0) { _updateFunc = null; }
-	    if (_postUpdateFunc === void 0) { _postUpdateFunc = null; }
-	    initFunc = _initFunc;
-	    initGameFunc = _initGameFunc;
-	    updateFunc = _updateFunc;
-	    postUpdateFunc = _postUpdateFunc;
-	    exports.random = new random_1.default();
-	    exports.seedRandom = new random_1.default();
-	    sss.init();
-	    ir.setOptions({
-	        frameCount: -1,
-	        isRecordingEventsAsString: true
-	    });
-	    new exports.p5(function (_p) {
-	        exports.p = _p;
-	        exports.p.setup = setup;
-	        exports.p.draw = draw;
-	        exports.p.mousePressed = function () {
-	            sss.playEmpty();
-	        };
-	    });
-	}
-	exports.init = init;
-	function setTitle(_title, _titleCont) {
-	    if (_titleCont === void 0) { _titleCont = null; }
-	    title = _title;
-	    titleCont = _titleCont;
-	}
-	exports.setTitle = setTitle;
-	function enableDebug(_onSeedChangedFunc) {
-	    if (_onSeedChangedFunc === void 0) { _onSeedChangedFunc = null; }
-	    onSeedChangedFunc = _onSeedChangedFunc;
-	    debug.initSeedUi(setSeeds);
-	    debug.enableShowingErrors();
-	    isDebugEnabled = true;
-	}
-	exports.enableDebug = enableDebug;
-	function setOptions(_options) {
-	    for (var attr in _options) {
-	        options[attr] = _options[attr];
-	    }
-	}
-	exports.setOptions = setOptions;
-	function setSeeds(seed) {
-	    pag.setSeed(seed);
-	    ppe.setSeed(seed);
-	    ppe.reset();
-	    sss.reset();
-	    sss.setSeed(seed);
-	    if (exports.scene === Scene.game) {
-	        sss.playBgm();
-	    }
-	    if (onSeedChangedFunc != null) {
-	        onSeedChangedFunc();
-	    }
-	}
-	exports.setSeeds = setSeeds;
-	function endGame() {
-	    if (exports.scene === Scene.gameover) {
-	        return;
-	    }
-	    var isReplay = exports.scene === Scene.replay;
-	    exports.scene = Scene.gameover;
-	    exports.ticks = 0;
-	    sss.stopBgm();
-	    if (!isReplay && options.isReplayEnabled) {
-	        initialStatus.s = exports.score;
-	        ir.recordInitialStatus(initialStatus);
-	        ir.saveAsUrl();
-	    }
-	}
-	exports.endGame = endGame;
-	function addScore(v, pos) {
-	    if (v === void 0) { v = 1; }
-	    if (pos === void 0) { pos = null; }
-	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
-	        exports.score += v;
-	        if (pos != null) {
-	            var t = new actor_1.Text("+" + v);
-	            t.pos.set(pos);
-	        }
-	    }
-	}
-	exports.addScore = addScore;
-	function clearModules() {
-	    modules = [];
-	}
-	exports.clearModules = clearModules;
-	function _addModule(module) {
-	    modules.push(module);
-	}
-	exports._addModule = _addModule;
-	function setup() {
-	    actor_1.Actor.init();
-	    initFunc();
-	    if (isDebugEnabled || !options.isShowingTitle) {
-	        beginGame();
-	    }
-	    else {
-	        if (options.isReplayEnabled && ir.loadFromUrl() === true) {
-	            beginReplay();
-	        }
-	        else {
-	            beginTitle();
-	            initGameFunc();
-	        }
-	    }
-	}
-	function beginGame() {
-	    clearGameStatus();
-	    exports.scene = Scene.game;
-	    var seed = exports.seedRandom.getInt(9999999);
-	    console.log(seed);
-	    exports.random.setSeed(seed);
-	    if (options.isReplayEnabled) {
-	        ir.startRecord();
-	        initialStatus.r = seed;
-	    }
-	    if (options.isPlayingBgm) {
-	        sss.playBgm();
-	    }
-	    initGameFunc();
-	}
-	function clearGameStatus() {
-	    clearModules();
-	    actor_1.Actor.clear();
-	    ppe.clear();
-	    ui.clearJustPressed();
-	    exports.score = exports.ticks = 0;
-	}
-	function beginTitle() {
-	    exports.scene = Scene.title;
-	    exports.ticks = 0;
-	}
-	function beginReplay() {
-	    if (options.isReplayEnabled) {
-	        var status_1 = ir.startReplay();
-	        if (status_1 !== false) {
-	            clearGameStatus();
-	            exports.scene = Scene.replay;
-	            exports.random.setSeed(status_1.r);
-	            replayScore = status_1.s;
-	            initGameFunc();
-	        }
-	    }
-	}
-	function draw() {
-	    screen.clear();
-	    handleScene();
-	    sss.update();
-	    if (updateFunc != null) {
-	        updateFunc();
-	    }
-	    _.forEach(modules, function (m) {
-	        m.update();
-	    });
-	    actor_1.Actor.updateLowerZero();
-	    ppe.update();
-	    actor_1.Actor.update();
-	    if (postUpdateFunc != null) {
-	        postUpdateFunc();
-	    }
-	    if (options.isShowingScore) {
-	        text.draw("" + exports.score, 1, 1, text.Align.left);
-	    }
-	    drawSceneText();
-	    exports.ticks++;
-	}
-	function handleScene() {
-	    if ((exports.scene === Scene.title && ui.isJustPressed) ||
-	        (exports.scene === Scene.replay && ui._isPressedInReplay)) {
-	        beginGame();
-	    }
-	    if (exports.scene === Scene.gameover && (exports.ticks === 60 || ui.isJustPressed)) {
-	        beginTitle();
-	    }
-	    if (options.isReplayEnabled && exports.scene === Scene.title && exports.ticks === 120) {
-	        beginReplay();
-	    }
-	    if (exports.scene === Scene.replay) {
-	        var events = ir.getEvents();
-	        if (events !== false) {
-	            ui.updateInReplay(events);
-	        }
-	        else {
-	            beginTitle();
-	        }
-	    }
-	    else {
-	        ui.update();
-	        if (options.isReplayEnabled && exports.scene === Scene.game) {
-	            ir.recordEvents(ui.getReplayEvents());
-	        }
-	    }
-	}
-	function drawSceneText() {
-	    switch (exports.scene) {
-	        case Scene.title:
-	            if (titleCont == null) {
-	                text.draw(title, screen.size.x / 2, screen.size.y * 0.48);
-	            }
-	            else {
-	                text.draw(title, screen.size.x / 2, screen.size.y * 0.4);
-	                text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48);
-	            }
-	            break;
-	        case Scene.gameover:
-	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
-	            break;
-	        case Scene.replay:
-	            if (exports.ticks < 60) {
-	                text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.4);
-	                text.draw("SCORE:" + replayScore, screen.size.x / 2, screen.size.y * 0.5);
-	            }
-	            else {
-	                text.draw('REPLAY', 0, screen.size.y - 6, text.Align.left);
-	            }
-	            break;
-	    }
-	}
-
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {/**
@@ -19129,10 +17493,10 @@
 	  }
 	}.call(this));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(5)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(3)(module)))
 
 /***/ },
-/* 5 */
+/* 3 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -19148,7 +17512,7 @@
 
 
 /***/ },
-/* 6 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function webpackUniversalModuleDefinition(root, factory) {
@@ -19579,7 +17943,7 @@
 	;
 
 /***/ },
-/* 7 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function webpackUniversalModuleDefinition(root, factory) {
@@ -20022,7 +18386,1626 @@
 	;
 
 /***/ },
-/* 8 */
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function webpackUniversalModuleDefinition(root, factory) {
+		if(true)
+			module.exports = factory();
+		else if(typeof define === 'function' && define.amd)
+			define([], factory);
+		else if(typeof exports === 'object')
+			exports["sss"] = factory();
+		else
+			root["sss"] = factory();
+	})(this, function() {
+	return /******/ (function(modules) { // webpackBootstrap
+	/******/ 	// The module cache
+	/******/ 	var installedModules = {};
+	
+	/******/ 	// The require function
+	/******/ 	function __webpack_require__(moduleId) {
+	
+	/******/ 		// Check if module is in cache
+	/******/ 		if(installedModules[moduleId])
+	/******/ 			return installedModules[moduleId].exports;
+	
+	/******/ 		// Create a new module (and put it into the cache)
+	/******/ 		var module = installedModules[moduleId] = {
+	/******/ 			exports: {},
+	/******/ 			id: moduleId,
+	/******/ 			loaded: false
+	/******/ 		};
+	
+	/******/ 		// Execute the module function
+	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+	
+	/******/ 		// Flag the module as loaded
+	/******/ 		module.loaded = true;
+	
+	/******/ 		// Return the exports of the module
+	/******/ 		return module.exports;
+	/******/ 	}
+	
+	
+	/******/ 	// expose the modules object (__webpack_modules__)
+	/******/ 	__webpack_require__.m = modules;
+	
+	/******/ 	// expose the module cache
+	/******/ 	__webpack_require__.c = installedModules;
+	
+	/******/ 	// __webpack_public_path__
+	/******/ 	__webpack_require__.p = "/libs/";
+	
+	/******/ 	// Load entry module and return exports
+	/******/ 	return __webpack_require__(0);
+	/******/ })
+	/************************************************************************/
+	/******/ ([
+	/* 0 */
+	/***/ function(module, exports, __webpack_require__) {
+	
+		module.exports = __webpack_require__(2);
+	
+	
+	/***/ },
+	/* 1 */,
+	/* 2 */
+	/***/ function(module, exports, __webpack_require__) {
+	
+		"use strict";
+		var __extends = (this && this.__extends) || function (d, b) {
+		    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+		    function __() { this.constructor = d; }
+		    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+		};
+		var jsfx = __webpack_require__(3);
+		exports.Preset = jsfx.Preset;
+		var live;
+		var random;
+		var buffers = {};
+		var tracks = [];
+		var schedulingInterval;
+		var seed;
+		var playPrefixes = {
+		    c: exports.Preset.Coin,
+		    l: exports.Preset.Laser,
+		    e: exports.Preset.Explosion,
+		    p: exports.Preset.Powerup,
+		    h: exports.Preset.Hit,
+		    j: exports.Preset.Jump,
+		    s: exports.Preset.Select,
+		    u: exports.Preset.Lucky,
+		};
+		var playprefixeArray = values(playPrefixes);
+		var quantize = 0.5;
+		var isEmptyPlayed = false;
+		var prevPlayingFileName;
+		function init(_seed, tempo, fps) {
+		    if (_seed === void 0) { _seed = 0; }
+		    if (tempo === void 0) { tempo = 120; }
+		    if (fps === void 0) { fps = 60; }
+		    live = jsfx.Live({});
+		    setVolume(0.1);
+		    seed = _seed;
+		    random = new Random();
+		    jsfx.setRandomFunc(random.get01);
+		    exports.playInterval = 60 / tempo;
+		    schedulingInterval = 1 / fps * 2;
+		}
+		exports.init = init;
+		function setSeed(_seed) {
+		    if (_seed === void 0) { _seed = 0; }
+		    seed = _seed;
+		}
+		exports.setSeed = setSeed;
+		function play(name, mult, params) {
+		    if (name === void 0) { name = '0'; }
+		    if (mult === void 0) { mult = 2; }
+		    if (params === void 0) { params = null; }
+		    if (live == null) {
+		        return;
+		    }
+		    if (buffers[name] != null) {
+		        buffers[name].play();
+		        return;
+		    }
+		    random.setSeed(seed + getHashFromString(name));
+		    if (params == null) {
+		        var p = playPrefixes[name[0]];
+		        if (typeof p === 'undefined') {
+		            p = random.sample(playprefixeArray);
+		        }
+		        params = nArray(mult, p);
+		    }
+		    buffers[name] = new Sound(params);
+		    buffers[name].play();
+		}
+		exports.play = play;
+		function setVolume(volume) {
+		    if (live == null) {
+		        return;
+		    }
+		    live._volume.gain.value = volume;
+		}
+		exports.setVolume = setVolume;
+		function setQuantize(_quantize) {
+		    quantize = _quantize;
+		}
+		exports.setQuantize = setQuantize;
+		function playBgm(name, interval, params, tracksNum) {
+		    if (name === void 0) { name = '0'; }
+		    if (interval === void 0) { interval = 0.25; }
+		    if (params === void 0) { params = [exports.Preset.Laser, exports.Preset.Hit]; }
+		    if (tracksNum === void 0) { tracksNum = 8; }
+		    if (live == null) {
+		        return;
+		    }
+		    stopBgm();
+		    random.setSeed(seed + getHashFromString(name));
+		    tracks = [];
+		    times(tracksNum, function () { return addRandomTrack(interval, params); });
+		    forEach(tracks, function (t) { return t.play(); });
+		}
+		exports.playBgm = playBgm;
+		function stopBgm() {
+		    if (live == null) {
+		        return;
+		    }
+		    forEach(tracks, function (t) { return t.stop(); });
+		}
+		exports.stopBgm = stopBgm;
+		function update() {
+		    if (live == null) {
+		        return;
+		    }
+		    var currentTime = live._context.currentTime;
+		    var schedulingTime = currentTime + schedulingInterval;
+		    forOwn(buffers, function (b) { return b.update(currentTime, schedulingTime); });
+		    forEach(tracks, function (t) { return t.update(currentTime, schedulingTime); });
+		    return currentTime;
+		}
+		exports.update = update;
+		function reset() {
+		    stopBgm();
+		    buffers = {};
+		    tracks = [];
+		}
+		exports.reset = reset;
+		function playEmpty() {
+		    if (live == null) {
+		        return;
+		    }
+		    if (isEmptyPlayed) {
+		        return;
+		    }
+		    var eb = live._createEmptyBuffer();
+		    live._playBuffer(eb, 0);
+		    isEmptyPlayed = true;
+		}
+		exports.playEmpty = playEmpty;
+		function playParam(param) {
+		    if (live == null) {
+		        return;
+		    }
+		    live._play(param);
+		}
+		exports.playParam = playParam;
+		function addRandomTrack(interval, params) {
+		    addTrack(random.sample(params), createRandomPattern(), interval);
+		}
+		function createRandomPattern() {
+		    var len = 64;
+		    var pattern = nArray(len, false);
+		    var pi = 4;
+		    while (pi <= len) {
+		        pattern = reversePattern(pattern, pi);
+		        pi *= 2;
+		    }
+		    return pattern;
+		}
+		function reversePattern(pattern, interval) {
+		    var pt = nArray(interval, false);
+		    var pr = 0.5;
+		    for (var i = 0; i < interval / 2; i++) {
+		        if (random.f() < pr) {
+		            pt[random.i(interval - 1)] = true;
+		        }
+		        pr *= 0.5;
+		    }
+		    return map(pattern, function (p, i) { return pt[i % interval] ? !p : p; });
+		}
+		function addTrack(param, pattern, interval) {
+		    if (interval === void 0) { interval = 0.25; }
+		    var track = new Track(param);
+		    track.patternInterval = interval;
+		    if (typeof pattern === 'string') {
+		        track.pattern = mapString(pattern, function (p) { return p === '1'; });
+		    }
+		    else {
+		        track.pattern = pattern;
+		    }
+		    tracks.push(track);
+		}
+		exports.addTrack = addTrack;
+		var Sound = (function () {
+		    function Sound(params) {
+		        this.isPlaying = false;
+		        this.playedTime = null;
+		        if (!Array.isArray(params)) {
+		            params = [params];
+		        }
+		        this.buffers = map(params, function (p) { return live._createBuffer(p); });
+		    }
+		    Sound.prototype.play = function () {
+		        this.isPlaying = true;
+		    };
+		    Sound.prototype.stop = function () {
+		        this.isPlaying = false;
+		    };
+		    Sound.prototype.update = function (currentTime, schedulingTime) {
+		        if (!this.isPlaying) {
+		            return;
+		        }
+		        this.isPlaying = false;
+		        var interval = exports.playInterval * quantize;
+		        var time = interval > 0 ?
+		            Math.ceil(currentTime / interval) * interval : currentTime;
+		        if (this.playedTime == null || time > this.playedTime) {
+		            this.playLater(time);
+		            this.playedTime = time;
+		        }
+		    };
+		    Sound.prototype.playLater = function (when) {
+		        forEach(this.buffers, function (b) { return live._playBuffer(b, when); });
+		    };
+		    return Sound;
+		}());
+		var Track = (function (_super) {
+		    __extends(Track, _super);
+		    function Track() {
+		        _super.apply(this, arguments);
+		        this.patternIndex = 0;
+		        this.patternInterval = 0.25;
+		        this.scheduledTime = null;
+		    }
+		    Track.prototype.update = function (currentTime, schedulingTime) {
+		        if (!this.isPlaying) {
+		            return;
+		        }
+		        if (this.scheduledTime == null) {
+		            this.calcFirstScheduledTime(currentTime);
+		        }
+		        for (var i = 0; i < 99; i++) {
+		            if (this.scheduledTime >= currentTime) {
+		                break;
+		            }
+		            this.calcNextScheduledTime();
+		        }
+		        if (this.scheduledTime < currentTime) {
+		            this.scheduledTime = null;
+		        }
+		        else {
+		            while (this.scheduledTime <= schedulingTime) {
+		                this.playLater(this.scheduledTime);
+		                this.calcNextScheduledTime();
+		            }
+		        }
+		    };
+		    Track.prototype.calcFirstScheduledTime = function (currentTime) {
+		        this.scheduledTime = Math.ceil(currentTime / exports.playInterval) * exports.playInterval -
+		            exports.playInterval * this.patternInterval;
+		        this.patternIndex = 0;
+		        this.calcNextScheduledTime();
+		    };
+		    Track.prototype.calcNextScheduledTime = function () {
+		        var pl = this.pattern.length;
+		        var pi = exports.playInterval * this.patternInterval;
+		        for (var i = 0; i < pl; i++) {
+		            this.scheduledTime += pi;
+		            var p = this.pattern[this.patternIndex];
+		            this.patternIndex++;
+		            if (this.patternIndex >= pl) {
+		                this.patternIndex = 0;
+		            }
+		            if (p) {
+		                break;
+		            }
+		        }
+		    };
+		    return Track;
+		}(Sound));
+		var Random = (function () {
+		    function Random() {
+		        this.setSeed();
+		        this.get01 = this.get01.bind(this);
+		        this.f = this.f.bind(this);
+		        this.i = this.i.bind(this);
+		    }
+		    Random.prototype.setSeed = function (v) {
+		        if (v === void 0) { v = -0x7fffffff; }
+		        if (v === -0x7fffffff) {
+		            v = Math.floor(Math.random() * 0x7fffffff);
+		        }
+		        this.x = v = 1812433253 * (v ^ (v >> 30));
+		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
+		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
+		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
+		        return this;
+		    };
+		    Random.prototype.f = function (minOrMax, max) {
+		        if (minOrMax === void 0) { minOrMax = null; }
+		        if (max === void 0) { max = null; }
+		        if (minOrMax == null) {
+		            return this.get01();
+		        }
+		        if (max == null) {
+		            return this.get01() * minOrMax;
+		        }
+		        return this.get01() * (max - minOrMax) + minOrMax;
+		    };
+		    Random.prototype.i = function (minOrMax, max) {
+		        if (minOrMax === void 0) { minOrMax = null; }
+		        if (max === void 0) { max = null; }
+		        return Math.floor(this.f(minOrMax, max + 1));
+		    };
+		    Random.prototype.sample = function (array) {
+		        return array[this.i(array.length - 1)];
+		    };
+		    Random.prototype.getInt = function () {
+		        var t = this.x ^ (this.x << 11);
+		        this.x = this.y;
+		        this.y = this.z;
+		        this.z = this.w;
+		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
+		        return this.w;
+		    };
+		    Random.prototype.get01 = function () {
+		        return this.getInt() / 0x7fffffff;
+		    };
+		    return Random;
+		}());
+		function getHashFromString(str) {
+		    var hash = 0;
+		    var len = str.length;
+		    for (var i = 0; i < len; i++) {
+		        var chr = str.charCodeAt(i);
+		        hash = ((hash << 5) - hash) + chr;
+		        hash |= 0;
+		    }
+		    return hash;
+		}
+		function values(obj) {
+		    var vs = [];
+		    for (var p in obj) {
+		        if (obj.hasOwnProperty(p)) {
+		            vs.push(obj[p]);
+		        }
+		    }
+		    return vs;
+		}
+		function nArray(n, v) {
+		    var a = [];
+		    for (var i = 0; i < n; i++) {
+		        a.push(v);
+		    }
+		    return a;
+		}
+		function times(n, func) {
+		    for (var i = 0; i < n; i++) {
+		        func();
+		    }
+		}
+		function forEach(array, func) {
+		    for (var i = 0; i < array.length; i++) {
+		        func(array[i]);
+		    }
+		}
+		function forOwn(obj, func) {
+		    for (var p in obj) {
+		        func(obj[p]);
+		    }
+		}
+		function map(array, func) {
+		    var result = [];
+		    for (var i = 0; i < array.length; i++) {
+		        result.push(func(array[i], i));
+		    }
+		    return result;
+		}
+		function mapString(str, func) {
+		    var result = [];
+		    for (var i = 0; i < str.length; i++) {
+		        result.push(func(str.charAt(i), i));
+		    }
+		    return result;
+		}
+	
+	
+	/***/ },
+	/* 3 */
+	/***/ function(module, exports) {
+	
+		// original ver.: https://github.com/loov/jsfx
+		// these functions/variables are added by @abagames
+		//  - module.exports
+		//  - Live._createBuffer
+		//  - Live._createEmptyBuffer
+		//  - Live._playBuffer
+		//  - setRandomFunc
+		//  - webkitAudioContext
+		var jsfx = {};
+		(function (jsfx) {
+		  'use strict';
+	
+		  var chr = String.fromCharCode;
+		  var TAU = +Math.PI * 2;
+		  var bitsPerSample = 16 | 0;
+		  var numChannels = 1 | 0;
+		  var sin = Math.sin;
+		  var pow = Math.pow;
+		  var abs = Math.abs;
+		  var EPSILON = 0.000001;
+	
+		  jsfx.SampleRate = 0 | 0;
+		  jsfx.Sec = 0 | 0;
+	
+		  jsfx.SetSampleRate = function (sampleRate) {
+		    jsfx.SampleRate = sampleRate | 0;
+		    jsfx.Sec = sampleRate | 0;
+		  };
+		  jsfx.SetSampleRate(getDefaultSampleRate());
+	
+		  // MAIN API
+	
+		  // Creates a new Audio object based on the params
+		  // params can be a params generating function or the actual parameters
+		  jsfx.Sound = function (params) {
+		    var processor = new Processor(params, jsfx.DefaultModules);
+		    var block = createFloatArray(processor.getSamplesLeft());
+		    processor.generate(block);
+		    return CreateAudio(block);
+		  };
+	
+		  // Same as Sounds, but avoids locking the browser for too long
+		  // in case you have a large amount of sounds to generate
+		  jsfx.Sounds = function (library, ondone, onprogress) {
+		    var audio = {};
+		    var player = {};
+		    player._audio = audio;
+	
+		    var toLoad = [];
+	
+		    // create playing functions
+		    map_object(library, function (_, name) {
+		      player[name] = function () {
+		        if (typeof audio[name] !== "undefined") {
+		          audio[name].currentTime = 0.0;
+		          audio[name].play();
+		        }
+		      };
+		      toLoad.push(name);
+		    });
+	
+		    var loaded = 0, total = toLoad.length;
+		    function next() {
+		      if (toLoad.length == 0) {
+		        ondone && ondone(sounds);
+		        return;
+		      }
+		      var name = toLoad.shift();
+		      audio[name] = jsfx.Sound(library[name]);
+		      loaded++;
+		      onprogress && onprogress(name, loaded, total);
+	
+		      window.setTimeout(next, 30);
+		    }
+		    next();
+	
+		    return player;
+		  }
+	
+		  // SoundsImmediate takes a named set of params, and generates multiple
+		  // sound objects at once.
+		  jsfx.SoundsImmediate = function (library) {
+		    var audio = {};
+		    var player = {};
+		    player._audio = audio;
+		    map_object(library, function (params, name) {
+		      audio[name] = jsfx.Sound(params);
+		      player[name] = function () {
+		        if (typeof audio[name] !== "undefined") {
+		          audio[name].currentTime = 0.0;
+		          audio[name].play();
+		        }
+		      };
+		    })
+		    return player;
+		  };
+	
+		  var AudioContext = window.AudioContext || window.webkitAudioContext;
+		  if (typeof AudioContext !== "undefined") {
+		    // Node creates a new AudioContext ScriptProcessor that outputs the
+		    // sound. It will automatically disconnect, unless otherwise specified.
+		    jsfx.Node = function (audioContext, params, modules, bufferSize, stayConnected) {
+		      var node = audioContext.createScriptProcessor(bufferSize, 0, 1);
+		      var gen = new Processor(params, modules || jsfx.DefaultModules);
+		      node.onaudioprocess = function (ev) {
+		        var block = ev.outputBuffer.getChannelData(0);
+		        gen.generate(block);
+		        if (!stayConnected && gen.finished) {
+		          // we need to do an async disconnect, otherwise Chrome may
+		          // glitch
+		          setTimeout(function () { node.disconnect(); }, 30);
+		        }
+		      }
+		      return node;
+		    }
+	
+		    // Live creates an managed AudioContext for playing.
+		    // This is useful, when you want to use procedurally generated sounds.
+		    jsfx.Live = function (library, modules, BufferSize) {
+		      //TODO: add limit for number of notes played at the same time
+		      BufferSize = BufferSize || 2048;
+		      var player = {};
+	
+		      var context = new AudioContext();
+		      var volume = context.createGain();
+		      volume.connect(context.destination);
+	
+		      player._context = context;
+		      player._volume = volume;
+	
+		      map_object(library, function (params, name) {
+		        player[name] = function () {
+		          var node = jsfx.Node(context, params, modules, BufferSize);
+		          node.connect(volume);
+		        };
+		      });
+	
+		      player._close = function () {
+		        context.close();
+		      };
+	
+		      player._play = function (params) {
+		        var node = jsfx.Node(context, params, modules, BufferSize);
+		        node.connect(volume);
+		      };
+	
+		      player._createBuffer = function (params) {
+		        var processor = new Processor(params, jsfx.DefaultModules);
+		        var block = createFloatArray(processor.getSamplesLeft());
+		        processor.generate(block);
+		        return player._createBufferFromBlock(block);
+		      }
+	
+		      player._createEmptyBuffer = function () {
+		        return player._createBufferFromBlock([0]);
+		      }
+	
+		      player._createBufferFromBlock = function (block) {
+		        var buffer = context.createBuffer(1, block.length, jsfx.SampleRate);
+		        var channelData = buffer.getChannelData(0);
+		        channelData.set(block);
+		        return buffer;
+		      }
+	
+		      function createBufferSource(buffer, when) {
+		        var bufSrc = context.createBufferSource();
+		        bufSrc.buffer = buffer;
+		        bufSrc.start = bufSrc.start || bufSrc.noteOn;
+		        bufSrc.start(when);
+		        bufSrc.onended = function () {
+		          bufSrc.disconnect();
+		        };
+		        return bufSrc;
+		      }
+	
+		      player._playBuffer = function (buffer, when) {
+		        var bufSrc = createBufferSource(buffer, when);
+		        bufSrc.connect(volume);
+		      }
+	
+		      return player;
+		    }
+		  } else {
+		    //jsfx.Live = jsfx.Sounds;
+		    jsfx.Live = function (library, modules, BufferSize) {
+		      return null;
+		    };
+		  }
+	
+		  // SOUND GENERATION
+		  jsfx.Module = {};
+	
+		  // generators
+		  jsfx.G = {};
+	
+		  var stage = jsfx.stage = {
+		    PhaseSpeed: 0,
+		    PhaseSpeedMod: 10,
+		    Generator: 20,
+		    SampleMod: 30,
+		    Volume: 40
+		  };
+		  function byStage(a, b) { return a.stage - b.stage; }
+	
+		  jsfx.InitDefaultParams = InitDefaultParams;
+		  function InitDefaultParams(params, modules) {
+		    // setup modules
+		    for (var i = 0; i < modules.length; i += 1) {
+		      var M = modules[i];
+		      var P = params[M.name] || {};
+	
+		      // add missing parameters
+		      map_object(M.params, function (def, name) {
+		        if (typeof P[name] === 'undefined') {
+		          P[name] = def.D;
+		        }
+		      });
+	
+		      params[M.name] = P;
+		    }
+		  }
+	
+		  // Generates a stateful sound effect processor
+		  // params can be a function that creates a parameter set
+		  jsfx.Processor = Processor;
+		  function Processor(params, modules) {
+		    params = params || {};
+		    modules = modules || jsfx.DefaultModules;
+	
+		    if (typeof params === 'function') {
+		      params = params();
+		    } else {
+		      params = JSON.parse(JSON.stringify(params))
+		    }
+		    this.finished = false;
+	
+		    this.state = {
+		      SampleRate: params.SampleRate || jsfx.SampleRate
+		    };
+	
+		    // sort modules
+		    modules = modules.slice();
+		    modules.sort(byStage)
+		    this.modules = modules;
+	
+		    // init missing params
+		    InitDefaultParams(params, modules);
+	
+		    // setup modules
+		    for (var i = 0; i < this.modules.length; i += 1) {
+		      var M = this.modules[i];
+		      this.modules[i].setup(this.state, params[M.name]);
+		    }
+		  }
+		  Processor.prototype = {
+		    //TODO: see whether this can be converted to a module
+		    generate: function (block) {
+		      for (var i = 0 | 0; i < block.length; i += 1) {
+		        block[i] = 0;
+		      }
+		      if (this.finished) { return; }
+	
+		      var $ = this.state,
+		        N = block.length | 0;
+		      for (var i = 0; i < this.modules.length; i += 1) {
+		        var M = this.modules[i];
+		        var n = M.process($, block.subarray(0, N)) | 0;
+		        N = Math.min(N, n);
+		      }
+		      if (N < block.length) {
+		        this.finished = true;
+		      }
+		      for (var i = N; i < block.length; i++) {
+		        block[i] = 0;
+		      }
+		    },
+		    getSamplesLeft: function () {
+		      var samples = 0;
+		      for (var i = 0; i < this.state.envelopes.length; i += 1) {
+		        samples += this.state.envelopes[i].N;
+		      }
+		      if (samples === 0) {
+		        samples = 3 * this.state.SampleRate;
+		      }
+		      return samples;
+		    }
+		  };
+	
+		  // Frequency
+		  jsfx.Module.Frequency = {
+		    name: 'Frequency',
+		    params: {
+		      Start: { L: 30, H: 1800, D: 440 },
+	
+		      Min: { L: 30, H: 1800, D: 30 },
+		      Max: { L: 30, H: 1800, D: 1800 },
+	
+		      Slide: { L: -1, H: 1, D: 0 },
+		      DeltaSlide: { L: -1, H: 1, D: 0 },
+	
+		      RepeatSpeed: { L: 0, H: 3.0, D: 0 },
+	
+		      ChangeAmount: { L: -12, H: 12, D: 0 },
+		      ChangeSpeed: { L: 0, H: 1, D: 0 }
+		    },
+		    stage: stage.PhaseSpeed,
+		    setup: function ($, P) {
+		      var SR = $.SampleRate;
+	
+		      $.phaseParams = P;
+	
+		      $.phaseSpeed = P.Start * TAU / SR;
+		      $.phaseSpeedMax = P.Max * TAU / SR;
+		      $.phaseSpeedMin = P.Min * TAU / SR;
+	
+		      $.phaseSpeedMin = Math.min($.phaseSpeedMin, $.phaseSpeed);
+		      $.phaseSpeedMax = Math.max($.phaseSpeedMax, $.phaseSpeed);
+	
+		      $.phaseSlide = 1.0 + pow(P.Slide, 3.0) * 64.0 / SR;
+		      $.phaseDeltaSlide = pow(P.DeltaSlide, 3.0) / (SR * 1000);
+	
+		      $.repeatTime = 0;
+		      $.repeatLimit = Infinity;
+		      if (P.RepeatSpeed > 0) {
+		        $.repeatLimit = P.RepeatSpeed * SR;
+		      }
+	
+		      $.arpeggiatorTime = 0;
+		      $.arpeggiatorLimit = P.ChangeSpeed * SR;
+		      if (P.ChangeAmount == 0) {
+		        $.arpeggiatorLimit = Infinity;
+		      }
+		      $.arpeggiatorMod = 1 + P.ChangeAmount / 12.0;
+		    },
+		    process: function ($, block) {
+		      var speed = +$.phaseSpeed,
+		        min = +$.phaseSpeedMin,
+		        max = +$.phaseSpeedMax,
+		        slide = +$.phaseSlide,
+		        deltaSlide = +$.phaseDeltaSlide;
+	
+		      var repeatTime = $.repeatTime,
+		        repeatLimit = $.repeatLimit;
+	
+		      var arpTime = $.arpeggiatorTime,
+		        arpLimit = $.arpeggiatorLimit,
+		        arpMod = $.arpeggiatorMod;
+	
+		      for (var i = 0; i < block.length; i++) {
+		        slide += deltaSlide;
+		        speed *= slide;
+		        speed = speed < min ? min : speed > max ? max : speed;
+	
+		        if (repeatTime > repeatLimit) {
+		          this.setup($, $.phaseParams);
+		          return i + this.process($, block.subarray(i)) - 1;
+		        }
+		        repeatTime++;
+	
+		        if (arpTime > arpLimit) {
+		          speed *= arpMod;
+		          arpTime = 0;
+		          arpLimit = Infinity;
+		        }
+		        arpTime++;
+	
+		        block[i] += speed;
+		      }
+	
+		      $.repeatTime = repeatTime;
+		      $.arpeggiatorTime = arpTime;
+		      $.arpeggiatorLimit = arpLimit;
+	
+		      $.phaseSpeed = speed;
+		      $.phaseSlide = slide;
+	
+		      return block.length;
+		    }
+		  };
+	
+		  // Vibrato
+		  jsfx.Module.Vibrato = {
+		    name: 'Vibrato',
+		    params: {
+		      Depth: { L: 0, H: 1, D: 0 },
+		      DepthSlide: { L: -1, H: 1, D: 0 },
+	
+		      Frequency: { L: 0.01, H: 48, D: 0 },
+		      FrequencySlide: { L: -1.00, H: 1, D: 0 }
+		    },
+		    stage: stage.PhaseSpeedMod,
+		    setup: function ($, P) {
+		      var SR = $.SampleRate;
+		      $.vibratoPhase = 0;
+		      $.vibratoDepth = P.Depth;
+		      $.vibratoPhaseSpeed = P.Frequency * TAU / SR;
+	
+		      $.vibratoPhaseSpeedSlide = 1.0 + pow(P.FrequencySlide, 3.0) * 3.0 / SR;
+		      $.vibratoDepthSlide = P.DepthSlide / SR;
+		    },
+		    process: function ($, block) {
+		      var phase = +$.vibratoPhase,
+		        depth = +$.vibratoDepth,
+		        speed = +$.vibratoPhaseSpeed,
+		        slide = +$.vibratoPhaseSpeedSlide,
+		        depthSlide = +$.vibratoDepthSlide;
+	
+		      if ((depth == 0) && (depthSlide <= 0)) {
+		        return block.length;
+		      }
+	
+		      for (var i = 0; i < block.length; i++) {
+		        phase += speed;
+		        if (phase > TAU) { phase -= TAU };
+		        block[i] += block[i] * sin(phase) * depth;
+	
+		        speed *= slide;
+		        depth += depthSlide;
+		        depth = clamp1(depth);
+		      }
+	
+		      $.vibratoPhase = phase;
+		      $.vibratoDepth = depth;
+		      $.vibratoPhaseSpeed = speed;
+		      return block.length;
+		    }
+		  };
+	
+		  // Generator
+		  jsfx.Module.Generator = {
+		    name: 'Generator',
+		    params: {
+		      // C = choose
+		      Func: { C: jsfx.G, D: 'square' },
+	
+		      A: { L: 0, H: 1, D: 0 },
+		      B: { L: 0, H: 1, D: 0 },
+	
+		      ASlide: { L: -1, H: 1, D: 0 },
+		      BSlide: { L: -1, H: 1, D: 0 }
+		    },
+		    stage: stage.Generator,
+		    setup: function ($, P) {
+		      $.generatorPhase = 0;
+	
+		      if (typeof P.Func === 'string') {
+		        $.generator = jsfx.G[P.Func];
+		      } else {
+		        $.generator = P.Func;
+		      }
+		      if (typeof $.generator === 'object') {
+		        $.generator = $.generator.create();
+		      }
+		      assert(typeof $.generator === 'function', 'generator must be a function')
+	
+		      $.generatorA = P.A;
+		      $.generatorASlide = P.ASlide;
+		      $.generatorB = P.B;
+		      $.generatorBSlide = P.BSlide;
+		    },
+		    process: function ($, block) {
+		      return $.generator($, block);
+		    }
+		  };
+	
+		  // Karplus Strong algorithm for string sound
+		  var GuitarBufferSize = 1 << 16;
+		  jsfx.Module.Guitar = {
+		    name: 'Guitar',
+		    params: {
+		      A: { L: 0.0, H: 1.0, D: 1 },
+		      B: { L: 0.0, H: 1.0, D: 1 },
+		      C: { L: 0.0, H: 1.0, D: 1 },
+		    },
+		    stage: stage.Generator,
+		    setup: function ($, P) {
+		      $.guitarA = P.A;
+		      $.guitarB = P.B;
+		      $.guitarC = P.C;
+	
+		      $.guitarBuffer = createFloatArray(GuitarBufferSize);
+		      $.guitarHead = 0;
+		      var B = $.guitarBuffer;
+		      for (var i = 0; i < B.length; i++) {
+		        B[i] = random() * 2 - 1;
+		      }
+		    },
+		    process: function ($, block) {
+		      var BS = GuitarBufferSize,
+		        BM = BS - 1;
+	
+		      var A = +$.guitarA, B = +$.guitarB, C = +$.guitarC;
+		      var T = A + B + C;
+		      var h = $.guitarHead;
+	
+		      var buffer = $.guitarBuffer;
+		      for (var i = 0; i < block.length; i++) {
+		        // buffer size
+		        var n = (TAU / block[i]) | 0;
+		        n = n > BS ? BS : n;
+	
+		        // tail
+		        var t = ((h - n) + BS) & BM;
+		        buffer[h] =
+		          (buffer[(t - 0 + BS) & BM] * A +
+		            buffer[(t - 1 + BS) & BM] * B +
+		            buffer[(t - 2 + BS) & BM] * C) / T;
+	
+		        block[i] = buffer[h];
+		        h = (h + 1) & BM;
+		      }
+	
+		      $.guitarHead = h;
+		      return block.length;
+		    }
+		  }
+	
+		  // Low/High-Pass Filter
+		  jsfx.Module.Filter = {
+		    name: 'Filter',
+		    params: {
+		      LP: { L: 0, H: 1, D: 1 },
+		      LPSlide: { L: -1, H: 1, D: 0 },
+		      LPResonance: { L: 0, H: 1, D: 0 },
+		      HP: { L: 0, H: 1, D: 0 },
+		      HPSlide: { L: -1, H: 1, D: 0 }
+		    },
+		    stage: stage.SampleMod + 0,
+		    setup: function ($, P) {
+		      $.FilterEnabled = (P.HP > EPSILON) || (P.LP < 1 - EPSILON);
+	
+		      $.LPEnabled = P.LP < 1 - EPSILON;
+		      $.LP = pow(P.LP, 3.0) / 10;
+		      $.LPSlide = 1.0 + P.LPSlide * 100 / $.SampleRate;
+		      $.LPPos = 0;
+		      $.LPPosSlide = 0;
+	
+		      $.LPDamping = 5.0 / (1.0 + pow(P.LPResonance, 2) * 20) * (0.01 + P.LP);
+		      $.LPDamping = 1.0 - Math.min($.LPDamping, 0.8);
+	
+		      $.HP = pow(P.HP, 2.0) / 10;
+		      $.HPPos = 0;
+		      $.HPSlide = 1.0 + P.HPSlide * 100 / $.SampleRate;
+		    },
+		    enabled: function ($) {
+		      return $.FilterEnabled;
+		    },
+		    process: function ($, block) {
+		      if (!this.enabled($)) { return block.length; }
+	
+		      var lp = +$.LP;
+		      var lpPos = +$.LPPos;
+		      var lpPosSlide = +$.LPPosSlide;
+		      var lpSlide = +$.LPSlide;
+		      var lpDamping = +$.LPDamping;
+		      var lpEnabled = +$.LPEnabled;
+	
+		      var hp = +$.HP;
+		      var hpPos = +$.HPPos;
+		      var hpSlide = +$.HPSlide;
+	
+		      for (var i = 0; i < block.length; i++) {
+		        if ((hp > EPSILON) || (hp < -EPSILON)) {
+		          hp *= hpSlide;
+		          hp = hp < EPSILON ? EPSILON : hp > 0.1 ? 0.1 : hp;
+		        }
+	
+		        var lpPos_ = lpPos;
+	
+		        lp *= lpSlide;
+		        lp = lp < 0 ? lp = 0 : lp > 0.1 ? 0.1 : lp;
+	
+		        var sample = block[i];
+		        if (lpEnabled) {
+		          lpPosSlide += (sample - lpPos) * lp;
+		          lpPosSlide *= lpDamping;
+		        } else {
+		          lpPos = sample;
+		          lpPosSlide = 0;
+		        }
+		        lpPos += lpPosSlide;
+	
+		        hpPos += lpPos - lpPos_;
+		        hpPos *= 1.0 - hp;
+	
+		        block[i] = hpPos;
+		      }
+	
+		      $.LPPos = lpPos;
+		      $.LPPosSlide = lpPosSlide;
+		      $.LP = lp;
+		      $.HP = hp;
+		      $.HPPos = hpPos;
+	
+		      return block.length;
+		    }
+		  };
+	
+		  // Phaser Effect
+		  var PhaserBufferSize = 1 << 10;
+		  jsfx.Module.Phaser = {
+		    name: 'Phaser',
+		    params: {
+		      Offset: { L: -1, H: 1, D: 0 },
+		      Sweep: { L: -1, H: 1, D: 0 }
+		    },
+		    stage: stage.SampleMod + 1,
+		    setup: function ($, P) {
+		      $.phaserBuffer = createFloatArray(PhaserBufferSize);
+		      $.phaserPos = 0;
+		      $.phaserOffset = pow(P.Offset, 2.0) * (PhaserBufferSize - 4);
+		      $.phaserOffsetSlide = pow(P.Sweep, 3.0) * 4000 / $.SampleRate;
+		    },
+		    enabled: function ($) {
+		      return (abs($.phaserOffsetSlide) > EPSILON) ||
+		        (abs($.phaserOffset) > EPSILON);
+		    },
+		    process: function ($, block) {
+		      if (!this.enabled($)) { return block.length; }
+	
+		      var BS = PhaserBufferSize,
+		        BM = BS - 1;
+	
+		      var buffer = $.phaserBuffer,
+		        pos = $.phaserPos | 0,
+		        offset = +$.phaserOffset,
+		        offsetSlide = +$.phaserOffsetSlide;
+	
+		      for (var i = 0; i < block.length; i++) {
+		        offset += offsetSlide;
+		        //TODO: check whether this is correct
+		        if (offset < 0) {
+		          offset = -offset;
+		          offsetSlide = -offsetSlide;
+		        }
+		        if (offset > BM) {
+		          offset = BM;
+		          offsetSlide = 0;
+		        }
+	
+		        buffer[pos] = block[i];
+		        var p = (pos - (offset | 0) + BS) & BM;
+		        block[i] += buffer[p];
+	
+		        pos = ((pos + 1) & BM) | 0;
+		      }
+	
+		      $.phaserPos = pos;
+		      $.phaserOffset = offset;
+		      return block.length;
+		    }
+		  };
+	
+		  // Volume dynamic control with Attack-Sustain-Decay
+		  //   ATTACK  | 0              - Volume + Punch
+		  //   SUSTAIN | Volume + Punch - Volume
+		  //   DECAY   | Volume         - 0
+		  jsfx.Module.Volume = {
+		    name: 'Volume',
+		    params: {
+		      Master: { L: 0, H: 1, D: 0.5 },
+		      Attack: { L: 0.001, H: 1, D: 0.01 },
+		      Sustain: { L: 0, H: 2, D: 0.3 },
+		      Punch: { L: 0, H: 3, D: 1.0 },
+		      Decay: { L: 0.001, H: 2, D: 1.0 }
+		    },
+		    stage: stage.Volume,
+		    setup: function ($, P) {
+		      var SR = $.SampleRate;
+		      var V = P.Master;
+		      var VP = V * (1 + P.Punch);
+		      $.envelopes = [
+		        // S = start volume, E = end volume, N = duration in samples
+		        { S: 0, E: V, N: (P.Attack * SR) | 0 }, // Attack
+		        { S: VP, E: V, N: (P.Sustain * SR) | 0 }, // Sustain
+		        { S: V, E: 0, N: (P.Decay * SR) | 0 }  // Decay
+		      ];
+		      // G = volume gradient
+		      for (var i = 0; i < $.envelopes.length; i += 1) {
+		        var e = $.envelopes[i];
+		        e.G = (e.E - e.S) / e.N;
+		      }
+		    },
+		    process: function ($, block) {
+		      var i = 0;
+		      while (($.envelopes.length > 0) && (i < block.length)) {
+		        var E = $.envelopes[0];
+		        var vol = E.S,
+		          grad = E.G;
+	
+		        var N = Math.min(block.length - i, E.N) | 0;
+		        var end = (i + N) | 0;
+		        for (; i < end; i += 1) {
+		          block[i] *= vol;
+		          vol += grad;
+		          vol = clamp(vol, 0, 10);
+		        }
+		        E.S = vol;
+		        E.N -= N;
+		        if (E.N <= 0) {
+		          $.envelopes.shift();
+		        }
+		      }
+		      return i;
+		    }
+		  };
+	
+		  // PRESETS
+	
+		  jsfx.DefaultModules = [
+		    jsfx.Module.Frequency,
+		    jsfx.Module.Vibrato,
+		    jsfx.Module.Generator,
+		    jsfx.Module.Filter,
+		    jsfx.Module.Phaser,
+		    jsfx.Module.Volume
+		  ];
+		  jsfx.DefaultModules.sort(byStage);
+	
+		  jsfx.EmptyParams = EmptyParams;
+		  function EmptyParams() {
+		    return map_object(jsfx.Module, function () { return {} });
+		  }
+	
+		  jsfx._RemoveEmptyParams = RemoveEmptyParams;
+		  function RemoveEmptyParams(params) {
+		    for (var name in params) {
+		      if (Object_keys(params[name]).length == 0) {
+		        delete params[name];
+		      }
+		    }
+		  };
+	
+		  jsfx.Preset = {
+		    Reset: function () {
+		      return EmptyParams();
+		    },
+		    Coin: function () {
+		      var p = EmptyParams();
+		      p.Frequency.Start = runif(880, 660);
+		      p.Volume.Sustain = runif(0.1);
+		      p.Volume.Decay = runif(0.4, 0.1);
+		      p.Volume.Punch = runif(0.3, 0.3);
+		      if (runif() < 0.5) {
+		        p.Frequency.ChangeSpeed = runif(0.15, 0.1);
+		        p.Frequency.ChangeAmount = runif(8, 4);
+		      }
+		      RemoveEmptyParams(p);
+		      return p;
+		    },
+		    Laser: function () {
+		      var p = EmptyParams();
+		      p.Generator.Func = rchoose(['square', 'saw', 'sine']);
+	
+		      if (runif() < 0.33) {
+		        p.Frequency.Start = runif(880, 440);
+		        p.Frequency.Min = runif(0.1);
+		        p.Frequency.Slide = runif(0.3, -0.8);
+		      } else {
+		        p.Frequency.Start = runif(1200, 440);
+		        p.Frequency.Min = p.Frequency.Start - runif(880, 440);
+		        if (p.Frequency.Min < 110) { p.Frequency.Min = 110; }
+		        p.Frequency.Slide = runif(0.3, -1);
+		      }
+	
+		      if (runif() < 0.5) {
+		        p.Generator.A = runif(0.5);
+		        p.Generator.ASlide = runif(0.2);
+		      } else {
+		        p.Generator.A = runif(0.5, 0.4);
+		        p.Generator.ASlide = runif(0.7);
+		      }
+	
+		      p.Volume.Sustain = runif(0.2, 0.1);
+		      p.Volume.Decay = runif(0.4);
+		      if (runif() < 0.5) {
+		        p.Volume.Punch = runif(0.3);
+		      }
+		      if (runif() < 0.33) {
+		        p.Phaser.Offset = runif(0.2);
+		        p.Phaser.Sweep = runif(0.2);
+		      }
+		      if (runif() < 0.5) {
+		        p.Filter.HP = runif(0.3);
+		      }
+		      RemoveEmptyParams(p);
+		      return p;
+		    },
+		    Explosion: function () {
+		      var p = EmptyParams();
+		      p.Generator.Func = 'noise';
+		      if (runif() < 0.5) {
+		        p.Frequency.Start = runif(440, 40);
+		        p.Frequency.Slide = runif(0.4, -0.1);
+		      } else {
+		        p.Frequency.Start = runif(1600, 220);
+		        p.Frequency.Slide = runif(-0.2, -0.2);
+		      }
+	
+		      if (runif() < 0.2) { p.Frequency.Slide = 0; }
+		      if (runif() < 0.3) { p.Frequency.RepeatSpeed = runif(0.5, 0.3); }
+	
+		      p.Volume.Sustain = runif(0.3, 0.1);
+		      p.Volume.Decay = runif(0.5);
+		      p.Volume.Punch = runif(0.6, 0.2);
+	
+		      if (runif() < 0.5) {
+		        p.Phaser.Offset = runif(0.9, -0.3);
+		        p.Phaser.Sweep = runif(-0.3);
+		      }
+	
+		      if (runif() < 0.33) {
+		        p.Frequency.ChangeSpeed = runif(0.3, 0.6);
+		        p.Frequency.ChangeAmount = runif(24, -12);
+		      }
+		      RemoveEmptyParams(p);
+		      return p;
+		    },
+		    Powerup: function () {
+		      var p = EmptyParams();
+		      if (runif() < 0.5) {
+		        p.Generator.Func = 'saw';
+		      } else {
+		        p.Generator.A = runif(0.6);
+		      }
+	
+		      p.Frequency.Start = runif(220, 440);
+		      if (runif() < 0.5) {
+		        p.Frequency.Slide = runif(0.5, 0.2);
+		        p.Frequency.RepeatSpeed = runif(0.4, 0.4);
+		      } else {
+		        p.Frequency.Slide = runif(0.2, 0.05);
+		        if (runif() < 0.5) {
+		          p.Vibrato.Depth = runif(0.6, 0.1);
+		          p.Vibrato.Frequency = runif(30, 10);
+		        }
+		      }
+	
+		      p.Volume.Sustain = runif(0.4);
+		      p.Volume.Decay = runif(0.4, 0.1);
+	
+		      RemoveEmptyParams(p);
+		      return p;
+		    },
+		    Hit: function () {
+		      var p = EmptyParams();
+		      p.Generator.Func = rchoose(['square', 'saw', 'noise']);
+		      p.Generator.A = runif(0.6);
+		      p.Generator.ASlide = runif(1, -0.5);
+	
+		      p.Frequency.Start = runif(880, 220);
+		      p.Frequency.Slide = -runif(0.4, 0.3);
+	
+		      p.Volume.Sustain = runif(0.1);
+		      p.Volume.Decay = runif(0.2, 0.1);
+	
+		      if (runif() < 0.5) {
+		        p.Filter.HP = runif(0.3);
+		      }
+	
+		      RemoveEmptyParams(p);
+		      return p;
+		    },
+		    Jump: function () {
+		      var p = EmptyParams();
+		      p.Generator.Func = 'square';
+		      p.Generator.A = runif(0.6);
+	
+		      p.Frequency.Start = runif(330, 330);
+		      p.Frequency.Slide = runif(0.4, 0.2);
+	
+		      p.Volume.Sustain = runif(0.3, 0.1);
+		      p.Volume.Decay = runif(0.2, 0.1);
+	
+		      if (runif() < 0.5) {
+		        p.Filter.HP = runif(0.3);
+		      }
+		      if (runif() < 0.3) {
+		        p.Filter.LP = runif(-0.6, 1);
+		      }
+	
+		      RemoveEmptyParams(p);
+		      return p;
+		    },
+		    Select: function () {
+		      var p = EmptyParams();
+		      p.Generator.Func = rchoose(['square', 'saw']);
+		      p.Generator.A = runif(0.6);
+	
+		      p.Frequency.Start = runif(660, 220);
+	
+		      p.Volume.Sustain = runif(0.1, 0.1);
+		      p.Volume.Decay = runif(0.2);
+	
+		      p.Filter.HP = 0.2;
+		      RemoveEmptyParams(p);
+		      return p;
+		    },
+		    Lucky: function () {
+		      var p = EmptyParams();
+		      map_object(p, function (out, moduleName) {
+		        var defs = jsfx.Module[moduleName].params;
+		        map_object(defs, function (def, name) {
+		          if (def.C) {
+		            var values = Object_keys(def.C);
+		            out[name] = values[(values.length * random()) | 0];
+		          } else {
+		            out[name] = random() * (def.H - def.L) + def.L;
+		          }
+		        });
+		      });
+		      p.Volume.Master = 0.4;
+		      p.Filter = {}; // disable filter, as it usually will clip everything
+		      RemoveEmptyParams(p);
+		      return p;
+		    }
+		  };
+	
+		  // GENERATORS
+	
+		  // uniform noise
+		  jsfx.G.unoise = newGenerator("sample = Math.random();");
+		  // sine wave
+		  jsfx.G.sine = newGenerator("sample = Math.sin(phase);");
+		  // saw wave
+		  jsfx.G.saw = newGenerator("sample = 2*(phase/TAU - ((phase/TAU + 0.5)|0));");
+		  // triangle wave
+		  jsfx.G.triangle = newGenerator("sample = Math.abs(4 * ((phase/TAU - 0.25)%1) - 2) - 1;");
+		  // square wave
+		  jsfx.G.square = newGenerator("var s = Math.sin(phase); sample = s > A ? 1.0 : s < A ? -1.0 : A;");
+		  // simple synth
+		  jsfx.G.synth = newGenerator("sample = Math.sin(phase) + .5*Math.sin(phase/2) + .3*Math.sin(phase/4);");
+	
+		  // STATEFUL
+		  var __noiseLast = 0;
+		  jsfx.G.noise = newGenerator("if(phase % TAU < 4){__noiseLast = Math.random() * 2 - 1;} sample = __noiseLast;");
+	
+		  // Karplus-Strong string
+		  jsfx.G.string = {
+		    create: function () {
+		      var BS = 1 << 16;
+		      var BM = BS - 1;
+	
+		      var buffer = createFloatArray(BS);
+		      for (var i = 0; i < buffer.length; i++) {
+		        buffer[i] = random() * 2 - 1;
+		      }
+	
+		      var head = 0;
+		      return function ($, block) {
+		        var TAU = Math.PI * 2;
+		        var A = +$.generatorA, ASlide = +$.generatorASlide,
+		          B = +$.generatorB, BSlide = +$.generatorBSlide;
+		        var buf = buffer;
+	
+		        for (var i = 0; i < block.length; i++) {
+		          var phaseSpeed = block[i];
+		          var n = (TAU / phaseSpeed) | 0;
+		          A += ASlide; B += BSlide;
+		          A = A < 0 ? 0 : A > 1 ? 1 : A;
+		          B = B < 0 ? 0 : B > 1 ? 1 : B;
+	
+		          var t = ((head - n) + BS) & BM;
+		          var sample = (
+		            buf[(t - 0 + BS) & BM] * 1 +
+		            buf[(t - 1 + BS) & BM] * A +
+		            buf[(t - 2 + BS) & BM] * B) / (1 + A + B);
+	
+		          buf[head] = sample;
+		          block[i] = buf[head];
+		          head = (head + 1) & BM;
+		        }
+	
+		        $.generatorA = A;
+		        $.generatorB = B;
+		        return block.length;
+		      }
+		    }
+		  };
+	
+		  // Generates samples using given frequency and generator
+		  function newGenerator(line) {
+		    return new Function("$", "block", "" +
+		      "var TAU = Math.PI * 2;\n" +
+		      "var sample;\n" +
+		      "var phase = +$.generatorPhase,\n" +
+		      "	A = +$.generatorA, ASlide = +$.generatorASlide,\n" +
+		      "	B = +$.generatorB, BSlide = +$.generatorBSlide;\n" +
+		      "\n" +
+		      "for(var i = 0; i < block.length; i++){\n" +
+		      "	var phaseSpeed = block[i];\n" +
+		      "	phase += phaseSpeed;\n" +
+		      "	if(phase > TAU){ phase -= TAU };\n" +
+		      "	A += ASlide; B += BSlide;\n" +
+		      "   A = A < 0 ? 0 : A > 1 ? 1 : A;\n" +
+		      "   B = B < 0 ? 0 : B > 1 ? 1 : B;\n" +
+		      line +
+		      "	block[i] = sample;\n" +
+		      "}\n" +
+		      "\n" +
+		      "$.generatorPhase = phase;\n" +
+		      "$.generatorA = A;\n" +
+		      "$.generatorB = B;\n" +
+		      "return block.length;\n" +
+		      "");
+		  }
+	
+		  // WAVE SUPPORT
+	
+		  // Creates an Audio element from audio data [-1.0 .. 1.0]
+		  jsfx.CreateAudio = CreateAudio;
+		  function CreateAudio(data) {
+		    if (typeof Float32Array !== "undefined") {
+		      assert(data instanceof Float32Array, 'data must be an Float32Array');
+		    }
+	
+		    var blockAlign = numChannels * bitsPerSample >> 3;
+		    var byteRate = jsfx.SampleRate * blockAlign;
+	
+		    var output = createByteArray(8 + 36 + data.length * 2);
+		    var p = 0;
+	
+		    // emits string to output
+		    function S(value) {
+		      for (var i = 0; i < value.length; i += 1) {
+		        output[p] = value.charCodeAt(i); p++;
+		      }
+		    }
+	
+		    // emits integer value to output
+		    function V(value, nBytes) {
+		      if (nBytes <= 0) { return; }
+		      output[p] = value & 0xFF; p++;
+		      V(value >> 8, nBytes - 1);
+		    }
+	
+		    S('RIFF'); V(36 + data.length * 2, 4);
+	
+		    S('WAVEfmt '); V(16, 4); V(1, 2);
+		    V(numChannels, 2); V(jsfx.SampleRate, 4);
+		    V(byteRate, 4); V(blockAlign, 2); V(bitsPerSample, 2);
+	
+		    S('data'); V(data.length * 2, 4);
+		    CopyFToU8(output.subarray(p), data);
+	
+		    return new Audio('data:audio/wav;base64,' + U8ToB64(output));
+		  };
+	
+		  jsfx.DownloadAsFile = function (audio) {
+		    assert(audio instanceof Audio, 'input must be an Audio object');
+		    document.location.href = audio.src;
+		  };
+	
+		  // HELPERS
+		  jsfx.Util = {};
+	
+		  // Copies array of Floats to a Uint8Array with 16bits per sample
+		  jsfx.Util.CopyFToU8 = CopyFToU8;
+		  function CopyFToU8(into, floats) {
+		    assert(into.length / 2 == floats.length,
+		      'the target buffer must be twice as large as the iinput');
+	
+		    var k = 0;
+		    for (var i = 0; i < floats.length; i++) {
+		      var v = +floats[i];
+		      var a = (v * 0x7FFF) | 0;
+		      a = a < -0x8000 ? -0x8000 : 0x7FFF < a ? 0x7FFF : a;
+		      a += a < 0 ? 0x10000 : 0;
+		      into[k] = a & 0xFF; k++;
+		      into[k] = a >> 8; k++;
+		    }
+		  }
+	
+		  function U8ToB64(data) {
+		    var CHUNK = 0x8000;
+		    var result = '';
+		    for (var start = 0; start < data.length; start += CHUNK) {
+		      var end = Math.min(start + CHUNK, data.length);
+		      result += String.fromCharCode.apply(null, data.subarray(start, end));
+		    }
+		    return btoa(result);
+		  }
+	
+		  // uses AudioContext sampleRate or 44100;
+		  function getDefaultSampleRate() {
+		    if (typeof AudioContext !== 'undefined') {
+		      return (new AudioContext()).sampleRate;
+		    }
+		    return 44100;
+		  }
+	
+		  // for checking pre/post conditions
+		  function assert(condition, message) {
+		    if (!condition) { throw new Error(message); }
+		  }
+	
+		  function clamp(v, min, max) {
+		    v = +v; min = +min; max = +max;
+		    if (v < min) { return +min; }
+		    if (v > max) { return +max; }
+		    return +v;
+		  }
+	
+		  function clamp1(v) {
+		    v = +v;
+		    if (v < +0.0) { return +0.0; }
+		    if (v > +1.0) { return +1.0; }
+		    return +v;
+		  }
+	
+		  function map_object(obj, fn) {
+		    var r = {};
+		    for (var name in obj) {
+		      if (obj.hasOwnProperty(name)) {
+		        r[name] = fn(obj[name], name);
+		      }
+		    }
+		    return r;
+		  }
+	
+		  // uniform random
+		  function runif(scale, offset) {
+		    var a = random();
+		    if (scale !== undefined)
+		      a *= scale;
+		    if (offset !== undefined)
+		      a += offset;
+		    return a;
+		  }
+	
+		  function rchoose(gens) {
+		    return gens[(gens.length * random()) | 0];
+		  }
+	
+		  function Object_keys(obj) {
+		    var r = [];
+		    for (var name in obj) { r.push(name); }
+		    return r;
+		  }
+	
+		  jsfx._createFloatArray = createFloatArray;
+		  function createFloatArray(N) {
+		    if (typeof Float32Array === "undefined") {
+		      var r = new Array(N);
+		      for (var i = 0; i < r.length; i++) {
+		        r[i] = 0.0;
+		      }
+		    }
+		    return new Float32Array(N);
+		  }
+	
+		  function createByteArray(N) {
+		    if (typeof Uint8Array === "undefined") {
+		      var r = new Array(N);
+		      for (var i = 0; i < r.length; i++) {
+		        r[i] = 0 | 0;
+		      }
+		    }
+		    return new Uint8Array(N);
+		  }
+	
+		  var randomFunc = Math.random;
+		  jsfx.setRandomFunc = function (func) {
+		    randomFunc = func;
+		  }
+	
+		  function random() {
+		    return randomFunc();
+		  }
+		})(jsfx = {});
+		module.exports = jsfx;
+	
+	
+	/***/ }
+	/******/ ])
+	});
+	;
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function webpackUniversalModuleDefinition(root, factory) {
@@ -20241,6 +20224,10 @@
 		    }
 		    if (url.length > exports.options.maxUrlLength) {
 		        console.log('too long to record. url length: ' + url.length);
+		        try {
+		            window.history.replaceState({}, '', baseUrl);
+		        }
+		        catch (e) { }
 		        return false;
 		    }
 		    try {
@@ -20811,353 +20798,305 @@
 	;
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	function __export(m) {
+	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	}
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(4);
+	var ppe = __webpack_require__(5);
+	var sss = __webpack_require__(6);
+	var ir = __webpack_require__(7);
+	var actor_1 = __webpack_require__(1);
+	var random_1 = __webpack_require__(9);
+	exports.Random = random_1.default;
+	var ui = __webpack_require__(10);
+	exports.ui = ui;
+	var screen = __webpack_require__(11);
+	exports.screen = screen;
+	var text = __webpack_require__(12);
+	exports.text = text;
+	var debug = __webpack_require__(13);
+	exports.debug = debug;
+	__export(__webpack_require__(14));
+	__export(__webpack_require__(1));
+	__export(__webpack_require__(15));
+	exports.p5 = __webpack_require__(16);
+	exports.ticks = 0;
+	exports.score = 0;
+	exports.scoreMultiplier = 1;
+	var options = {
+	    isShowingScore: true,
+	    isShowingTitle: true,
+	    isReplayEnabled: false,
+	    isPlayingBgm: true
 	};
-	var _ = __webpack_require__(4);
-	var pag = __webpack_require__(6);
-	var ppe = __webpack_require__(7);
-	var sss = __webpack_require__(2);
-	var ir = __webpack_require__(8);
-	var ob = __webpack_require__(3);
-	var p5;
-	var rotationNum = 16;
-	var Actor = (function () {
-	    function Actor() {
-	        this.pos = new p5.Vector();
-	        this.vel = new p5.Vector();
-	        this.angle = 0;
-	        this.speed = 0;
-	        this.isAlive = true;
-	        this.priority = 1;
-	        this.ticks = 0;
-	        this.collision = new p5.Vector(8, 8);
-	        this.context = ob.screen.context;
-	        this.modules = [];
-	        Actor.add(this);
-	        this.type = ('' + this.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
-	        new ob.RemoveWhenOut(this);
+	var initFunc;
+	var initGameFunc;
+	var updateFunc;
+	var postUpdateFunc;
+	var onSeedChangedFunc;
+	var title = 'N/A';
+	var titleCont;
+	var isDebugEnabled = false;
+	var modules = [];
+	var initialStatus = { r: 0, s: 0 };
+	var replayScore;
+	(function (Scene) {
+	    Scene[Scene["title"] = 0] = "title";
+	    Scene[Scene["game"] = 1] = "game";
+	    Scene[Scene["gameover"] = 2] = "gameover";
+	    Scene[Scene["replay"] = 3] = "replay";
+	})(exports.Scene || (exports.Scene = {}));
+	var Scene = exports.Scene;
+	;
+	function init(_initFunc, _initGameFunc, _updateFunc, _postUpdateFunc) {
+	    if (_updateFunc === void 0) { _updateFunc = null; }
+	    if (_postUpdateFunc === void 0) { _postUpdateFunc = null; }
+	    initFunc = _initFunc;
+	    initGameFunc = _initGameFunc;
+	    updateFunc = _updateFunc;
+	    postUpdateFunc = _postUpdateFunc;
+	    exports.random = new random_1.default();
+	    exports.seedRandom = new random_1.default();
+	    sss.init();
+	    ir.setOptions({
+	        frameCount: -1,
+	        isRecordingEventsAsString: true
+	    });
+	    new exports.p5(function (_p) {
+	        exports.p = _p;
+	        exports.p.setup = setup;
+	        exports.p.draw = draw;
+	        exports.p.mousePressed = function () {
+	            sss.playEmpty();
+	        };
+	    });
+	}
+	exports.init = init;
+	function setTitle(_title, _titleCont) {
+	    if (_titleCont === void 0) { _titleCont = null; }
+	    title = _title;
+	    titleCont = _titleCont;
+	}
+	exports.setTitle = setTitle;
+	function enableDebug(_onSeedChangedFunc) {
+	    if (_onSeedChangedFunc === void 0) { _onSeedChangedFunc = null; }
+	    onSeedChangedFunc = _onSeedChangedFunc;
+	    debug.initSeedUi(setSeeds);
+	    debug.enableShowingErrors();
+	    isDebugEnabled = true;
+	}
+	exports.enableDebug = enableDebug;
+	function setOptions(_options) {
+	    for (var attr in _options) {
+	        options[attr] = _options[attr];
 	    }
-	    Actor.prototype.update = function () {
-	        this.pos.add(this.vel);
-	        this.pos.x += Math.cos(this.angle) * this.speed;
-	        this.pos.y += Math.sin(this.angle) * this.speed;
-	        if (this.pixels != null) {
-	            this.drawPixels();
-	        }
-	        _.forEach(this.modules, function (m) {
-	            m.update();
-	        });
-	        this.ticks++;
-	    };
-	    Actor.prototype.remove = function () {
-	        this.isAlive = false;
-	    };
-	    Actor.prototype.clearModules = function () {
-	        this.modules = [];
-	    };
-	    Actor.prototype.testCollision = function (type) {
-	        var _this = this;
-	        return _.filter(Actor.get(type), function (a) {
-	            return Math.abs(_this.pos.x - a.pos.x) < (_this.collision.x + a.collision.x) / 2 &&
-	                Math.abs(_this.pos.y - a.pos.y) < (_this.collision.y + a.collision.y) / 2;
-	        });
-	    };
-	    Actor.prototype.emitParticles = function (patternName, options) {
-	        if (options === void 0) { options = {}; }
-	        ppe.emit(patternName, this.pos.x, this.pos.y, this.angle, options);
-	    };
-	    Actor.prototype._addModule = function (module) {
-	        this.modules.push(module);
-	    };
-	    Actor.prototype.drawPixels = function (x, y) {
-	        if (x === void 0) { x = null; }
-	        if (y === void 0) { y = null; }
-	        if (x == null) {
-	            x = this.pos.x;
-	        }
-	        if (y == null) {
-	            y = this.pos.y;
-	        }
-	        var a = this.angle;
-	        if (a < 0) {
-	            a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
-	        }
-	        var ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
-	        pag.draw(this.context, this.pixels, x, y, ri);
-	    };
-	    Actor.prototype.getReplayStatus = function () {
-	        if (this.replayPropertyNames == null) {
-	            return null;
-	        }
-	        return ir.objectToArray(this, this.replayPropertyNames);
-	    };
-	    Actor.prototype.setReplayStatus = function (status) {
-	        ir.arrayToObject(status, this.replayPropertyNames, this);
-	    };
-	    Actor.init = function () {
-	        p5 = ob.p5;
-	        pag.setDefaultOptions({
-	            isMirrorY: true,
-	            rotationNum: rotationNum,
-	            scale: 2
-	        });
-	        Actor.clear();
-	    };
-	    Actor.add = function (actor) {
-	        Actor.actors.push(actor);
-	    };
-	    Actor.clear = function () {
-	        Actor.actors = [];
-	    };
-	    Actor.updateLowerZero = function () {
-	        Actor.actors.sort(function (a, b) { return a.priority - b.priority; });
-	        Actor.updateSorted(true);
-	    };
-	    Actor.update = function () {
-	        Actor.updateSorted();
-	    };
-	    Actor.updateSorted = function (isLowerZero) {
-	        if (isLowerZero === void 0) { isLowerZero = false; }
-	        for (var i = 0; i < Actor.actors.length;) {
-	            var a = Actor.actors[i];
-	            if (isLowerZero && a.priority >= 0) {
-	                return;
+	}
+	exports.setOptions = setOptions;
+	function setSeeds(seed) {
+	    pag.setSeed(seed);
+	    ppe.setSeed(seed);
+	    ppe.reset();
+	    sss.reset();
+	    sss.setSeed(seed);
+	    if (exports.scene === Scene.game) {
+	        sss.playBgm();
+	    }
+	    if (onSeedChangedFunc != null) {
+	        onSeedChangedFunc();
+	    }
+	}
+	exports.setSeeds = setSeeds;
+	function endGame() {
+	    if (exports.scene === Scene.gameover) {
+	        return;
+	    }
+	    var isReplay = exports.scene === Scene.replay;
+	    exports.scene = Scene.gameover;
+	    exports.ticks = 0;
+	    sss.stopBgm();
+	    if (!isReplay && options.isReplayEnabled) {
+	        initialStatus.s = exports.score;
+	        ir.recordInitialStatus(initialStatus);
+	        ir.saveAsUrl();
+	    }
+	}
+	exports.endGame = endGame;
+	function addScore(v, pos) {
+	    if (v === void 0) { v = 1; }
+	    if (pos === void 0) { pos = null; }
+	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
+	        exports.score += v * exports.scoreMultiplier;
+	        if (pos != null) {
+	            var s = '+';
+	            if (exports.scoreMultiplier <= 1) {
+	                s += "" + v;
 	            }
-	            if (!isLowerZero && a.priority < 0) {
-	                i++;
-	                continue;
-	            }
-	            if (a.isAlive !== false) {
-	                a.update();
-	            }
-	            if (a.isAlive === false) {
-	                Actor.actors.splice(i, 1);
+	            else if (v <= 1) {
+	                s += "" + exports.scoreMultiplier;
 	            }
 	            else {
-	                i++;
+	                s += v + "X" + exports.scoreMultiplier;
 	            }
+	            var t = new actor_1.Text(s);
+	            t.pos.set(pos);
 	        }
-	    };
-	    Actor.get = function (type) {
-	        return _.filter(Actor.actors, function (a) { return a.type === type; });
-	    };
-	    Actor.getReplayStatus = function () {
-	        var status = [];
-	        _.forEach(Actor.actors, function (a) {
-	            var array = a.getReplayStatus();
-	            if (array != null) {
-	                status.push([a.type, array]);
+	    }
+	}
+	exports.addScore = addScore;
+	function addScoreMultiplier(v) {
+	    if (v === void 0) { v = 1; }
+	    exports.scoreMultiplier += v;
+	}
+	exports.addScoreMultiplier = addScoreMultiplier;
+	function clearModules() {
+	    modules = [];
+	}
+	exports.clearModules = clearModules;
+	function _addModule(module) {
+	    modules.push(module);
+	}
+	exports._addModule = _addModule;
+	function setup() {
+	    exports.p.noStroke();
+	    actor_1.Actor.init();
+	    initFunc();
+	    if (isDebugEnabled || !options.isShowingTitle) {
+	        beginGame();
+	    }
+	    else {
+	        if (options.isReplayEnabled && ir.loadFromUrl() === true) {
+	            beginReplay();
+	        }
+	        else {
+	            beginTitle();
+	            initGameFunc();
+	        }
+	    }
+	}
+	function beginGame() {
+	    clearGameStatus();
+	    exports.scene = Scene.game;
+	    var seed = exports.seedRandom.getInt(9999999);
+	    exports.random.setSeed(seed);
+	    if (options.isReplayEnabled) {
+	        ir.startRecord();
+	        initialStatus.r = seed;
+	    }
+	    if (options.isPlayingBgm) {
+	        sss.playBgm();
+	    }
+	    initGameFunc();
+	}
+	function clearGameStatus() {
+	    clearModules();
+	    actor_1.Actor.clear();
+	    ppe.clear();
+	    ui.clearJustPressed();
+	    exports.score = exports.ticks = 0;
+	    exports.scoreMultiplier = 1;
+	}
+	function beginTitle() {
+	    exports.scene = Scene.title;
+	    exports.ticks = 0;
+	}
+	function beginReplay() {
+	    if (options.isReplayEnabled) {
+	        var status_1 = ir.startReplay();
+	        if (status_1 !== false) {
+	            clearGameStatus();
+	            exports.scene = Scene.replay;
+	            exports.random.setSeed(status_1.r);
+	            replayScore = status_1.s;
+	            initGameFunc();
+	        }
+	    }
+	}
+	function draw() {
+	    screen.clear();
+	    handleScene();
+	    sss.update();
+	    if (updateFunc != null) {
+	        updateFunc();
+	    }
+	    _.forEach(modules, function (m) {
+	        m.update();
+	    });
+	    actor_1.Actor.updateLowerZero();
+	    ppe.update();
+	    actor_1.Actor.update();
+	    if (postUpdateFunc != null) {
+	        postUpdateFunc();
+	    }
+	    if (options.isShowingScore) {
+	        text.draw("" + exports.score, 1, 1, text.Align.left);
+	        if (exports.scoreMultiplier > 1) {
+	            text.draw("X" + exports.scoreMultiplier, 127, 1, text.Align.right);
+	        }
+	    }
+	    drawSceneText();
+	    exports.ticks++;
+	}
+	function handleScene() {
+	    if ((exports.scene === Scene.title && ui.isJustPressed) ||
+	        (exports.scene === Scene.replay && ui._isPressedInReplay)) {
+	        beginGame();
+	    }
+	    if (exports.scene === Scene.gameover && (exports.ticks === 60 || ui.isJustPressed)) {
+	        beginTitle();
+	    }
+	    if (options.isReplayEnabled && exports.scene === Scene.title && exports.ticks === 120) {
+	        beginReplay();
+	    }
+	    if (exports.scene === Scene.replay) {
+	        var events = ir.getEvents();
+	        if (events !== false) {
+	            ui.updateInReplay(events);
+	        }
+	        else {
+	            beginTitle();
+	        }
+	    }
+	    else {
+	        ui.update();
+	        if (options.isReplayEnabled && exports.scene === Scene.game) {
+	            ir.recordEvents(ui.getReplayEvents());
+	        }
+	    }
+	}
+	function drawSceneText() {
+	    switch (exports.scene) {
+	        case Scene.title:
+	            if (titleCont == null) {
+	                text.draw(title, screen.size.x / 2, screen.size.y * 0.48);
 	            }
-	        });
-	        return status;
-	    };
-	    Actor.setReplayStatus = function (status, actorGeneratorFunc) {
-	        _.forEach(status, function (s) {
-	            actorGeneratorFunc(s[0], s[1]);
-	        });
-	    };
-	    return Actor;
-	}());
-	exports.Actor = Actor;
-	var Player = (function (_super) {
-	    __extends(Player, _super);
-	    function Player() {
-	        _super.call(this);
-	        this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
-	        this.type = 'player';
-	        this.collision.set(5, 5);
+	            else {
+	                text.draw(title, screen.size.x / 2, screen.size.y * 0.4);
+	                text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48);
+	            }
+	            break;
+	        case Scene.gameover:
+	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
+	            break;
+	        case Scene.replay:
+	            if (exports.ticks < 60) {
+	                text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.4);
+	                text.draw("SCORE:" + replayScore, screen.size.x / 2, screen.size.y * 0.5);
+	            }
+	            else {
+	                text.draw('REPLAY', 0, screen.size.y - 6, text.Align.left);
+	            }
+	            break;
 	    }
-	    Player.prototype.update = function () {
-	        this.emitParticles('t_pl');
-	        _super.prototype.update.call(this);
-	        if (this.testCollision('enemy').length > 0 ||
-	            this.testCollision('bullet').length > 0) {
-	            this.destroy();
-	        }
-	    };
-	    Player.prototype.destroy = function () {
-	        sss.play('u_pl_d');
-	        this.emitParticles('e_pl_d', { sizeScale: 2 });
-	        if (this.onDestroyed != null) {
-	            this.onDestroyed();
-	        }
-	        this.remove();
-	        ob.endGame();
-	    };
-	    return Player;
-	}(Actor));
-	exports.Player = Player;
-	var Enemy = (function (_super) {
-	    __extends(Enemy, _super);
-	    function Enemy() {
-	        _super.call(this);
-	        this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
-	        this.type = 'enemy';
-	    }
-	    Enemy.prototype.update = function () {
-	        this.emitParticles('t_en');
-	        _super.prototype.update.call(this);
-	        var cs = this.testCollision('shot');
-	        if (cs.length > 0) {
-	            this.destroy();
-	            _.forEach(cs, function (s) {
-	                s.remove();
-	            });
-	        }
-	    };
-	    Enemy.prototype.destroy = function () {
-	        sss.play('e_en_d');
-	        this.emitParticles('e_en_d');
-	        ob.addScore(1, this.pos);
-	        if (this.onDestroyed != null) {
-	            this.onDestroyed();
-	        }
-	        this.remove();
-	    };
-	    return Enemy;
-	}(Actor));
-	exports.Enemy = Enemy;
-	var Shot = (function (_super) {
-	    __extends(Shot, _super);
-	    function Shot(actor, speed, angle) {
-	        if (speed === void 0) { speed = 2; }
-	        if (angle === void 0) { angle = null; }
-	        _super.call(this);
-	        this.pixels = pag.generate(['xxx'], { hue: 0.4 });
-	        this.type = 'shot';
-	        this.pos.set(actor.pos);
-	        this.angle = angle == null ? actor.angle : angle;
-	        this.speed = speed;
-	        this.emitParticles('m_sh');
-	        sss.play('l_st');
-	        this.priority = 0.6;
-	    }
-	    Shot.prototype.update = function () {
-	        this.emitParticles('t_st');
-	        _super.prototype.update.call(this);
-	    };
-	    return Shot;
-	}(Actor));
-	exports.Shot = Shot;
-	var Bullet = (function (_super) {
-	    __extends(Bullet, _super);
-	    function Bullet(actor, speed, angle) {
-	        if (speed === void 0) { speed = 2; }
-	        if (angle === void 0) { angle = null; }
-	        _super.call(this);
-	        this.pixels = pag.generate(['xxx'], { hue: 0.1 });
-	        this.type = 'bullet';
-	        this.pos.set(actor.pos);
-	        this.angle = angle == null ? actor.angle : angle;
-	        this.speed = speed;
-	        this.emitParticles('m_bl');
-	        sss.play('l_bl');
-	    }
-	    Bullet.prototype.update = function () {
-	        this.emitParticles('t_bl');
-	        _super.prototype.update.call(this);
-	    };
-	    return Bullet;
-	}(Actor));
-	exports.Bullet = Bullet;
-	var Bonus = (function (_super) {
-	    __extends(Bonus, _super);
-	    function Bonus(pos, vel, gravity) {
-	        if (vel === void 0) { vel = null; }
-	        if (gravity === void 0) { gravity = null; }
-	        _super.call(this);
-	        this.gravity = gravity;
-	        this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
-	        this.type = 'bonus';
-	        this.pos.set(pos);
-	        if (vel != null) {
-	            this.vel = vel;
-	        }
-	        this.priority = 0.3;
-	        this.collision.set(10, 10);
-	    }
-	    Bonus.prototype.update = function () {
-	        this.vel.add(this.gravity);
-	        this.vel.mult(0.99);
-	        this.emitParticles('t_bn');
-	        _super.prototype.update.call(this);
-	        if (this.testCollision('player').length > 0) {
-	            ob.addScore(1, this.pos);
-	            this.emitParticles('s_bn');
-	            sss.play('s_bn');
-	            this.remove();
-	        }
-	        _super.prototype.update.call(this);
-	    };
-	    return Bonus;
-	}(Actor));
-	exports.Bonus = Bonus;
-	var Star = (function (_super) {
-	    __extends(Star, _super);
-	    function Star() {
-	        _super.call(this);
-	        this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
-	        this.vel.y = ob.p.random(0.5, 1.5);
-	        this.clearModules();
-	        new ob.WrapPos(this);
-	        var colorStrs = ['00', '7f', 'ff'];
-	        this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
-	        this.priority = -1;
-	    }
-	    Star.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        ob.p.fill(this.color);
-	        ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 2, 2);
-	    };
-	    return Star;
-	}(Actor));
-	exports.Star = Star;
-	var Panel = (function (_super) {
-	    __extends(Panel, _super);
-	    function Panel(x, y) {
-	        _super.call(this);
-	        this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], { isMirrorX: true, value: 0.5, colorLighting: 0 });
-	        this.pos.set(x, y);
-	        new ob.WrapPos(this);
-	        this.vel.y = 1;
-	        this.priority = -1;
-	    }
-	    return Panel;
-	}(Actor));
-	exports.Panel = Panel;
-	var Text = (function (_super) {
-	    __extends(Text, _super);
-	    function Text(str, duration, align) {
-	        if (duration === void 0) { duration = 30; }
-	        if (align === void 0) { align = null; }
-	        _super.call(this);
-	        this.str = str;
-	        this.duration = duration;
-	        this.align = align;
-	        this.vel.y = -2;
-	    }
-	    Text.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        this.vel.mult(0.9);
-	        ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
-	        if (this.ticks >= this.duration) {
-	            this.remove();
-	        }
-	    };
-	    return Text;
-	}(Actor));
-	exports.Text = Text;
+	}
 
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -21178,6 +21117,9 @@
 	        if (fromOrTo === void 0) { fromOrTo = 1; }
 	        if (to === void 0) { to = null; }
 	        return Math.floor(this.get(fromOrTo, to));
+	    };
+	    Random.prototype.getPm = function () {
+	        return this.get(2) * 2 - 1;
 	    };
 	    Random.prototype.setSeed = function (v) {
 	        if (v === void 0) { v = -0x7fffffff; }
@@ -21205,11 +21147,11 @@
 
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var ob = __webpack_require__(3);
+	var ob = __webpack_require__(8);
 	exports.isPressed = false;
 	exports.isJustPressed = false;
 	exports._isPressedInReplay = false;
@@ -21238,13 +21180,13 @@
 
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var ppe = __webpack_require__(7);
-	var s1 = __webpack_require__(3);
-	var text = __webpack_require__(13);
+	var ppe = __webpack_require__(5);
+	var s1 = __webpack_require__(8);
+	var text = __webpack_require__(12);
 	var p5;
 	var p;
 	var backgroundColor;
@@ -21271,7 +21213,7 @@
 
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -21375,7 +21317,7 @@
 
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -21411,14 +21353,14 @@
 
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var _ = __webpack_require__(4);
-	var pag = __webpack_require__(6);
-	var ppe = __webpack_require__(7);
-	var ob = __webpack_require__(3);
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(4);
+	var ppe = __webpack_require__(5);
+	var ob = __webpack_require__(8);
 	function isIn(v, low, high) {
 	    return v >= low && v <= high;
 	}
@@ -21435,7 +21377,7 @@
 	}
 	exports.wrap = wrap;
 	function getDifficulty() {
-	    return Math.sqrt(ob.ticks * 0.001 + 1);
+	    return ob.scene === ob.Scene.title ? 1 : ob.ticks * 0.001 + 1;
 	}
 	exports.getDifficulty = getDifficulty;
 	function limitColors() {
@@ -21477,7 +21419,7 @@
 
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -21486,8 +21428,8 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var _ = __webpack_require__(4);
-	var ob = __webpack_require__(3);
+	var _ = __webpack_require__(2);
+	var ob = __webpack_require__(8);
 	var Module = (function () {
 	    function Module(actor) {
 	        this.actor = actor;
@@ -21630,6 +21572,18 @@
 	    return AbsorbPos;
 	}(Module));
 	exports.AbsorbPos = AbsorbPos;
+	var DrawText = (function (_super) {
+	    __extends(DrawText, _super);
+	    function DrawText(actor, text) {
+	        _super.call(this, actor);
+	        this.text = text;
+	    }
+	    DrawText.prototype.update = function () {
+	        ob.text.draw(this.text, this.actor.pos.x + 1, this.actor.pos.y - 3);
+	    };
+	    return DrawText;
+	}(Module));
+	exports.DrawText = DrawText;
 	function getPropValue(obj, prop) {
 	    var value = obj;
 	    var name;
@@ -21647,7 +21601,7 @@
 
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;var require;/*! p5.js v0.5.4 October 01, 2016 */
@@ -54681,5 +54635,7 @@
 	});
 
 /***/ }
-/******/ ]);
-//# sourceMappingURL=bundle.js.map
+/******/ ])
+});
+;
+//# sourceMappingURL=index.js.map

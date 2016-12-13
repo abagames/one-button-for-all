@@ -1,10 +1,16 @@
 var glob = require('glob');
+var ob = glob.sync('./src/ob/**/*.ts');
 
 module.exports = {
-  entry: glob.sync('./src/**/*.ts'),
+  entry: {
+    ob: ob,
+    refrev: ['./src/refrev/index.ts'].concat(ob)
+  },
   output: {
     path: 'docs',
-    filename: 'bundle.js'
+    filename: '[name]/index.js',
+    library: ['[name]'],
+    libraryTarget: 'umd'
   },
   resolve: {
     extensions: ['.ts', '', '.webpack.js', '.web.js', '.js']
