@@ -99,6 +99,30 @@ export class MoveSin extends Module {
   }
 }
 
+export class MoveRoundTrip extends Module {
+  prop;
+  vel: number;
+
+  constructor
+    (actor: ob.Actor, prop: string,
+    public center = 64, public width = 48,
+    public speed = 1, startVel = 1) {
+    super(actor);
+    this.prop = getPropValue(actor, prop);
+    this.prop.value[this.prop.name] = this.center;
+    this.vel = startVel;
+  }
+
+  update() {
+    this.prop.value[this.prop.name] += this.vel * this.speed;
+    if ((this.vel > 0 && this.prop.value[this.prop.name] > this.center + this.width) ||
+      (this.vel < 0 && this.prop.value[this.prop.name] < this.center - this.width)) {
+      this.vel *= -1;
+      this.prop.value[this.prop.name] += this.vel * this.speed * 2;
+    }
+  }
+}
+
 export class AbsorbPos extends Module {
   absorbingTicks = 0;
 

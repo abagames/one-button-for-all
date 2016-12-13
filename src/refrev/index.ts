@@ -36,19 +36,19 @@ function initGame() {
 }
 
 class Player extends ob.Player {
-  ms;
+  mr;
   weaponType = 0;
   weaponLevel = 1;
 
   constructor() {
     super();
-    this.ms = new ob.MoveSin(this, 'pos.x');
+    this.mr = new ob.MoveRoundTrip(this, 'pos.x');
     this.pos.y = 110;
     this.angle = -p.HALF_PI;
   }
 
   update() {
-    this.ms.speed = ob.ui.isPressed ? 0.1 : 0.03;
+    this.mr.speed = ob.ui.isPressed ? 3 : 1;
     if (ob.ui.isJustPressed) {
       switch (this.weaponType) {
         case 0:
