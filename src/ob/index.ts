@@ -29,7 +29,8 @@ let options = {
   isShowingScore: true,
   isShowingTitle: true,
   isReplayEnabled: false,
-  isPlayingBgm: true
+  isPlayingBgm: true,
+  titleScale: 3
 };
 let initFunc: Function;
 let initGameFunc: Function;
@@ -262,10 +263,13 @@ function drawSceneText() {
   switch (scene) {
     case Scene.title:
       if (titleCont == null) {
-        text.draw(title, screen.size.x / 2, screen.size.y * 0.48);
+        text.drawScaled
+          (title, options.titleScale, screen.size.x / 2, screen.size.y * 0.45);
       } else {
-        text.draw(title, screen.size.x / 2, screen.size.y * 0.4);
-        text.draw(titleCont, screen.size.x / 2, screen.size.y * 0.48);
+        text.drawScaled
+          (title, options.titleScale, screen.size.x / 2, screen.size.y * 0.35);
+        text.drawScaled
+          (titleCont, options.titleScale, screen.size.x / 2, screen.size.y * 0.5);
       }
       break;
     case Scene.gameover:

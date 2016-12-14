@@ -77,8 +77,10 @@ class Player extends ob.Player {
       this.weaponLevel++;
     }
     const name = ['NAPALM', 'LASER', 'WAVE'];
-    let t = new ob.Text(`${name[type]} LV${this.weaponLevel}`, 60);
-    t.pos.set(this.pos);
+    let nt = new ob.Text(name[type], 60);
+    nt.pos.set(this.pos.x, this.pos.y - 4);
+    let lt = new ob.Text(`LV${this.weaponLevel}`, 60);
+    lt.pos.set(this.pos.x, this.pos.y + 4);
   }
 }
 
@@ -107,7 +109,7 @@ class Explosion extends ob.Actor {
   }
 
   update() {
-    this.radius += this.ticks < 30 ? 1 + this.level * 0.1 : -1 + this.level * 0.1;
+    this.radius += this.ticks < 30 ? 1 + this.level * 0.1 : -1 - this.level * 0.1;
     this.collision.set(this.radius, this.radius);
     p.fill(this.colors[ob.random.getInt(2)]);
     p.ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
@@ -133,7 +135,7 @@ class Laser extends ob.Actor {
 
   update() {
     this.pos.x = player.pos.x;
-    let w = (1 - this.ticks / 30) * (15 + this.level * 1.5);
+    let w = (1 - this.ticks / 30) * (15 + this.level * 1.8);
     if (this.ticks < 11) {
       p.fill('#7f7');
       this.collision.set(w, this.pos.y * 2);
@@ -165,7 +167,7 @@ class Wave extends ob.Shot {
     super(actor, 3);
     this.type = 'wave';
     this.pixels = null;
-    this.width = 12 + level * 1.2;
+    this.width = 12 + level * 1.5;
     this.collision.set(this.width, 4);
   }
 

@@ -1,3 +1,7 @@
+import * as _ from 'lodash';
+import * as pag from 'pag';
+import * as ob from './index';
+
 let dotPatterns;
 let charToIndex;
 let context: CanvasRenderingContext2D;
@@ -87,4 +91,65 @@ function drawLetter(idx: number, x: number, y: number) {
     const d = p[i];
     context.fillRect(d.x + x, d.y + y, 1, 1);
   }
+}
+
+let textPixels = {};
+
+export function drawScaled
+  (str: string, scale: number, x: number, y: number) {
+  const pixels = generatePixels(str, scale);
+  pag.draw(ob.screen.context, pixels, x, y, 0);
+}
+
+function generatePixels(str: string, scale: number) {
+  if (textPixels.hasOwnProperty(`${str}_${scale}`)) {
+    return textPixels[`${str}_${scale}`];
+  }
+  const pixelArray = _.times(Math.ceil(5 * scale), () =>
+    _.times(Math.ceil(5 * str.length * scale), () => ' '));
+  _.times(str.length, i => {
+    const idx = charToIndex[str.charCodeAt(i)];
+    if (idx === -2) {
+      throw `invalid char: ${str.charAt(i)}`;
+    } else if (idx >= 0) {
+      drawToPixelArray(pixelArray, idx, i * 5 * scale, scale);
+    }
+  });
+  const paw = pixelArray[0].length;
+  const pah = pixelArray.length;
+  _.times(pah, y => {
+    _.times(paw, x => {
+      if (pixelArray[y][x] === 'x' && isEdgePixel(x, y, pixelArray, paw, pah)) {
+        pixelArray[y][x] = 'o';
+      }
+    });
+  });
+  const pixels = pag.generate(_.map(pixelArray, line => line.join('')),
+    { isMirrorY: false, scale: 1, rotationNum: 1, colorLighting: 0 });
+  textPixels[`${str}_${scale}`] = pixels;
+  return pixels;
+}
+
+function drawToPixelArray(pixelArray: string[][], idx: number, ox: number, scale: number) {
+  const p = dotPatterns[idx];
+  _.forEach(p, d => {
+    for (let y = d.y * scale; y < (d.y + 1) * scale; y++) {
+      for (let x = d.x * scale; x < (d.x + 1) * scale; x++) {
+        pixelArray[Math.round(y)][Math.round(x + ox)] = 'x';
+      }
+    }
+  });
+}
+
+function isEdgePixel(x: number, y: number, pixelArray: string[][], w: number, h: number) {
+  if (x <= 0 || x >= w - 1 || y <= 0 || y >= h - 1) {
+    return true;
+  }
+  const ofss = [1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1, 0, -1, 1, -1];
+  for (let i = 0; i < 8; i++) {
+    if (pixelArray[y + ofss[i * 2 + 1]][x + ofss[i * 2]] === ' ') {
+      return true;
+    }
+  }
+  return false;
 }

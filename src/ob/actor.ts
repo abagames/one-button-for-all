@@ -326,7 +326,7 @@ export class Panel extends Actor {
   constructor(x, y) {
     super();
     this.pixels = pag.generate(['ooo', 'oxx', 'oxx'],
-      { isMirrorX: true, value: 0.5, colorLighting: 0 });
+      { isMirrorX: true, value: 0.5, colorLighting: 0, rotationNum: 1 });
     this.pos.set(x, y);
     new ob.WrapPos(this);
     this.vel.y = 1;
