@@ -151,6 +151,7 @@ export function _addModule(module) {
 
 function setup() {
   p.noStroke();
+  p.noSmooth();
   Actor.init();
   initFunc();
   if (isDebugEnabled || !options.isShowingTitle) {
