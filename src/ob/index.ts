@@ -25,11 +25,14 @@ export let random: Random;
 export let seedRandom: Random;
 export let scene: Scene;
 
-let options = {
+export let options = {
   isShowingScore: true,
   isShowingTitle: true,
-  isReplayEnabled: false,
+  isReplayEnabled: true,
   isPlayingBgm: true,
+  isLimitingColors: true,
+  screenWidth: 128,
+  screenHeight: 128,
   titleScale: 3
 };
 let initFunc: Function;
@@ -154,6 +157,10 @@ function setup() {
   p.noSmooth();
   Actor.init();
   initFunc();
+  screen.init(options.screenWidth, options.screenHeight);
+  if (options.isLimitingColors) {
+    limitColors();
+  }
   if (isDebugEnabled || !options.isShowingTitle) {
     beginGame();
   } else {
@@ -285,4 +292,13 @@ function drawSceneText() {
       }
       break;
   }
+}
+
+function limitColors() {
+  pag.setDefaultOptions({
+    isLimitingColors: true
+  });
+  ppe.setOptions({
+    isLimitingColors: true
+  });
 }

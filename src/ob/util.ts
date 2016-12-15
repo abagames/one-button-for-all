@@ -21,15 +21,6 @@ export function getDifficulty() {
   return ob.scene === ob.Scene.title ? 1 : ob.ticks * 0.001 + 1;
 }
 
-export function limitColors() {
-  pag.setDefaultOptions({
-    isLimitingColors: true
-  });
-  ppe.setOptions({
-    isLimitingColors: true
-  });
-}
-
 export function fillStar(c = 64) {
   _.times(c, () => new ob.Star());
 }

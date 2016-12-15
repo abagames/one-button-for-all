@@ -9,13 +9,8 @@ let p: p5 = ob.p;
 let player: Player;
 
 function init() {
-  ob.screen.init(128, 128);
   ob.setTitle('REFREV');
-  ob.setOptions({
-    isReplayEnabled: true
-  });
   ob.setSeeds(8850148);
-  ob.limitColors();
 }
 
 function initGame() {

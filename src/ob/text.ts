@@ -124,8 +124,11 @@ function generatePixels(str: string, scale: number) {
       }
     });
   });
-  const pixels = pag.generate(_.map(pixelArray, line => line.join('')),
-    { isMirrorY: false, scale: 1, rotationNum: 1, colorLighting: 0 });
+  const pagOptions: any = { isMirrorY: false, scale: 1, rotationNum: 1 };
+  if (ob.options.isLimitingColors) {
+    pagOptions.colorLighting = 0;
+  }
+  const pixels = pag.generate(_.map(pixelArray, line => line.join('')), pagOptions);
   textPixels[`${str}_${scale}`] = pixels;
   return pixels;
 }
