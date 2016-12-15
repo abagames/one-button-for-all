@@ -56295,7 +56295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var player;
 	function init() {
 	    ob.setTitle('REFREV');
-	    ob.setSeeds(8850148);
+	    ob.setSeeds(8761924);
 	}
 	function initGame() {
 	    ob.fillStar();

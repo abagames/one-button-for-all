@@ -10,7 +10,7 @@ let player: Player;
 
 function init() {
   ob.setTitle('REFREV');
-  ob.setSeeds(8850148);
+  ob.setSeeds(8761924);
 }
 
 function initGame() {
