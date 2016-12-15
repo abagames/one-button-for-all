@@ -256,10 +256,11 @@ function handleScene() {
     (scene === Scene.replay && ui._isPressedInReplay)) {
     beginGame();
   }
-  if (scene === Scene.gameover && (ticks === 60 || ui.isJustPressed)) {
+  if (scene === Scene.gameover &&
+    (ticks >= 60 || (ticks >= 20 && ui.isJustPressed))) {
     beginTitle();
   }
-  if (options.isReplayEnabled && scene === Scene.title && ticks === 120) {
+  if (options.isReplayEnabled && scene === Scene.title && ticks >= 120) {
     beginReplay();
   }
   if (scene === Scene.replay) {
