@@ -3,6 +3,7 @@ import * as pag from 'pag';
 import * as ppe from 'ppe';
 import * as sss from 'sss';
 import * as ir from 'ir';
+import * as gcc from 'gcc';
 
 import { Actor, Text } from './actor';
 import Random from './random';
@@ -31,6 +32,7 @@ export let options = {
   isReplayEnabled: true,
   isPlayingBgm: true,
   isLimitingColors: true,
+  isEnableCapturing: false,
   screenWidth: 128,
   screenHeight: 128,
   titleScale: 3
@@ -161,6 +163,11 @@ function setup() {
   if (options.isLimitingColors) {
     limitColors();
   }
+  if (options.isEnableCapturing) {
+    gcc.setOptions({
+      scale: 2
+    });
+  }
   if (isDebugEnabled || !options.isShowingTitle) {
     beginGame();
   } else {
@@ -238,6 +245,9 @@ function draw() {
     }
   }
   drawSceneText();
+  if (options.isEnableCapturing) {
+    gcc.capture(screen.canvas);
+  }
   ticks++;
 }
 
