@@ -29,13 +29,13 @@ export function init() {
 
 export function update() {
   const pp = isPressed;
-  isPressed = ob.p.keyIsPressed || isCursorDown;//ob.p.mouseIsPressed;
+  isPressed = ob.p.keyIsPressed || isCursorDown;
   isJustPressed = (!pp && isPressed);
 }
 
 export function updateInReplay(events) {
   const pp = isPressed;
-  _isPressedInReplay = ob.p.keyIsPressed || isCursorDown;//ob.p.mouseIsPressed;
+  _isPressedInReplay = ob.p.keyIsPressed || isCursorDown;
   isPressed = events === '1';
   isJustPressed = (!pp && isPressed);
 }
