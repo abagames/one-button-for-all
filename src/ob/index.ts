@@ -44,6 +44,7 @@ let postUpdateFunc: Function;
 let onSeedChangedFunc: Function;
 let title: string = 'N/A';
 let titleCont: string;
+let titleHue: number;
 let isDebugEnabled = false;
 let modules = [];
 let initialStatus = { r: 0, s: 0 };
@@ -80,6 +81,11 @@ export function init
 export function setTitle(_title: string, _titleCont: string = null) {
   title = _title;
   titleCont = _titleCont;
+  let lc = 0;
+  for (let i = 0; i < _title.length; i++) {
+    lc = _title.charCodeAt(i);
+  }
+  titleHue = lc * 0.17;
 }
 
 export function enableDebug(_onSeedChangedFunc = null) {
@@ -283,12 +289,12 @@ function drawSceneText() {
     case Scene.title:
       if (titleCont == null) {
         text.drawScaled
-          (title, options.titleScale, screen.size.x / 2, screen.size.y * 0.45);
+          (title, options.titleScale, screen.size.x / 2, screen.size.y * 0.45, titleHue);
       } else {
         text.drawScaled
-          (title, options.titleScale, screen.size.x / 2, screen.size.y * 0.35);
+          (title, options.titleScale, screen.size.x / 2, screen.size.y * 0.35, titleHue);
         text.drawScaled
-          (titleCont, options.titleScale, screen.size.x / 2, screen.size.y * 0.5);
+          (titleCont, options.titleScale, screen.size.x / 2, screen.size.y * 0.5, titleHue);
       }
       break;
     case Scene.gameover:

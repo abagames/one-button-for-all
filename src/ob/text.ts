@@ -96,14 +96,14 @@ function drawLetter(idx: number, x: number, y: number) {
 let textPixels = {};
 
 export function drawScaled
-  (str: string, scale: number, x: number, y: number) {
-  const pixels = generatePixels(str, scale);
+  (str: string, scale: number, x: number, y: number, hue: number = null) {
+  const pixels = generatePixels(str, scale, hue);
   pag.draw(ob.screen.context, pixels, x, y, 0);
 }
 
-function generatePixels(str: string, scale: number) {
-  if (textPixels.hasOwnProperty(`${str}_${scale}`)) {
-    return textPixels[`${str}_${scale}`];
+function generatePixels(str: string, scale: number, hue: number = null) {
+  if (textPixels.hasOwnProperty(`${str}_${scale}_${hue}`)) {
+    return textPixels[`${str}_${scale}_${hue}`];
   }
   const pixelArray = _.times(Math.ceil(5 * scale), () =>
     _.times(Math.ceil(5 * str.length * scale), () => ' '));
@@ -125,6 +125,9 @@ function generatePixels(str: string, scale: number) {
     });
   });
   const pagOptions: any = { isMirrorY: false, scale: 1, rotationNum: 1 };
+  if (hue != null) {
+    pagOptions.hue = hue;
+  }
   if (ob.options.isLimitingColors) {
     pagOptions.colorLighting = 0;
   }
