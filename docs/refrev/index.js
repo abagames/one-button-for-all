@@ -20915,9 +20915,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        exports.p = _p;
 	        exports.p.setup = setup;
 	        exports.p.draw = draw;
-	        exports.p.mousePressed = function () {
-	            sss.playEmpty();
-	        };
 	    });
 	}
 	exports.init = init;
@@ -21013,6 +21010,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function setup() {
 	    exports.p.noStroke();
 	    exports.p.noSmooth();
+	    ui.init();
 	    actor_1.Actor.init();
 	    initFunc();
 	    screen.init(exports.options.screenWidth, exports.options.screenHeight);
@@ -22752,19 +22750,42 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	var sss = __webpack_require__(6);
 	var ob = __webpack_require__(8);
 	exports.isPressed = false;
 	exports.isJustPressed = false;
 	exports._isPressedInReplay = false;
+	var isCursorDown = false;
+	function init() {
+	    document.onmousedown = function (e) {
+	        isCursorDown = true;
+	    };
+	    document.ontouchstart = function (e) {
+	        e.preventDefault();
+	        isCursorDown = true;
+	        sss.playEmpty();
+	    };
+	    document.ontouchmove = function (e) {
+	        e.preventDefault();
+	    };
+	    document.onmouseup = function (e) {
+	        isCursorDown = false;
+	    };
+	    document.ontouchend = function (e) {
+	        e.preventDefault();
+	        isCursorDown = false;
+	    };
+	}
+	exports.init = init;
 	function update() {
 	    var pp = exports.isPressed;
-	    exports.isPressed = ob.p.keyIsPressed || ob.p.mouseIsPressed;
+	    exports.isPressed = ob.p.keyIsPressed || isCursorDown; //ob.p.mouseIsPressed;
 	    exports.isJustPressed = (!pp && exports.isPressed);
 	}
 	exports.update = update;
 	function updateInReplay(events) {
 	    var pp = exports.isPressed;
-	    exports._isPressedInReplay = ob.p.keyIsPressed || ob.p.mouseIsPressed;
+	    exports._isPressedInReplay = ob.p.keyIsPressed || isCursorDown; //ob.p.mouseIsPressed;
 	    exports.isPressed = events === '1';
 	    exports.isJustPressed = (!pp && exports.isPressed);
 	}

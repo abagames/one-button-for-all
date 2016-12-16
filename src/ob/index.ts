@@ -72,9 +72,6 @@ export function init
     p = _p;
     p.setup = setup;
     p.draw = draw;
-    p.mousePressed = () => {
-      sss.playEmpty();
-    };
   });
 }
 
@@ -163,6 +160,7 @@ export function _addModule(module) {
 function setup() {
   p.noStroke();
   p.noSmooth();
+  ui.init();
   Actor.init();
   initFunc();
   screen.init(options.screenWidth, options.screenHeight);
