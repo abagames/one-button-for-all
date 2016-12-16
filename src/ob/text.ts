@@ -93,17 +93,18 @@ function drawLetter(idx: number, x: number, y: number) {
   }
 }
 
-let textPixels = {};
+let textImages = {};
 
 export function drawScaled
   (str: string, scale: number, x: number, y: number, hue: number = null) {
-  const pixels = generatePixels(str, scale, hue);
-  pag.draw(ob.screen.context, pixels, x, y, 0);
+  const images = generateImages(str, scale, hue);
+  pag.drawImage(ob.screen.context, images, x, y);
 }
 
-function generatePixels(str: string, scale: number, hue: number = null) {
-  if (textPixels.hasOwnProperty(`${str}_${scale}_${hue}`)) {
-    return textPixels[`${str}_${scale}_${hue}`];
+function generateImages(str: string, scale: number, hue: number = null) {
+  const key = `${str}_${scale}_${hue}`;
+  if (textImages.hasOwnProperty(key)) {
+    return textImages[key];
   }
   const pixelArray = _.times(Math.ceil(5 * scale), () =>
     _.times(Math.ceil(5 * str.length * scale), () => ' '));
@@ -131,9 +132,9 @@ function generatePixels(str: string, scale: number, hue: number = null) {
   if (ob.options.isLimitingColors) {
     pagOptions.colorLighting = 0;
   }
-  const pixels = pag.generate(_.map(pixelArray, line => line.join('')), pagOptions);
-  textPixels[`${str}_${scale}`] = pixels;
-  return pixels;
+  const images = pag.generateImages(_.map(pixelArray, line => line.join('')), pagOptions);
+  textImages[key] = images;
+  return images;
 }
 
 function drawToPixelArray(pixelArray: string[][], idx: number, ox: number, scale: number) {

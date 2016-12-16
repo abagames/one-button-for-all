@@ -16,7 +16,7 @@ export class Actor {
   isAlive = true;
   priority = 1;
   ticks = 0;
-  pixels: pag.Pixel[][][];
+  images: HTMLImageElement[];
   type: string;
   collisionType: string;
   collision: p5.Vector = new p5.Vector(8, 8);
@@ -34,8 +34,8 @@ export class Actor {
     this.pos.add(this.vel);
     this.pos.x += Math.cos(this.angle) * this.speed;
     this.pos.y += Math.sin(this.angle) * this.speed;
-    if (this.pixels != null) {
-      this.drawPixels();
+    if (this.images != null) {
+      this.drawImages();
     }
     _.forEach(this.modules, m => {
       m.update();
@@ -70,22 +70,22 @@ export class Actor {
     this.modules.push(module);
   }
 
-  drawPixels(x: number = null, y: number = null) {
+  drawImages(x: number = null, y: number = null) {
     if (x == null) {
       x = this.pos.x;
     }
     if (y == null) {
       y = this.pos.y;
     }
-    if (this.pixels.length <= 1) {
-      pag.draw(this.context, this.pixels, x, y, 0);
+    if (this.images.length <= 1) {
+      pag.drawImage(this.context, this.images, x, y);
     } else {
       let a = this.angle;
       if (a < 0) {
         a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
       }
       const ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
-      pag.draw(this.context, this.pixels, x, y, ri);
+      pag.drawImage(this.context, this.images, x, y, ri);
     }
   }
 
@@ -179,7 +179,7 @@ export class Actor {
 export class Player extends Actor {
   constructor() {
     super();
-    this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
+    this.images = pag.generateImages(['x x', ' xxx'], { hue: 0.2 });
     this.type = this.collisionType = 'player';
     this.collision.set(5, 5);
   }
@@ -204,7 +204,7 @@ export class Player extends Actor {
 export class Enemy extends Actor {
   constructor() {
     super();
-    this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
+    this.images = pag.generateImages([' xx', 'xxxx'], { hue: 0 });
     this.type = this.collisionType = 'enemy';
   }
 
@@ -231,7 +231,7 @@ export class Enemy extends Actor {
 export class Shot extends Actor {
   constructor(actor, speed = 2, angle = null) {
     super();
-    this.pixels = pag.generate(['xxx'], { hue: 0.4 });
+    this.images = pag.generateImages(['xxx'], { hue: 0.4 });
     this.type = this.collisionType = 'shot';
     this.pos.set(actor.pos);
     this.angle = angle == null ? actor.angle : angle;
@@ -252,7 +252,7 @@ export class Shot extends Actor {
 export class Bullet extends Actor {
   constructor(actor, speed = 2, angle = null) {
     super();
-    this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
+    this.images = pag.generateImages(['xxxx'], { hue: 0.1 });
     this.type = this.collisionType = 'bullet';
     this.pos.set(actor.pos);
     this.angle = angle == null ? actor.angle : angle;
@@ -272,7 +272,7 @@ export class Bullet extends Actor {
 export class Item extends Actor {
   constructor(pos: p5.Vector, vel: p5.Vector = null, public gravity: p5.Vector = null) {
     super();
-    this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
+    this.images = pag.generateImages([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
     this.type = this.collisionType = 'item';
     this.pos.set(pos);
     if (vel != null) {
@@ -329,7 +329,7 @@ export class Panel extends Actor {
     if (ob.options.isLimitingColors) {
       pagOptions.colorLighting = 0;
     }
-    this.pixels = pag.generate(['ooo', 'oxx', 'oxx']);
+    this.images = pag.generateImages(['ooo', 'oxx', 'oxx']);
     this.pos.set(x, y);
     new ob.WrapPos(this);
     this.vel.y = 1;

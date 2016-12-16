@@ -104,8 +104,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.pos.add(this.vel);
 	        this.pos.x += Math.cos(this.angle) * this.speed;
 	        this.pos.y += Math.sin(this.angle) * this.speed;
-	        if (this.pixels != null) {
-	            this.drawPixels();
+	        if (this.images != null) {
+	            this.drawImages();
 	        }
 	        _.forEach(this.modules, function (m) {
 	            m.update();
@@ -135,7 +135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    Actor.prototype._addModule = function (module) {
 	        this.modules.push(module);
 	    };
-	    Actor.prototype.drawPixels = function (x, y) {
+	    Actor.prototype.drawImages = function (x, y) {
 	        if (x === void 0) { x = null; }
 	        if (y === void 0) { y = null; }
 	        if (x == null) {
@@ -144,8 +144,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (y == null) {
 	            y = this.pos.y;
 	        }
-	        if (this.pixels.length <= 1) {
-	            pag.draw(this.context, this.pixels, x, y, 0);
+	        if (this.images.length <= 1) {
+	            pag.drawImage(this.context, this.images, x, y);
 	        }
 	        else {
 	            var a = this.angle;
@@ -153,7 +153,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
 	            }
 	            var ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
-	            pag.draw(this.context, this.pixels, x, y, ri);
+	            pag.drawImage(this.context, this.images, x, y, ri);
 	        }
 	    };
 	    Actor.prototype.getReplayStatus = function () {
@@ -237,7 +237,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(Player, _super);
 	    function Player() {
 	        _super.call(this);
-	        this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
+	        this.images = pag.generateImages(['x x', ' xxx'], { hue: 0.2 });
 	        this.type = this.collisionType = 'player';
 	        this.collision.set(5, 5);
 	    }
@@ -262,7 +262,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(Enemy, _super);
 	    function Enemy() {
 	        _super.call(this);
-	        this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
+	        this.images = pag.generateImages([' xx', 'xxxx'], { hue: 0 });
 	        this.type = this.collisionType = 'enemy';
 	    }
 	    Enemy.prototype.update = function () {
@@ -291,7 +291,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (speed === void 0) { speed = 2; }
 	        if (angle === void 0) { angle = null; }
 	        _super.call(this);
-	        this.pixels = pag.generate(['xxx'], { hue: 0.4 });
+	        this.images = pag.generateImages(['xxx'], { hue: 0.4 });
 	        this.type = this.collisionType = 'shot';
 	        this.pos.set(actor.pos);
 	        this.angle = angle == null ? actor.angle : angle;
@@ -315,7 +315,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (speed === void 0) { speed = 2; }
 	        if (angle === void 0) { angle = null; }
 	        _super.call(this);
-	        this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
+	        this.images = pag.generateImages(['xxxx'], { hue: 0.1 });
 	        this.type = this.collisionType = 'bullet';
 	        this.pos.set(actor.pos);
 	        this.angle = angle == null ? actor.angle : angle;
@@ -339,7 +339,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (gravity === void 0) { gravity = null; }
 	        _super.call(this);
 	        this.gravity = gravity;
-	        this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
+	        this.images = pag.generateImages([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
 	        this.type = this.collisionType = 'item';
 	        this.pos.set(pos);
 	        if (vel != null) {
@@ -395,7 +395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (ob.options.isLimitingColors) {
 	            pagOptions.colorLighting = 0;
 	        }
-	        this.pixels = pag.generate(['ooo', 'oxx', 'oxx']);
+	        this.images = pag.generateImages(['ooo', 'oxx', 'oxx']);
 	        this.pos.set(x, y);
 	        new ob.WrapPos(this);
 	        this.vel.y = 1;
@@ -17647,6 +17647,26 @@ return /******/ (function(modules) { // webpackBootstrap
 		    return result;
 		}
 		exports.generate = generate;
+		function generateImages(patterns, _options) {
+		    if (_options === void 0) { _options = {}; }
+		    var pixels = generate(patterns, _options);
+		    var width = pixels[0].length;
+		    var height = pixels[0][0].length;
+		    var canvas = document.createElement('canvas');
+		    canvas.width = width;
+		    canvas.height = height;
+		    var context = canvas.getContext('2d');
+		    var images = [];
+		    for (var i = 0; i < pixels.length; i++) {
+		        context.clearRect(0, 0, width, height);
+		        draw(context, pixels, width / 2, height / 2, i);
+		        var image = new Image();
+		        image.src = canvas.toDataURL();
+		        images.push(image);
+		    }
+		    return images;
+		}
+		exports.generateImages = generateImages;
 		function setSeed(_seed) {
 		    if (_seed === void 0) { _seed = 0; }
 		    seed = _seed;
@@ -17720,6 +17740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		}());
 		exports.Pixel = Pixel;
 		function draw(context, pixels, x, y, rotationIndex) {
+		    if (rotationIndex === void 0) { rotationIndex = 0; }
 		    var pxs = pixels[rotationIndex];
 		    var pw = pxs.length;
 		    var ph = pxs[0].length;
@@ -17736,6 +17757,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		    }
 		}
 		exports.draw = draw;
+		function drawImage(context, images, x, y, rotationIndex) {
+		    if (rotationIndex === void 0) { rotationIndex = 0; }
+		    var img = images[rotationIndex];
+		    context.drawImage(img, Math.floor(x - img.width / 2), Math.floor(y - img.height / 2));
+		}
+		exports.drawImage = drawImage;
 		function generatePixels(patterns, options, random) {
 		    var pw = reduce(patterns, function (w, p) { return Math.max(w, p.length); }, 0);
 		    var ph = patterns.length;
@@ -20857,6 +20884,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var onSeedChangedFunc;
 	var title = 'N/A';
 	var titleCont;
+	var titleHue;
 	var isDebugEnabled = false;
 	var modules = [];
 	var initialStatus = { r: 0, s: 0 };
@@ -20897,6 +20925,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (_titleCont === void 0) { _titleCont = null; }
 	    title = _title;
 	    titleCont = _titleCont;
+	    var lc = 0;
+	    for (var i = 0; i < _title.length; i++) {
+	        lc = _title.charCodeAt(i);
+	    }
+	    titleHue = lc * 0.17;
 	}
 	exports.setTitle = setTitle;
 	function enableDebug(_onSeedChangedFunc) {
@@ -21102,11 +21135,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    switch (exports.scene) {
 	        case Scene.title:
 	            if (titleCont == null) {
-	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.45);
+	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.45, titleHue);
 	            }
 	            else {
-	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.35);
-	                text.drawScaled(titleCont, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.5);
+	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.35, titleHue);
+	                text.drawScaled(titleCont, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.5, titleHue);
 	            }
 	            break;
 	        case Scene.gameover:
@@ -22885,15 +22918,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        context.fillRect(d.x + x, d.y + y, 1, 1);
 	    }
 	}
-	var textPixels = {};
-	function drawScaled(str, scale, x, y) {
-	    var pixels = generatePixels(str, scale);
-	    pag.draw(ob.screen.context, pixels, x, y, 0);
+	var textImages = {};
+	function drawScaled(str, scale, x, y, hue) {
+	    if (hue === void 0) { hue = null; }
+	    var images = generateImages(str, scale, hue);
+	    pag.drawImage(ob.screen.context, images, x, y);
 	}
 	exports.drawScaled = drawScaled;
-	function generatePixels(str, scale) {
-	    if (textPixels.hasOwnProperty(str + "_" + scale)) {
-	        return textPixels[(str + "_" + scale)];
+	function generateImages(str, scale, hue) {
+	    if (hue === void 0) { hue = null; }
+	    var key = str + "_" + scale + "_" + hue;
+	    if (textImages.hasOwnProperty(key)) {
+	        return textImages[key];
 	    }
 	    var pixelArray = _.times(Math.ceil(5 * scale), function () {
 	        return _.times(Math.ceil(5 * str.length * scale), function () { return ' '; });
@@ -22917,12 +22953,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	    });
 	    var pagOptions = { isMirrorY: false, scale: 1, rotationNum: 1 };
+	    if (hue != null) {
+	        pagOptions.hue = hue;
+	    }
 	    if (ob.options.isLimitingColors) {
 	        pagOptions.colorLighting = 0;
 	    }
-	    var pixels = pag.generate(_.map(pixelArray, function (line) { return line.join(''); }), pagOptions);
-	    textPixels[(str + "_" + scale)] = pixels;
-	    return pixels;
+	    var images = pag.generateImages(_.map(pixelArray, function (line) { return line.join(''); }), pagOptions);
+	    textImages[key] = images;
+	    return images;
 	}
 	function drawToPixelArray(pixelArray, idx, ox, scale) {
 	    var p = dotPatterns[idx];
@@ -56448,7 +56487,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.level = level;
 	        this.colors = ['#7f7', '#070'];
 	        this.type = 'wave';
-	        this.pixels = null;
+	        this.images = null;
 	        this.width = 12 + level * 1.5;
 	        this.collision.set(this.width, 4);
 	    }
@@ -56575,7 +56614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(WeaponItem, _super);
 	    function WeaponItem(pos) {
 	        _super.call(this, pos, p.createVector(0, -1), p.createVector(0, 0.02));
-	        this.pixels = pag.generate(['oo', 'ox'], { isMirrorX: true, hue: 0.4, value: 0.5 });
+	        this.images = pag.generateImages(['oo', 'ox'], { isMirrorX: true, hue: 0.4, value: 0.5 });
 	        this.clearModules();
 	        new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
 	        new ob.AbsorbPos(this);
