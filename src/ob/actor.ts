@@ -329,7 +329,7 @@ export class Panel extends Actor {
     if (ob.options.isLimitingColors) {
       pagOptions.colorLighting = 0;
     }
-    this.images = pag.generateImages(['ooo', 'oxx', 'oxx']);
+    this.images = pag.generateImages(['ooo', 'oxx', 'oxx'], pagOptions);
     this.pos.set(x, y);
     new ob.WrapPos(this);
     this.vel.y = 1;
