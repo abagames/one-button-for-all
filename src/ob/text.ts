@@ -93,18 +93,18 @@ function drawLetter(idx: number, x: number, y: number) {
   }
 }
 
-let textImages = {};
+let textPixels = {};
 
 export function drawScaled
   (str: string, scale: number, x: number, y: number, hue: number = null) {
-  const images = generateImages(str, scale, hue);
-  pag.drawImage(ob.screen.context, images, x, y);
+  const pixels = generatePixels(str, scale, hue);
+  pag.draw(ob.screen.context, pixels, x, y);
 }
 
-function generateImages(str: string, scale: number, hue: number = null) {
+function generatePixels(str: string, scale: number, hue: number = null) {
   const key = `${str}_${scale}_${hue}`;
-  if (textImages.hasOwnProperty(key)) {
-    return textImages[key];
+  if (textPixels.hasOwnProperty(key)) {
+    return textPixels[key];
   }
   const pixelArray = _.times(Math.ceil(5 * scale), () =>
     _.times(Math.ceil(5 * str.length * scale), () => ' '));
@@ -132,9 +132,9 @@ function generateImages(str: string, scale: number, hue: number = null) {
   if (ob.options.isLimitingColors) {
     pagOptions.colorLighting = 0;
   }
-  const images = pag.generateImages(_.map(pixelArray, line => line.join('')), pagOptions);
-  textImages[key] = images;
-  return images;
+  const pixels = pag.generate(_.map(pixelArray, line => line.join('')), pagOptions);
+  textPixels[key] = pixels;
+  return pixels;
 }
 
 function drawToPixelArray(pixelArray: string[][], idx: number, ox: number, scale: number) {

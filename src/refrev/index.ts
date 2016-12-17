@@ -161,7 +161,7 @@ class Wave extends ob.Shot {
   constructor(actor, public level: number) {
     super(actor, 3);
     this.type = 'wave';
-    this.images = null;
+    this.pixels = null;
     this.width = 12 + level * 1.5;
     this.collision.set(this.width, 4);
   }
@@ -299,8 +299,7 @@ class WeaponItem extends ob.Item {
 
   constructor(pos) {
     super(pos, p.createVector(0, -1), p.createVector(0, 0.02));
-    this.images = pag.generateImages
-      (['oo', 'ox'], { isMirrorX: true, hue: 0.4, value: 0.5 });
+    this.pixels = pag.generate(['oo', 'ox'], { isMirrorX: true, hue: 0.4, value: 0.5 });
     this.clearModules();
     new ob.RemoveWhenOut(this, 8, null, null, null, 9999);
     new ob.AbsorbPos(this);

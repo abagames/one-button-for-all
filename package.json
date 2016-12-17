@@ -18,6 +18,7 @@
   },
   "scripts": {
     "wds": "webpack-dev-server --inline",
-    "build": "webpack"
+    "build": "webpack",
+    "watch": "webpack --watch"
   }
 }
