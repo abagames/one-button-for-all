@@ -235,10 +235,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Player = (function (_super) {
 	    __extends(Player, _super);
 	    function Player() {
-	        _super.call(this);
-	        this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
-	        this.type = this.collisionType = 'player';
-	        this.collision.set(5, 5);
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
+	        _this.type = _this.collisionType = 'player';
+	        _this.collision.set(5, 5);
+	        return _this;
 	    }
 	    Player.prototype.update = function () {
 	        this.emitParticles("t_" + this.type);
@@ -260,9 +261,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Enemy = (function (_super) {
 	    __extends(Enemy, _super);
 	    function Enemy() {
-	        _super.call(this);
-	        this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
-	        this.type = this.collisionType = 'enemy';
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
+	        _this.type = _this.collisionType = 'enemy';
+	        return _this;
 	    }
 	    Enemy.prototype.update = function () {
 	        this.emitParticles("t_" + this.type);
@@ -289,13 +291,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function Shot(actor, speed, angle) {
 	        if (speed === void 0) { speed = 2; }
 	        if (angle === void 0) { angle = null; }
-	        _super.call(this);
-	        this.pixels = pag.generate(['xxx'], { hue: 0.4 });
-	        this.type = this.collisionType = 'shot';
-	        this.pos.set(actor.pos);
-	        this.angle = angle == null ? actor.angle : angle;
-	        this.speed = speed;
-	        this.priority = 0.3;
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate(['xxx'], { hue: 0.4 });
+	        _this.type = _this.collisionType = 'shot';
+	        _this.pos.set(actor.pos);
+	        _this.angle = angle == null ? actor.angle : angle;
+	        _this.speed = speed;
+	        _this.priority = 0.3;
+	        return _this;
 	    }
 	    Shot.prototype.update = function () {
 	        if (this.ticks === 0) {
@@ -313,12 +316,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function Bullet(actor, speed, angle) {
 	        if (speed === void 0) { speed = 2; }
 	        if (angle === void 0) { angle = null; }
-	        _super.call(this);
-	        this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
-	        this.type = this.collisionType = 'bullet';
-	        this.pos.set(actor.pos);
-	        this.angle = angle == null ? actor.angle : angle;
-	        this.speed = speed;
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
+	        _this.type = _this.collisionType = 'bullet';
+	        _this.pos.set(actor.pos);
+	        _this.angle = angle == null ? actor.angle : angle;
+	        _this.speed = speed;
+	        return _this;
 	    }
 	    Bullet.prototype.update = function () {
 	        if (this.ticks === 0) {
@@ -336,16 +340,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function Item(pos, vel, gravity) {
 	        if (vel === void 0) { vel = null; }
 	        if (gravity === void 0) { gravity = null; }
-	        _super.call(this);
-	        this.gravity = gravity;
-	        this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
-	        this.type = this.collisionType = 'item';
-	        this.pos.set(pos);
+	        var _this = _super.call(this) || this;
+	        _this.gravity = gravity;
+	        _this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
+	        _this.type = _this.collisionType = 'item';
+	        _this.pos.set(pos);
 	        if (vel != null) {
-	            this.vel = vel;
+	            _this.vel = vel;
 	        }
-	        this.priority = 0.6;
-	        this.collision.set(10, 10);
+	        _this.priority = 0.6;
+	        _this.collision.set(10, 10);
+	        return _this;
 	    }
 	    Item.prototype.update = function () {
 	        this.vel.add(this.gravity);
@@ -369,14 +374,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Star = (function (_super) {
 	    __extends(Star, _super);
 	    function Star() {
-	        _super.call(this);
-	        this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
-	        this.vel.y = ob.p.random(0.5, 1.5);
-	        this.clearModules();
-	        new ob.WrapPos(this);
+	        var _this = _super.call(this) || this;
+	        _this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
+	        _this.vel.y = ob.p.random(0.5, 1.5);
+	        _this.clearModules();
+	        new ob.WrapPos(_this);
 	        var colorStrs = ['00', '7f', 'ff'];
-	        this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
-	        this.priority = -1;
+	        _this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
+	        _this.priority = -1;
+	        return _this;
 	    }
 	    Star.prototype.update = function () {
 	        _super.prototype.update.call(this);
@@ -389,16 +395,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Panel = (function (_super) {
 	    __extends(Panel, _super);
 	    function Panel(x, y) {
-	        _super.call(this);
+	        var _this = _super.call(this) || this;
 	        var pagOptions = { isMirrorX: true, value: 0.5, rotationNum: 1 };
 	        if (ob.options.isLimitingColors) {
 	            pagOptions.colorLighting = 0;
 	        }
-	        this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], pagOptions);
-	        this.pos.set(x, y);
-	        new ob.WrapPos(this);
-	        this.vel.y = 1;
-	        this.priority = -1;
+	        _this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], pagOptions);
+	        _this.pos.set(x, y);
+	        new ob.WrapPos(_this);
+	        _this.vel.y = 1;
+	        _this.priority = -1;
+	        return _this;
 	    }
 	    return Panel;
 	}(Actor));
@@ -408,11 +415,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function Text(str, duration, align) {
 	        if (duration === void 0) { duration = 30; }
 	        if (align === void 0) { align = null; }
-	        _super.call(this);
-	        this.str = str;
-	        this.duration = duration;
-	        this.align = align;
-	        this.vel.y = -2;
+	        var _this = _super.call(this) || this;
+	        _this.str = str;
+	        _this.duration = duration;
+	        _this.align = align;
+	        _this.vel.y = -2;
+	        return _this;
 	    }
 	    Text.prototype.update = function () {
 	        _super.prototype.update.call(this);
@@ -20888,13 +20896,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	var modules = [];
 	var initialStatus = { r: 0, s: 0 };
 	var replayScore;
+	var Scene;
 	(function (Scene) {
 	    Scene[Scene["title"] = 0] = "title";
 	    Scene[Scene["game"] = 1] = "game";
 	    Scene[Scene["gameover"] = 2] = "gameover";
 	    Scene[Scene["replay"] = 3] = "replay";
-	})(exports.Scene || (exports.Scene = {}));
-	var Scene = exports.Scene;
+	})(Scene = exports.Scene || (exports.Scene = {}));
 	;
 	function init(_initFunc, _initGameFunc, _updateFunc, _postUpdateFunc) {
 	    if (_updateFunc === void 0) { _updateFunc = null; }
@@ -22901,11 +22909,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 	exports.init = init;
+	var Align;
 	(function (Align) {
 	    Align[Align["left"] = 0] = "left";
 	    Align[Align["right"] = 1] = "right";
-	})(exports.Align || (exports.Align = {}));
-	var Align = exports.Align;
+	})(Align = exports.Align || (exports.Align = {}));
 	function draw(str, x, y, align) {
 	    if (align === void 0) { align = null; }
 	    context.fillStyle = 'white';
@@ -23128,12 +23136,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (interval === void 0) { interval = 60; }
 	        if (isStartRandomized === void 0) { isStartRandomized = false; }
 	        if (isChangedByDifficulty === void 0) { isChangedByDifficulty = false; }
-	        _super.call(this, actor);
-	        this.func = func;
-	        this.interval = interval;
-	        this.isChangedByDifficulty = isChangedByDifficulty;
-	        this.isEnabled = true;
-	        this.ticks = isStartRandomized ? ob.random.getInt(interval) : interval;
+	        var _this = _super.call(this, actor) || this;
+	        _this.func = func;
+	        _this.interval = interval;
+	        _this.isChangedByDifficulty = isChangedByDifficulty;
+	        _this.isEnabled = true;
+	        _this.ticks = isStartRandomized ? ob.random.getInt(interval) : interval;
+	        return _this;
 	    }
 	    DoInterval.prototype.update = function () {
 	        this.ticks--;
@@ -23159,23 +23168,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (paddingBottom === void 0) { paddingBottom = null; }
 	        if (paddingLeft === void 0) { paddingLeft = null; }
 	        if (paddingTop === void 0) { paddingTop = null; }
-	        _super.call(this, actor);
-	        this.paddingRight = paddingRight;
-	        this.paddingBottom = paddingBottom;
-	        this.paddingLeft = paddingLeft;
-	        this.paddingTop = paddingTop;
-	        if (this.paddingRight == null) {
-	            this.paddingRight = padding;
+	        var _this = _super.call(this, actor) || this;
+	        _this.paddingRight = paddingRight;
+	        _this.paddingBottom = paddingBottom;
+	        _this.paddingLeft = paddingLeft;
+	        _this.paddingTop = paddingTop;
+	        if (_this.paddingRight == null) {
+	            _this.paddingRight = padding;
 	        }
-	        if (this.paddingBottom == null) {
-	            this.paddingBottom = padding;
+	        if (_this.paddingBottom == null) {
+	            _this.paddingBottom = padding;
 	        }
-	        if (this.paddingLeft == null) {
-	            this.paddingLeft = padding;
+	        if (_this.paddingLeft == null) {
+	            _this.paddingLeft = padding;
 	        }
-	        if (this.paddingTop == null) {
-	            this.paddingTop = padding;
+	        if (_this.paddingTop == null) {
+	            _this.paddingTop = padding;
 	        }
+	        return _this;
 	    }
 	    RemoveWhenOut.prototype.update = function () {
 	        if (!ob.isIn(this.actor.pos.x, -this.paddingLeft, ob.screen.size.x + this.paddingRight) ||
@@ -23190,8 +23200,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    __extends(WrapPos, _super);
 	    function WrapPos(actor, padding) {
 	        if (padding === void 0) { padding = 8; }
-	        _super.call(this, actor);
-	        this.padding = padding;
+	        var _this = _super.call(this, actor) || this;
+	        _this.padding = padding;
+	        return _this;
 	    }
 	    WrapPos.prototype.update = function () {
 	        this.actor.pos.x =
@@ -23209,13 +23220,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (width === void 0) { width = 48; }
 	        if (speed === void 0) { speed = 0.1; }
 	        if (startAngle === void 0) { startAngle = 0; }
-	        _super.call(this, actor);
-	        this.center = center;
-	        this.width = width;
-	        this.speed = speed;
-	        this.prop = getPropValue(actor, prop);
-	        this.prop.value[this.prop.name] = this.center;
-	        this.angle = startAngle;
+	        var _this = _super.call(this, actor) || this;
+	        _this.center = center;
+	        _this.width = width;
+	        _this.speed = speed;
+	        _this.prop = getPropValue(actor, prop);
+	        _this.prop.value[_this.prop.name] = _this.center;
+	        _this.angle = startAngle;
+	        return _this;
 	    }
 	    MoveSin.prototype.update = function () {
 	        this.angle += this.speed;
@@ -23231,13 +23243,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (width === void 0) { width = 48; }
 	        if (speed === void 0) { speed = 1; }
 	        if (startVel === void 0) { startVel = 1; }
-	        _super.call(this, actor);
-	        this.center = center;
-	        this.width = width;
-	        this.speed = speed;
-	        this.prop = getPropValue(actor, prop);
-	        this.prop.value[this.prop.name] = this.center;
-	        this.vel = startVel;
+	        var _this = _super.call(this, actor) || this;
+	        _this.center = center;
+	        _this.width = width;
+	        _this.speed = speed;
+	        _this.prop = getPropValue(actor, prop);
+	        _this.prop.value[_this.prop.name] = _this.center;
+	        _this.vel = startVel;
+	        return _this;
 	    }
 	    MoveRoundTrip.prototype.update = function () {
 	        this.prop.value[this.prop.name] += this.vel * this.speed;
@@ -23255,10 +23268,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function AbsorbPos(actor, type, dist) {
 	        if (type === void 0) { type = 'player'; }
 	        if (dist === void 0) { dist = 32; }
-	        _super.call(this, actor);
-	        this.type = type;
-	        this.dist = dist;
-	        this.absorbingTicks = 0;
+	        var _this = _super.call(this, actor) || this;
+	        _this.type = type;
+	        _this.dist = dist;
+	        _this.absorbingTicks = 0;
+	        return _this;
 	    }
 	    AbsorbPos.prototype.update = function () {
 	        var absorbingTos = ob.Actor.get(this.type);
@@ -23281,8 +23295,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var DrawText = (function (_super) {
 	    __extends(DrawText, _super);
 	    function DrawText(actor, text) {
-	        _super.call(this, actor);
-	        this.text = text;
+	        var _this = _super.call(this, actor) || this;
+	        _this.text = text;
+	        return _this;
 	    }
 	    DrawText.prototype.update = function () {
 	        ob.text.draw(this.text, this.actor.pos.x + 1, this.actor.pos.y - 3);
