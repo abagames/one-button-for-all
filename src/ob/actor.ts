@@ -121,7 +121,7 @@ export class Actor {
   }
 
   static updateLowerZero() {
-    Actor.actors.sort((a, b) => a.priority - b.priority);
+    _.sortBy(Actor.actors, 'priority');
     Actor.updateSorted(true);
   }
 

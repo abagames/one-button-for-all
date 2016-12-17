@@ -180,7 +180,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        Actor.actors = [];
 	    };
 	    Actor.updateLowerZero = function () {
-	        Actor.actors.sort(function (a, b) { return a.priority - b.priority; });
+	        _.sortBy(Actor.actors, 'priority');
 	        Actor.updateSorted(true);
 	    };
 	    Actor.update = function () {
