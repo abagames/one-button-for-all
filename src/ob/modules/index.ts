@@ -123,6 +123,20 @@ export class MoveRoundTrip extends Module {
   }
 }
 
+export class MoveTo extends Module {
+  targetPos = ob.p.createVector();
+
+  constructor
+    (actor: ob.Actor, public ratio = 0.1) {
+    super(actor);
+  }
+
+  update() {
+    this.actor.pos.x += (this.targetPos.x - this.actor.pos.x) * this.ratio;
+    this.actor.pos.y += (this.targetPos.y - this.actor.pos.y) * this.ratio;
+  }
+}
+
 export class AbsorbPos extends Module {
   absorbingTicks = 0;
 
