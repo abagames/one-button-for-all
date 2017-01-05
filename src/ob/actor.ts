@@ -23,10 +23,11 @@ export class Actor {
   context: CanvasRenderingContext2D = ob.screen.context;
   replayPropertyNames: string[];
   modules: any[] = [];
+  moduleNames: string[] = [];
 
   constructor() {
     Actor.add(this);
-    this.type = ('' + this.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
+    this.type = ob.getClassName(this);
     new ob.RemoveWhenOut(this);
   }
 
@@ -53,6 +54,7 @@ export class Actor {
 
   clearModules() {
     this.modules = [];
+    this.moduleNames = [];
   }
 
   testCollision(type: string) {
@@ -64,10 +66,6 @@ export class Actor {
 
   emitParticles(patternName: string, options: ppe.EmitOptions = {}) {
     (<any>ppe.emit)(patternName, this.pos.x, this.pos.y, this.angle, options);
-  }
-
-  _addModule(module) {
-    this.modules.push(module);
   }
 
   drawPixels(x: number = null, y: number = null) {
@@ -87,6 +85,15 @@ export class Actor {
       const ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
       pag.draw(this.context, this.pixels, x, y, ri);
     }
+  }
+
+  getModule(moduleName: string) {
+    return this.modules[_.indexOf(this.moduleNames, moduleName)];
+  }
+
+  _addModule(module) {
+    this.modules.push(module);
+    this.moduleNames.push(ob.getClassName(module));
   }
 
   getReplayStatus() {
@@ -150,8 +157,13 @@ export class Actor {
     }
   }
 
-  static get(type: string) {
-    return _.filter<Actor>(Actor.actors, a => a.type === type);
+  static get(type: string = null) {
+    return type == null ? Actor.actors :
+      _.filter<Actor>(Actor.actors, a => a.type === type);
+  }
+
+  static getByModuleName(moduleName: string) {
+    return _.filter<Actor>(Actor.actors, a => _.indexOf(a.moduleNames, moduleName) >= 0);
   }
 
   static getByCollitionType(collitionType: string) {

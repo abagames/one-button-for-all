@@ -33,9 +33,18 @@ export function fillPanel() {
   });
 }
 
+export function getClassName(obj) {
+  return ('' + obj.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
+}
+
 export class Vector {
   static getAngle(v: p5.Vector, to: p5.Vector = null) {
     return to == null ? Math.atan2(v.y, v.x) : Math.atan2(to.y - v.y, to.x - v.x);
+  }
+
+  static addAngle(v: p5.Vector, angle: number, value: number) {
+    v.x += Math.cos(angle) * value;
+    v.y += Math.sin(angle) * value;
   }
 
   static constrain
