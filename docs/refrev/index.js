@@ -54,389 +54,20 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(18);
-	__webpack_require__(1);
-	__webpack_require__(14);
-	__webpack_require__(8);
-	__webpack_require__(16);
+	__webpack_require__(19);
 	__webpack_require__(10);
-	__webpack_require__(12);
-	__webpack_require__(13);
+	__webpack_require__(15);
+	__webpack_require__(5);
+	__webpack_require__(17);
 	__webpack_require__(11);
-	module.exports = __webpack_require__(15);
+	__webpack_require__(13);
+	__webpack_require__(14);
+	__webpack_require__(12);
+	module.exports = __webpack_require__(16);
 
 
 /***/ },
-/* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var _ = __webpack_require__(2);
-	var pag = __webpack_require__(4);
-	var ppe = __webpack_require__(5);
-	var sss = __webpack_require__(6);
-	var ir = __webpack_require__(7);
-	var ob = __webpack_require__(8);
-	var p5;
-	var rotationNum = 16;
-	var Actor = (function () {
-	    function Actor() {
-	        this.pos = new p5.Vector();
-	        this.vel = new p5.Vector();
-	        this.angle = 0;
-	        this.speed = 0;
-	        this.isAlive = true;
-	        this.priority = 1;
-	        this.ticks = 0;
-	        this.collision = new p5.Vector(8, 8);
-	        this.context = ob.screen.context;
-	        this.modules = [];
-	        Actor.add(this);
-	        this.type = ('' + this.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
-	        new ob.RemoveWhenOut(this);
-	    }
-	    Actor.prototype.update = function () {
-	        this.pos.add(this.vel);
-	        this.pos.x += Math.cos(this.angle) * this.speed;
-	        this.pos.y += Math.sin(this.angle) * this.speed;
-	        if (this.pixels != null) {
-	            this.drawPixels();
-	        }
-	        _.forEach(this.modules, function (m) {
-	            m.update();
-	        });
-	        this.ticks++;
-	    };
-	    Actor.prototype.remove = function () {
-	        this.isAlive = false;
-	    };
-	    Actor.prototype.destroy = function () {
-	        this.remove();
-	    };
-	    Actor.prototype.clearModules = function () {
-	        this.modules = [];
-	    };
-	    Actor.prototype.testCollision = function (type) {
-	        var _this = this;
-	        return _.filter(Actor.getByCollitionType(type), function (a) {
-	            return Math.abs(_this.pos.x - a.pos.x) < (_this.collision.x + a.collision.x) / 2 &&
-	                Math.abs(_this.pos.y - a.pos.y) < (_this.collision.y + a.collision.y) / 2;
-	        });
-	    };
-	    Actor.prototype.emitParticles = function (patternName, options) {
-	        if (options === void 0) { options = {}; }
-	        ppe.emit(patternName, this.pos.x, this.pos.y, this.angle, options);
-	    };
-	    Actor.prototype._addModule = function (module) {
-	        this.modules.push(module);
-	    };
-	    Actor.prototype.drawPixels = function (x, y) {
-	        if (x === void 0) { x = null; }
-	        if (y === void 0) { y = null; }
-	        if (x == null) {
-	            x = this.pos.x;
-	        }
-	        if (y == null) {
-	            y = this.pos.y;
-	        }
-	        if (this.pixels.length <= 1) {
-	            pag.draw(this.context, this.pixels, x, y);
-	        }
-	        else {
-	            var a = this.angle;
-	            if (a < 0) {
-	                a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
-	            }
-	            var ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
-	            pag.draw(this.context, this.pixels, x, y, ri);
-	        }
-	    };
-	    Actor.prototype.getReplayStatus = function () {
-	        if (this.replayPropertyNames == null) {
-	            return null;
-	        }
-	        return ir.objectToArray(this, this.replayPropertyNames);
-	    };
-	    Actor.prototype.setReplayStatus = function (status) {
-	        ir.arrayToObject(status, this.replayPropertyNames, this);
-	    };
-	    Actor.init = function () {
-	        p5 = ob.p5;
-	        pag.setDefaultOptions({
-	            isMirrorY: true,
-	            rotationNum: rotationNum,
-	            scale: 2
-	        });
-	        Actor.clear();
-	    };
-	    Actor.add = function (actor) {
-	        Actor.actors.push(actor);
-	    };
-	    Actor.clear = function () {
-	        Actor.actors = [];
-	    };
-	    Actor.updateLowerZero = function () {
-	        _.sortBy(Actor.actors, 'priority');
-	        Actor.updateSorted(true);
-	    };
-	    Actor.update = function () {
-	        Actor.updateSorted();
-	    };
-	    Actor.updateSorted = function (isLowerZero) {
-	        if (isLowerZero === void 0) { isLowerZero = false; }
-	        for (var i = 0; i < Actor.actors.length;) {
-	            var a = Actor.actors[i];
-	            if (isLowerZero && a.priority >= 0) {
-	                return;
-	            }
-	            if (!isLowerZero && a.priority < 0) {
-	                i++;
-	                continue;
-	            }
-	            if (a.isAlive !== false) {
-	                a.update();
-	            }
-	            if (a.isAlive === false) {
-	                Actor.actors.splice(i, 1);
-	            }
-	            else {
-	                i++;
-	            }
-	        }
-	    };
-	    Actor.get = function (type) {
-	        return _.filter(Actor.actors, function (a) { return a.type === type; });
-	    };
-	    Actor.getByCollitionType = function (collitionType) {
-	        return _.filter(Actor.actors, function (a) { return a.collisionType == collitionType; });
-	    };
-	    Actor.getReplayStatus = function () {
-	        var status = [];
-	        _.forEach(Actor.actors, function (a) {
-	            var array = a.getReplayStatus();
-	            if (array != null) {
-	                status.push([a.type, array]);
-	            }
-	        });
-	        return status;
-	    };
-	    Actor.setReplayStatus = function (status, actorGeneratorFunc) {
-	        _.forEach(status, function (s) {
-	            actorGeneratorFunc(s[0], s[1]);
-	        });
-	    };
-	    return Actor;
-	}());
-	exports.Actor = Actor;
-	var Player = (function (_super) {
-	    __extends(Player, _super);
-	    function Player() {
-	        var _this = _super.call(this) || this;
-	        _this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
-	        _this.type = _this.collisionType = 'player';
-	        _this.collision.set(5, 5);
-	        return _this;
-	    }
-	    Player.prototype.update = function () {
-	        this.emitParticles("t_" + this.type);
-	        _super.prototype.update.call(this);
-	        if (this.testCollision('enemy').length > 0 ||
-	            this.testCollision('bullet').length > 0) {
-	            this.destroy();
-	        }
-	    };
-	    Player.prototype.destroy = function () {
-	        sss.play("u_" + this.type + "_d");
-	        this.emitParticles("e_" + this.type + "_d", { sizeScale: 2 });
-	        _super.prototype.destroy.call(this);
-	        ob.endGame();
-	    };
-	    return Player;
-	}(Actor));
-	exports.Player = Player;
-	var Enemy = (function (_super) {
-	    __extends(Enemy, _super);
-	    function Enemy() {
-	        var _this = _super.call(this) || this;
-	        _this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
-	        _this.type = _this.collisionType = 'enemy';
-	        return _this;
-	    }
-	    Enemy.prototype.update = function () {
-	        this.emitParticles("t_" + this.type);
-	        _super.prototype.update.call(this);
-	        var cs = this.testCollision('shot');
-	        if (cs.length > 0) {
-	            this.destroy();
-	            _.forEach(cs, function (s) {
-	                s.destroy();
-	            });
-	        }
-	    };
-	    Enemy.prototype.destroy = function () {
-	        sss.play("e_" + this.type + "_d");
-	        this.emitParticles("e_" + this.type + "_d");
-	        ob.addScore(1, this.pos);
-	        _super.prototype.destroy.call(this);
-	    };
-	    return Enemy;
-	}(Actor));
-	exports.Enemy = Enemy;
-	var Shot = (function (_super) {
-	    __extends(Shot, _super);
-	    function Shot(actor, speed, angle) {
-	        if (speed === void 0) { speed = 2; }
-	        if (angle === void 0) { angle = null; }
-	        var _this = _super.call(this) || this;
-	        _this.pixels = pag.generate(['xxx'], { hue: 0.4 });
-	        _this.type = _this.collisionType = 'shot';
-	        _this.pos.set(actor.pos);
-	        _this.angle = angle == null ? actor.angle : angle;
-	        _this.speed = speed;
-	        _this.priority = 0.3;
-	        return _this;
-	    }
-	    Shot.prototype.update = function () {
-	        if (this.ticks === 0) {
-	            this.emitParticles("m_" + this.type);
-	            sss.play("l_" + this.type);
-	        }
-	        this.emitParticles("t_" + this.type);
-	        _super.prototype.update.call(this);
-	    };
-	    return Shot;
-	}(Actor));
-	exports.Shot = Shot;
-	var Bullet = (function (_super) {
-	    __extends(Bullet, _super);
-	    function Bullet(actor, speed, angle) {
-	        if (speed === void 0) { speed = 2; }
-	        if (angle === void 0) { angle = null; }
-	        var _this = _super.call(this) || this;
-	        _this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
-	        _this.type = _this.collisionType = 'bullet';
-	        _this.pos.set(actor.pos);
-	        _this.angle = angle == null ? actor.angle : angle;
-	        _this.speed = speed;
-	        return _this;
-	    }
-	    Bullet.prototype.update = function () {
-	        if (this.ticks === 0) {
-	            this.emitParticles("m_" + this.type);
-	            sss.play("l_" + this.type);
-	        }
-	        this.emitParticles("t_" + this.type);
-	        _super.prototype.update.call(this);
-	    };
-	    return Bullet;
-	}(Actor));
-	exports.Bullet = Bullet;
-	var Item = (function (_super) {
-	    __extends(Item, _super);
-	    function Item(pos, vel, gravity) {
-	        if (vel === void 0) { vel = null; }
-	        if (gravity === void 0) { gravity = null; }
-	        var _this = _super.call(this) || this;
-	        _this.gravity = gravity;
-	        _this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
-	        _this.type = _this.collisionType = 'item';
-	        _this.pos.set(pos);
-	        if (vel != null) {
-	            _this.vel = vel;
-	        }
-	        _this.priority = 0.6;
-	        _this.collision.set(10, 10);
-	        return _this;
-	    }
-	    Item.prototype.update = function () {
-	        this.vel.add(this.gravity);
-	        this.vel.mult(0.99);
-	        this.emitParticles("t_" + this.type);
-	        _super.prototype.update.call(this);
-	        if (this.testCollision('player').length > 0) {
-	            this.emitParticles("s_" + this.type);
-	            sss.play("s_" + this.type);
-	            this.destroy();
-	        }
-	        _super.prototype.update.call(this);
-	    };
-	    Item.prototype.destroy = function () {
-	        ob.addScore(1, this.pos);
-	        _super.prototype.destroy.call(this);
-	    };
-	    return Item;
-	}(Actor));
-	exports.Item = Item;
-	var Star = (function (_super) {
-	    __extends(Star, _super);
-	    function Star() {
-	        var _this = _super.call(this) || this;
-	        _this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
-	        _this.vel.y = ob.p.random(0.5, 1.5);
-	        _this.clearModules();
-	        new ob.WrapPos(_this);
-	        var colorStrs = ['00', '7f', 'ff'];
-	        _this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
-	        _this.priority = -1;
-	        return _this;
-	    }
-	    Star.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        ob.p.fill(this.color);
-	        ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 1, 1);
-	    };
-	    return Star;
-	}(Actor));
-	exports.Star = Star;
-	var Panel = (function (_super) {
-	    __extends(Panel, _super);
-	    function Panel(x, y) {
-	        var _this = _super.call(this) || this;
-	        var pagOptions = { isMirrorX: true, value: 0.5, rotationNum: 1 };
-	        if (ob.options.isLimitingColors) {
-	            pagOptions.colorLighting = 0;
-	        }
-	        _this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], pagOptions);
-	        _this.pos.set(x, y);
-	        new ob.WrapPos(_this);
-	        _this.vel.y = 1;
-	        _this.priority = -1;
-	        return _this;
-	    }
-	    return Panel;
-	}(Actor));
-	exports.Panel = Panel;
-	var Text = (function (_super) {
-	    __extends(Text, _super);
-	    function Text(str, duration, align) {
-	        if (duration === void 0) { duration = 30; }
-	        if (align === void 0) { align = null; }
-	        var _this = _super.call(this) || this;
-	        _this.str = str;
-	        _this.duration = duration;
-	        _this.align = align;
-	        _this.vel.y = -2;
-	        return _this;
-	    }
-	    Text.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        this.vel.mult(0.9);
-	        ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
-	        if (this.ticks >= this.duration) {
-	            this.remove();
-	        }
-	    };
-	    return Text;
-	}(Actor));
-	exports.Text = Text;
-
-
-/***/ },
+/* 1 */,
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -17534,907 +17165,6 @@ return /******/ (function(modules) { // webpackBootstrap
 		else if(typeof define === 'function' && define.amd)
 			define([], factory);
 		else if(typeof exports === 'object')
-			exports["pag"] = factory();
-		else
-			root["pag"] = factory();
-	})(this, function() {
-	return /******/ (function(modules) { // webpackBootstrap
-	/******/ 	// The module cache
-	/******/ 	var installedModules = {};
-	
-	/******/ 	// The require function
-	/******/ 	function __webpack_require__(moduleId) {
-	
-	/******/ 		// Check if module is in cache
-	/******/ 		if(installedModules[moduleId])
-	/******/ 			return installedModules[moduleId].exports;
-	
-	/******/ 		// Create a new module (and put it into the cache)
-	/******/ 		var module = installedModules[moduleId] = {
-	/******/ 			exports: {},
-	/******/ 			id: moduleId,
-	/******/ 			loaded: false
-	/******/ 		};
-	
-	/******/ 		// Execute the module function
-	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-	
-	/******/ 		// Flag the module as loaded
-	/******/ 		module.loaded = true;
-	
-	/******/ 		// Return the exports of the module
-	/******/ 		return module.exports;
-	/******/ 	}
-	
-	
-	/******/ 	// expose the modules object (__webpack_modules__)
-	/******/ 	__webpack_require__.m = modules;
-	
-	/******/ 	// expose the module cache
-	/******/ 	__webpack_require__.c = installedModules;
-	
-	/******/ 	// __webpack_public_path__
-	/******/ 	__webpack_require__.p = "";
-	
-	/******/ 	// Load entry module and return exports
-	/******/ 	return __webpack_require__(0);
-	/******/ })
-	/************************************************************************/
-	/******/ ([
-	/* 0 */
-	/***/ function(module, exports, __webpack_require__) {
-	
-		module.exports = __webpack_require__(1);
-	
-	
-	/***/ },
-	/* 1 */
-	/***/ function(module, exports) {
-	
-		"use strict";
-		exports.defaultOptions = {
-		    isMirrorX: false,
-		    isMirrorY: false,
-		    seed: 0,
-		    hue: null,
-		    saturation: 0.8,
-		    value: 1,
-		    rotationNum: 1,
-		    scale: 1,
-		    scaleX: null,
-		    scaleY: null,
-		    colorNoise: 0.1,
-		    colorLighting: 1,
-		    edgeDarkness: 0.4,
-		    isShowingEdge: true,
-		    isShowingBody: true,
-		    isLimitingColors: false,
-		};
-		var generatedPixels = {};
-		var seed = 0;
-		function generate(patterns, _options) {
-		    if (_options === void 0) { _options = {}; }
-		    _options.baseSeed = seed;
-		    var jso = JSON.stringify({ patterns: patterns, options: _options });
-		    if (generatedPixels[jso]) {
-		        return generatedPixels[jso];
-		    }
-		    var options = {};
-		    forOwn(exports.defaultOptions, function (v, k) {
-		        options[k] = v;
-		    });
-		    forOwn(_options, function (v, k) {
-		        options[k] = v;
-		    });
-		    var random = new Random();
-		    var rndSeed = seed + getHashFromString(patterns.join());
-		    if (options.seed != null) {
-		        rndSeed += options.seed;
-		    }
-		    random.setSeed(rndSeed);
-		    if (options.hue == null) {
-		        options.hue = random.get01();
-		    }
-		    if (options.scaleX == null) {
-		        options.scaleX = options.scale;
-		    }
-		    if (options.scaleY == null) {
-		        options.scaleY = options.scale;
-		    }
-		    var pixels = generatePixels(patterns, options, random);
-		    var result;
-		    if (options.rotationNum > 1) {
-		        result = map(createRotated(pixels, options.rotationNum), function (p) {
-		            return createColored(p, options);
-		        });
-		    }
-		    else {
-		        result = [createColored(pixels, options)];
-		    }
-		    generatedPixels[jso] = result;
-		    return result;
-		}
-		exports.generate = generate;
-		function generateImages(patterns, _options) {
-		    if (_options === void 0) { _options = {}; }
-		    var pixels = generate(patterns, _options);
-		    var width = pixels[0].length;
-		    var height = pixels[0][0].length;
-		    var canvas = document.createElement('canvas');
-		    canvas.width = width;
-		    canvas.height = height;
-		    var context = canvas.getContext('2d');
-		    var images = [];
-		    for (var i = 0; i < pixels.length; i++) {
-		        context.clearRect(0, 0, width, height);
-		        draw(context, pixels, width / 2, height / 2, i);
-		        var image = new Image();
-		        image.src = canvas.toDataURL();
-		        images.push(image);
-		    }
-		    return images;
-		}
-		exports.generateImages = generateImages;
-		function setSeed(_seed) {
-		    if (_seed === void 0) { _seed = 0; }
-		    seed = _seed;
-		}
-		exports.setSeed = setSeed;
-		function setDefaultOptions(_defaultOptions) {
-		    forOwn(_defaultOptions, function (v, k) {
-		        exports.defaultOptions[k] = v;
-		    });
-		}
-		exports.setDefaultOptions = setDefaultOptions;
-		var Pixel = (function () {
-		    function Pixel() {
-		        this.r = 0;
-		        this.g = 0;
-		        this.b = 0;
-		        this.isEmpty = true;
-		    }
-		    Pixel.prototype.setFromHsv = function (hue, saturation, value, isLimitingColors) {
-		        if (isLimitingColors === void 0) { isLimitingColors = false; }
-		        this.isEmpty = false;
-		        this.r = value;
-		        this.g = value;
-		        this.b = value;
-		        var h = hue * 6;
-		        var i = Math.floor(h);
-		        var f = h - i;
-		        switch (i) {
-		            case 0:
-		                this.g *= 1 - saturation * (1 - f);
-		                this.b *= 1 - saturation;
-		                break;
-		            case 1:
-		                this.b *= 1 - saturation;
-		                this.r *= 1 - saturation * f;
-		                break;
-		            case 2:
-		                this.b *= 1 - saturation * (1 - f);
-		                this.r *= 1 - saturation;
-		                break;
-		            case 3:
-		                this.r *= 1 - saturation;
-		                this.g *= 1 - saturation * f;
-		                break;
-		            case 4:
-		                this.r *= 1 - saturation * (1 - f);
-		                this.g *= 1 - saturation;
-		                break;
-		            case 5:
-		                this.g *= 1 - saturation;
-		                this.b *= 1 - saturation * f;
-		                break;
-		        }
-		        if (isLimitingColors === true) {
-		            this.r = this.limitColor(this.r);
-		            this.g = this.limitColor(this.g);
-		            this.b = this.limitColor(this.b);
-		        }
-		        this.setStyle();
-		    };
-		    Pixel.prototype.setStyle = function () {
-		        var r = Math.floor(this.r * 255);
-		        var g = Math.floor(this.g * 255);
-		        var b = Math.floor(this.b * 255);
-		        this.style = "rgb(" + r + "," + g + "," + b + ")";
-		    };
-		    Pixel.prototype.limitColor = function (v) {
-		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
-		    };
-		    return Pixel;
-		}());
-		exports.Pixel = Pixel;
-		function draw(context, pixels, x, y, rotationIndex) {
-		    if (rotationIndex === void 0) { rotationIndex = 0; }
-		    var pxs = pixels[rotationIndex];
-		    var pw = pxs.length;
-		    var ph = pxs[0].length;
-		    var sbx = Math.floor(x - pw / 2);
-		    var sby = Math.floor(y - ph / 2);
-		    for (var y_1 = 0, sy = sby; y_1 < ph; y_1++, sy++) {
-		        for (var x_1 = 0, sx = sbx; x_1 < pw; x_1++, sx++) {
-		            var px = pxs[x_1][y_1];
-		            if (!px.isEmpty) {
-		                context.fillStyle = px.style;
-		                context.fillRect(sx, sy, 1, 1);
-		            }
-		        }
-		    }
-		}
-		exports.draw = draw;
-		function drawImage(context, images, x, y, rotationIndex) {
-		    if (rotationIndex === void 0) { rotationIndex = 0; }
-		    var img = images[rotationIndex];
-		    context.drawImage(img, Math.floor(x - img.width / 2), Math.floor(y - img.height / 2));
-		}
-		exports.drawImage = drawImage;
-		function generatePixels(patterns, options, random) {
-		    var pw = reduce(patterns, function (w, p) { return Math.max(w, p.length); }, 0);
-		    var ph = patterns.length;
-		    var w = Math.round(pw * options.scaleX);
-		    var h = Math.round(ph * options.scaleY);
-		    w += options.isMirrorX ? 1 : 2;
-		    h += options.isMirrorY ? 1 : 2;
-		    var pixels = createPixels(patterns, pw, ph, w, h, options.scaleX, options.scaleY, random);
-		    if (options.isMirrorX) {
-		        pixels = mirrorX(pixels, w, h);
-		        w *= 2;
-		    }
-		    if (options.isMirrorY) {
-		        pixels = mirrorY(pixels, w, h);
-		        h *= 2;
-		    }
-		    pixels = createEdge(pixels, w, h);
-		    return pixels;
-		}
-		function createPixels(patterns, pw, ph, w, h, scaleX, scaleY, random) {
-		    return timesMap(w, function (x) {
-		        var px = Math.floor((x - 1) / scaleX);
-		        return timesMap(h, function (y) {
-		            var py = Math.floor((y - 1) / scaleY);
-		            if (px < 0 || px >= pw || py < 0 || py >= ph) {
-		                return 0;
-		            }
-		            var c = px < patterns[py].length ? patterns[py][px] : ' ';
-		            var m = 0;
-		            if (c === '-') {
-		                m = random.get01() < 0.5 ? 1 : 0;
-		            }
-		            else if (c === 'x' || c === 'X') {
-		                m = random.get01() < 0.5 ? 1 : -1;
-		            }
-		            else if (c === 'o' || c === 'O') {
-		                m = -1;
-		            }
-		            else if (c === '*') {
-		                m = 1;
-		            }
-		            return m;
-		        });
-		    });
-		}
-		function mirrorX(pixels, w, h) {
-		    return timesMap(w * 2, function (x) { return timesMap(h, function (y) {
-		        return x < w ? pixels[x][y] : pixels[w * 2 - x - 1][y];
-		    }); });
-		}
-		function mirrorY(pixels, w, h) {
-		    return timesMap(w, function (x) { return timesMap(h * 2, function (y) {
-		        return y < h ? pixels[x][y] : pixels[x][h * 2 - y - 1];
-		    }); });
-		}
-		function createEdge(pixels, w, h) {
-		    return timesMap(w, function (x) { return timesMap(h, function (y) {
-		        return ((pixels[x][y] === 0 &&
-		            ((x - 1 >= 0 && pixels[x - 1][y] > 0) ||
-		                (x + 1 < w && pixels[x + 1][y] > 0) ||
-		                (y - 1 >= 0 && pixels[x][y - 1] > 0) ||
-		                (y + 1 < h && pixels[x][y + 1] > 0))) ?
-		            -1 : pixels[x][y]);
-		    }); });
-		}
-		function createRotated(pixels, rotationNum) {
-		    var pw = pixels.length;
-		    var ph = pixels[0].length;
-		    var pcx = pw / 2;
-		    var pcy = ph / 2;
-		    var w = Math.round(pw * 1.5 / 2) * 2;
-		    var h = Math.round(ph * 1.5 / 2) * 2;
-		    var cx = w / 2;
-		    var cy = h / 2;
-		    var offset = { x: 0, y: 0 };
-		    return timesMap(rotationNum, function (ai) {
-		        var angle = -ai * Math.PI * 2 / rotationNum;
-		        return timesMap(w, function (x) { return timesMap(h, function (y) {
-		            offset.x = x - cx;
-		            offset.y = y - cy;
-		            rotateVector(offset, angle);
-		            var px = Math.round(offset.x + pcx);
-		            var py = Math.round(offset.y + pcy);
-		            return (px < 0 || px >= pw || py < 0 || py >= ph) ?
-		                0 : pixels[px][py];
-		        }); });
-		    });
-		}
-		function rotateVector(v, angle) {
-		    var vx = v.x;
-		    v.x = Math.cos(angle) * vx - Math.sin(angle) * v.y;
-		    v.y = Math.sin(angle) * vx + Math.cos(angle) * v.y;
-		}
-		function createColored(pixels, options) {
-		    var w = pixels.length;
-		    var h = pixels[0].length;
-		    var random = new Random();
-		    random.setSeed(options.seed);
-		    return timesMap(w, function (x) { return timesMap(h, function (y) {
-		        var p = pixels[x][y];
-		        if ((p === 1 && !options.isShowingBody) ||
-		            (p === -1 && !options.isShowingEdge)) {
-		            return new Pixel();
-		        }
-		        if (p !== 0) {
-		            var l = Math.sin(y / h * Math.PI) * options.colorLighting +
-		                (1 - options.colorLighting);
-		            var v = (l * (1 - options.colorNoise) +
-		                random.get01() * options.colorNoise) * options.value;
-		            v = v >= 0 ? (v <= 1 ? v : 1) : 0;
-		            if (p === -1) {
-		                v *= (1 - options.edgeDarkness);
-		            }
-		            var px = new Pixel();
-		            px.setFromHsv(options.hue, options.saturation, v, options.isLimitingColors);
-		            return px;
-		        }
-		        else {
-		            return new Pixel();
-		        }
-		    }); });
-		}
-		function getHashFromString(str) {
-		    var hash = 0;
-		    var len = str.length;
-		    for (var i = 0; i < len; i++) {
-		        var chr = str.charCodeAt(i);
-		        hash = ((hash << 5) - hash) + chr;
-		        hash |= 0;
-		    }
-		    return hash;
-		}
-		function nArray(n, v) {
-		    var a = [];
-		    for (var i = 0; i < n; i++) {
-		        a.push(v);
-		    }
-		    return a;
-		}
-		function times(n, func) {
-		    for (var i = 0; i < n; i++) {
-		        func(i);
-		    }
-		}
-		function timesMap(n, func) {
-		    var result = [];
-		    for (var i = 0; i < n; i++) {
-		        result.push(func(i));
-		    }
-		    return result;
-		}
-		function forEach(array, func) {
-		    for (var i = 0; i < array.length; i++) {
-		        func(array[i]);
-		    }
-		}
-		function forOwn(obj, func) {
-		    for (var p in obj) {
-		        func(obj[p], p);
-		    }
-		}
-		function map(array, func) {
-		    var result = [];
-		    for (var i = 0; i < array.length; i++) {
-		        result.push(func(array[i], i));
-		    }
-		    return result;
-		}
-		function reduce(array, func, initValue) {
-		    var result = initValue;
-		    for (var i = 0; i < array.length; i++) {
-		        result = func(result, array[i], i);
-		    }
-		    return result;
-		}
-		var Random = (function () {
-		    function Random() {
-		        this.setSeed();
-		        this.get01 = this.get01.bind(this);
-		    }
-		    Random.prototype.setSeed = function (v) {
-		        if (v === void 0) { v = -0x7fffffff; }
-		        if (v === -0x7fffffff) {
-		            v = Math.floor(Math.random() * 0x7fffffff);
-		        }
-		        this.x = v = 1812433253 * (v ^ (v >> 30));
-		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
-		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
-		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
-		        return this;
-		    };
-		    Random.prototype.getInt = function () {
-		        var t = this.x ^ (this.x << 11);
-		        this.x = this.y;
-		        this.y = this.z;
-		        this.z = this.w;
-		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
-		        return this.w;
-		    };
-		    Random.prototype.get01 = function () {
-		        return this.getInt() / 0x7fffffff;
-		    };
-		    return Random;
-		}());
-	
-	
-	/***/ }
-	/******/ ])
-	});
-	;
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	(function webpackUniversalModuleDefinition(root, factory) {
-		if(true)
-			module.exports = factory();
-		else if(typeof define === 'function' && define.amd)
-			define([], factory);
-		else if(typeof exports === 'object')
-			exports["ppe"] = factory();
-		else
-			root["ppe"] = factory();
-	})(this, function() {
-	return /******/ (function(modules) { // webpackBootstrap
-	/******/ 	// The module cache
-	/******/ 	var installedModules = {};
-	
-	/******/ 	// The require function
-	/******/ 	function __webpack_require__(moduleId) {
-	
-	/******/ 		// Check if module is in cache
-	/******/ 		if(installedModules[moduleId])
-	/******/ 			return installedModules[moduleId].exports;
-	
-	/******/ 		// Create a new module (and put it into the cache)
-	/******/ 		var module = installedModules[moduleId] = {
-	/******/ 			exports: {},
-	/******/ 			id: moduleId,
-	/******/ 			loaded: false
-	/******/ 		};
-	
-	/******/ 		// Execute the module function
-	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-	
-	/******/ 		// Flag the module as loaded
-	/******/ 		module.loaded = true;
-	
-	/******/ 		// Return the exports of the module
-	/******/ 		return module.exports;
-	/******/ 	}
-	
-	
-	/******/ 	// expose the modules object (__webpack_modules__)
-	/******/ 	__webpack_require__.m = modules;
-	
-	/******/ 	// expose the module cache
-	/******/ 	__webpack_require__.c = installedModules;
-	
-	/******/ 	// __webpack_public_path__
-	/******/ 	__webpack_require__.p = "";
-	
-	/******/ 	// Load entry module and return exports
-	/******/ 	return __webpack_require__(0);
-	/******/ })
-	/************************************************************************/
-	/******/ ([
-	/* 0 */
-	/***/ function(module, exports, __webpack_require__) {
-	
-		module.exports = __webpack_require__(1);
-	
-	
-	/***/ },
-	/* 1 */
-	/***/ function(module, exports) {
-	
-		"use strict";
-		exports.options = {
-		    scaleRatio: 1,
-		    canvas: null,
-		    isLimitingColors: false
-		};
-		var emitters = {};
-		var seed = 0;
-		var context;
-		// emit the particle.
-		// specify the type with the first character of the patternName
-		// (e: explosion, m: muzzle, s: spark, t: trail, j: jet)
-		function emit(patternName, x, y, angle, emitOptions) {
-		    if (angle === void 0) { angle = 0; }
-		    if (emitOptions === void 0) { emitOptions = {}; }
-		    if (emitters[patternName] == null) {
-		        var random_1 = new Random();
-		        random_1.setSeed(seed + getHashFromString(patternName));
-		        emitters[patternName] = new Emitter(patternName[0], emitOptions, random_1);
-		    }
-		    var velX = emitOptions.velX == null ? 0 : emitOptions.velX;
-		    var velY = emitOptions.velY == null ? 0 : emitOptions.velY;
-		    emitters[patternName].emit(x, y, angle, velX, velY);
-		}
-		exports.emit = emit;
-		function update() {
-		    Particle.update();
-		}
-		exports.update = update;
-		function getParticles() {
-		    return Particle.s;
-		}
-		exports.getParticles = getParticles;
-		function setSeed(_seed) {
-		    if (_seed === void 0) { _seed = 0; }
-		    seed = _seed;
-		}
-		exports.setSeed = setSeed;
-		function reset() {
-		    emitters = {};
-		    clear();
-		}
-		exports.reset = reset;
-		function clear() {
-		    Particle.s = [];
-		}
-		exports.clear = clear;
-		function setOptions(_options) {
-		    for (var attr in _options) {
-		        exports.options[attr] = _options[attr];
-		    }
-		}
-		exports.setOptions = setOptions;
-		var Emitter = (function () {
-		    function Emitter(patternType, emitOptions, random) {
-		        this.base = new Particle();
-		        this.angleDeflection = 0;
-		        this.speedDeflection = 0.5;
-		        this.sizeDeflection = 0.5;
-		        this.ticksDeflection = 0.3;
-		        this.count = 1;
-		        var hue = emitOptions.hue == null ? random.get01() : emitOptions.hue;
-		        var sizeScale = emitOptions.sizeScale == null ? 1 : emitOptions.sizeScale;
-		        var countScale = emitOptions.countScale == null ? 1 : emitOptions.countScale;
-		        switch (patternType) {
-		            case 'e':
-		                this.base.speed = 0.7;
-		                this.base.slowdownRatio = 0.05;
-		                this.base.targetSize = 10;
-		                this.base.beginColor = new Color(hue, 1, 0.5, 0.3);
-		                this.base.middleColor = new Color(hue, 0.2, 0.9, 0.1);
-		                this.base.endColor = new Color(hue, 0, 0, 0);
-		                this.base.middleTicks = 20;
-		                this.base.endTicks = 30;
-		                this.angleDeflection = Math.PI * 2;
-		                this.count = 15;
-		                break;
-		            case 'm':
-		            case 's':
-		                this.base.speed = patternType === 'm' ? 1.5 : 0.5;
-		                this.base.slowdownRatio = 0.025;
-		                this.base.targetSize = 5;
-		                this.base.beginColor = new Color(hue, 0.5, 0.5, 0.3);
-		                this.base.middleColor = new Color(hue, 1, 0.9, 0.3);
-		                this.base.endColor = new Color(hue, 0.75, 0.75, 0.2);
-		                this.base.middleTicks = 10;
-		                this.base.endTicks = 20;
-		                this.angleDeflection = patternType === 'm' ?
-		                    0.3 * random.getForParam() : Math.PI * 2;
-		                this.count = 10;
-		                break;
-		            case 't':
-		            case 'j':
-		                this.base.speed = patternType === 't' ? 0.1 : 1;
-		                this.base.slowdownRatio = 0.03;
-		                this.base.targetSize = patternType === 't' ? 3 : 7;
-		                this.base.beginColor = new Color(hue, 0.7, 0.7, 0.4);
-		                this.base.middleColor = new Color(hue, 1, 0.9, 0.2);
-		                this.base.endColor = new Color(hue, 0.7, 0.7, 0.1);
-		                this.base.middleTicks = patternType === 't' ? 30 : 15;
-		                this.base.endTicks = patternType === 't' ? 40 : 20;
-		                this.angleDeflection = 0.5 * random.getForParam();
-		                this.speedDeflection = 0.1;
-		                this.sizeDeflection = 0.1;
-		                this.ticksDeflection = 0.1;
-		                this.count = 0.5;
-		                break;
-		        }
-		        if (emitOptions.speed != null) {
-		            this.base.speed = emitOptions.speed;
-		        }
-		        if (emitOptions.slowdownRatio != null) {
-		            this.base.slowdownRatio = emitOptions.slowdownRatio;
-		        }
-		        this.base.speed *= sizeScale * exports.options.scaleRatio;
-		        this.base.targetSize *= sizeScale * exports.options.scaleRatio;
-		        this.count *= countScale;
-		        this.base.speed *= random.getForParam();
-		        this.base.slowdownRatio *= random.getForParam();
-		        this.base.targetSize *= random.getForParam();
-		        var em = this.base.endTicks - this.base.middleTicks;
-		        this.base.middleTicks *= random.getForParam();
-		        this.base.endTicks = this.base.middleTicks + em * random.getForParam();
-		        this.speedDeflection *= random.getForParam();
-		        this.sizeDeflection *= random.getForParam();
-		        this.ticksDeflection *= random.getForParam();
-		        this.count *= random.getForParam();
-		    }
-		    Emitter.prototype.emit = function (x, y, angle, velX, velY) {
-		        if (angle === void 0) { angle = 0; }
-		        if (velX === void 0) { velX = 0; }
-		        if (velY === void 0) { velY = 0; }
-		        if (this.count < 1 && this.count < Math.random()) {
-		            return;
-		        }
-		        for (var i = 0; i < this.count; i++) {
-		            var p = new Particle();
-		            p.pos.x = x;
-		            p.pos.y = y;
-		            p.vel.x = velX;
-		            p.vel.y = velY;
-		            p.angle = angle + (Math.random() - 0.5) * this.angleDeflection;
-		            p.speed = this.base.speed *
-		                ((Math.random() * 2 - 1) * this.speedDeflection + 1);
-		            p.slowdownRatio = this.base.slowdownRatio;
-		            p.targetSize = this.base.targetSize *
-		                ((Math.random() * 2 - 1) * this.sizeDeflection + 1);
-		            p.middleTicks = this.base.middleTicks *
-		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
-		            p.endTicks = this.base.endTicks *
-		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
-		            p.beginColor = this.base.beginColor;
-		            p.middleColor = this.base.middleColor;
-		            p.endColor = this.base.endColor;
-		            Particle.s.push(p);
-		        }
-		    };
-		    return Emitter;
-		}());
-		exports.Emitter = Emitter;
-		var Particle = (function () {
-		    function Particle() {
-		        this.pos = new Vector();
-		        this.vel = new Vector();
-		        this.size = 0;
-		        this.angle = 0;
-		        this.speed = 1;
-		        this.slowdownRatio = 0.01;
-		        this.targetSize = 10;
-		        this.middleTicks = 20;
-		        this.endTicks = 60;
-		        this.ticks = 0;
-		    }
-		    Particle.prototype.update = function () {
-		        this.pos.x += Math.cos(this.angle) * this.speed + this.vel.x;
-		        this.pos.y += Math.sin(this.angle) * this.speed + this.vel.y;
-		        this.speed *= (1 - this.slowdownRatio);
-		        this.vel.x *= 0.99;
-		        this.vel.y *= 0.99;
-		        if (this.ticks >= this.endTicks) {
-		            return false;
-		        }
-		        if (this.ticks < this.middleTicks) {
-		            this.color = this.beginColor.getLerped(this.middleColor, this.ticks / this.middleTicks);
-		            this.size += (this.targetSize - this.size) * 0.1;
-		        }
-		        else {
-		            this.color = this.middleColor.getLerped(this.endColor, (this.ticks - this.middleTicks) / (this.endTicks - this.middleTicks));
-		            this.size *= 0.95;
-		        }
-		        this.color = this.color.getSparkled();
-		        if (context != null) {
-		            context.fillStyle = this.color.getStyle();
-		            context.fillRect(this.pos.x - this.size / 2, this.pos.y - this.size / 2, this.size, this.size);
-		        }
-		        this.ticks++;
-		    };
-		    Particle.update = function () {
-		        if (context == null && exports.options.canvas != null) {
-		            context = exports.options.canvas.getContext('2d');
-		        }
-		        for (var i = 0; i < Particle.s.length;) {
-		            if (Particle.s[i].update() === false) {
-		                Particle.s.splice(i, 1);
-		            }
-		            else {
-		                i++;
-		            }
-		        }
-		    };
-		    Particle.s = [];
-		    return Particle;
-		}());
-		exports.Particle = Particle;
-		var Vector = (function () {
-		    function Vector(x, y) {
-		        if (x === void 0) { x = 0; }
-		        if (y === void 0) { y = 0; }
-		        this.x = x;
-		        this.y = y;
-		    }
-		    return Vector;
-		}());
-		exports.Vector = Vector;
-		var Color = (function () {
-		    function Color(hue, saturation, value, sparkleRatio) {
-		        if (hue === void 0) { hue = 0; }
-		        if (saturation === void 0) { saturation = 1; }
-		        if (value === void 0) { value = 1; }
-		        if (sparkleRatio === void 0) { sparkleRatio = 0; }
-		        this.hue = hue;
-		        this.saturation = saturation;
-		        this.value = value;
-		        this.sparkleRatio = sparkleRatio;
-		        this.r = 0;
-		        this.g = 0;
-		        this.b = 0;
-		        this.r = value;
-		        this.g = value;
-		        this.b = value;
-		        var h = hue * 6;
-		        var i = Math.floor(h);
-		        var f = h - i;
-		        switch (i) {
-		            case 0:
-		                this.g *= 1 - saturation * (1 - f);
-		                this.b *= 1 - saturation;
-		                break;
-		            case 1:
-		                this.b *= 1 - saturation;
-		                this.r *= 1 - saturation * f;
-		                break;
-		            case 2:
-		                this.b *= 1 - saturation * (1 - f);
-		                this.r *= 1 - saturation;
-		                break;
-		            case 3:
-		                this.r *= 1 - saturation;
-		                this.g *= 1 - saturation * f;
-		                break;
-		            case 4:
-		                this.r *= 1 - saturation * (1 - f);
-		                this.g *= 1 - saturation;
-		                break;
-		            case 5:
-		                this.g *= 1 - saturation;
-		                this.b *= 1 - saturation * f;
-		                break;
-		        }
-		        if (exports.options.isLimitingColors === true) {
-		            this.limitRgb();
-		        }
-		    }
-		    Color.prototype.getStyle = function () {
-		        var r = Math.floor(this.r * 255);
-		        var g = Math.floor(this.g * 255);
-		        var b = Math.floor(this.b * 255);
-		        return "rgb(" + r + "," + g + "," + b + ")";
-		    };
-		    Color.prototype.getSparkled = function () {
-		        if (this.sparkled == null) {
-		            this.sparkled = new Color();
-		        }
-		        this.sparkled.r = clamp(this.r + this.sparkleRatio * (Math.random() * 2 - 1));
-		        this.sparkled.g = clamp(this.g + this.sparkleRatio * (Math.random() * 2 - 1));
-		        this.sparkled.b = clamp(this.b + this.sparkleRatio * (Math.random() * 2 - 1));
-		        if (exports.options.isLimitingColors === true) {
-		            this.sparkled.limitRgb();
-		        }
-		        return this.sparkled;
-		    };
-		    Color.prototype.getLerped = function (other, ratio) {
-		        if (this.lerped == null) {
-		            this.lerped = new Color();
-		        }
-		        this.lerped.r = this.r * (1 - ratio) + other.r * ratio;
-		        this.lerped.g = this.g * (1 - ratio) + other.g * ratio;
-		        this.lerped.b = this.b * (1 - ratio) + other.b * ratio;
-		        this.lerped.sparkleRatio =
-		            this.sparkleRatio * (1 - ratio) + other.sparkleRatio * ratio;
-		        if (exports.options.isLimitingColors === true) {
-		            this.lerped.limitRgb();
-		        }
-		        return this.lerped;
-		    };
-		    Color.prototype.limitRgb = function () {
-		        this.r = this.limitColor(this.r);
-		        this.g = this.limitColor(this.g);
-		        this.b = this.limitColor(this.b);
-		    };
-		    Color.prototype.limitColor = function (v) {
-		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
-		    };
-		    return Color;
-		}());
-		exports.Color = Color;
-		function getHashFromString(str) {
-		    var hash = 0;
-		    var len = str.length;
-		    for (var i = 0; i < len; i++) {
-		        var chr = str.charCodeAt(i);
-		        hash = ((hash << 5) - hash) + chr;
-		        hash |= 0;
-		    }
-		    return hash;
-		}
-		function clamp(v) {
-		    if (v <= 0) {
-		        return 0;
-		    }
-		    else if (v >= 1) {
-		        return 1;
-		    }
-		    else {
-		        return v;
-		    }
-		}
-		var Random = (function () {
-		    function Random() {
-		        this.setSeed();
-		        this.get01 = this.get01.bind(this);
-		    }
-		    Random.prototype.setSeed = function (v) {
-		        if (v === void 0) { v = -0x7fffffff; }
-		        if (v === -0x7fffffff) {
-		            v = Math.floor(Math.random() * 0x7fffffff);
-		        }
-		        this.x = v = 1812433253 * (v ^ (v >> 30));
-		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
-		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
-		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
-		        return this;
-		    };
-		    Random.prototype.getInt = function () {
-		        var t = this.x ^ (this.x << 11);
-		        this.x = this.y;
-		        this.y = this.z;
-		        this.z = this.w;
-		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
-		        return this.w;
-		    };
-		    Random.prototype.get01 = function () {
-		        return this.getInt() / 0x7fffffff;
-		    };
-		    Random.prototype.getForParam = function () {
-		        return this.get01() + 0.5;
-		    };
-		    return Random;
-		}());
-	
-	
-	/***/ }
-	/******/ ])
-	});
-	;
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	(function webpackUniversalModuleDefinition(root, factory) {
-		if(true)
-			module.exports = factory();
-		else if(typeof define === 'function' && define.amd)
-			define([], factory);
-		else if(typeof exports === 'object')
 			exports["sss"] = factory();
 		else
 			root["sss"] = factory();
@@ -20045,7 +18775,1239 @@ return /******/ (function(modules) { // webpackBootstrap
 	;
 
 /***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	function __export(m) {
+	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	}
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(6);
+	var ppe = __webpack_require__(7);
+	var sss = __webpack_require__(4);
+	var ir = __webpack_require__(8);
+	var gcc = __webpack_require__(9);
+	var actor_1 = __webpack_require__(10);
+	var random_1 = __webpack_require__(11);
+	exports.Random = random_1.default;
+	var ui = __webpack_require__(12);
+	exports.ui = ui;
+	var screen = __webpack_require__(13);
+	exports.screen = screen;
+	var text = __webpack_require__(14);
+	exports.text = text;
+	var debug = __webpack_require__(15);
+	exports.debug = debug;
+	var util = __webpack_require__(16);
+	__export(__webpack_require__(16));
+	__export(__webpack_require__(10));
+	__export(__webpack_require__(17));
+	exports.p5 = __webpack_require__(18);
+	exports.ticks = 0;
+	exports.score = 0;
+	exports.scoreMultiplier = 1;
+	exports.options = {
+	    isShowingScore: true,
+	    isShowingTitle: true,
+	    isReplayEnabled: true,
+	    isPlayingBgm: true,
+	    isLimitingColors: true,
+	    isEnableCapturing: false,
+	    screenWidth: 128,
+	    screenHeight: 128,
+	    titleScale: 3
+	};
+	var initFunc;
+	var initGameFunc;
+	var updateFunc;
+	var postUpdateFunc;
+	var onSeedChangedFunc;
+	var title = 'N/A';
+	var titleCont;
+	var titleHue;
+	var isDebugEnabled = false;
+	var modules = [];
+	var initialStatus = { r: 0, s: 0 };
+	var replayScore;
+	var Scene;
+	(function (Scene) {
+	    Scene[Scene["title"] = 0] = "title";
+	    Scene[Scene["game"] = 1] = "game";
+	    Scene[Scene["gameover"] = 2] = "gameover";
+	    Scene[Scene["replay"] = 3] = "replay";
+	})(Scene = exports.Scene || (exports.Scene = {}));
+	;
+	function init(_initFunc, _initGameFunc, _updateFunc, _postUpdateFunc) {
+	    if (_updateFunc === void 0) { _updateFunc = null; }
+	    if (_postUpdateFunc === void 0) { _postUpdateFunc = null; }
+	    initFunc = _initFunc;
+	    initGameFunc = _initGameFunc;
+	    updateFunc = _updateFunc;
+	    postUpdateFunc = _postUpdateFunc;
+	    exports.random = new random_1.default();
+	    exports.seedRandom = new random_1.default();
+	    sss.init();
+	    ir.setOptions({
+	        frameCount: -1,
+	        isRecordingEventsAsString: true
+	    });
+	    new exports.p5(function (_p) {
+	        exports.p = _p;
+	        exports.p.setup = setup;
+	        exports.p.draw = draw;
+	    });
+	}
+	exports.init = init;
+	function setTitle(_title, _titleCont) {
+	    if (_titleCont === void 0) { _titleCont = null; }
+	    title = _title;
+	    titleCont = _titleCont;
+	    var lc = 0;
+	    for (var i = 0; i < _title.length; i++) {
+	        lc += _title.charCodeAt(i);
+	    }
+	    titleHue = util.wrap(lc * 0.17, 0, 1);
+	}
+	exports.setTitle = setTitle;
+	function enableDebug(_onSeedChangedFunc) {
+	    if (_onSeedChangedFunc === void 0) { _onSeedChangedFunc = null; }
+	    onSeedChangedFunc = _onSeedChangedFunc;
+	    debug.initSeedUi(setSeeds);
+	    debug.enableShowingErrors();
+	    isDebugEnabled = true;
+	}
+	exports.enableDebug = enableDebug;
+	function setOptions(_options) {
+	    for (var attr in _options) {
+	        exports.options[attr] = _options[attr];
+	    }
+	}
+	exports.setOptions = setOptions;
+	function setSeeds(seed) {
+	    pag.setSeed(seed);
+	    ppe.setSeed(seed);
+	    ppe.reset();
+	    sss.reset();
+	    sss.setSeed(seed);
+	    if (exports.scene === Scene.game) {
+	        sss.playBgm();
+	    }
+	    if (onSeedChangedFunc != null) {
+	        onSeedChangedFunc();
+	    }
+	}
+	exports.setSeeds = setSeeds;
+	function endGame() {
+	    if (exports.scene === Scene.gameover) {
+	        return;
+	    }
+	    var isReplay = exports.scene === Scene.replay;
+	    exports.scene = Scene.gameover;
+	    exports.ticks = 0;
+	    sss.stopBgm();
+	    if (!isReplay && exports.options.isReplayEnabled) {
+	        initialStatus.s = exports.score;
+	        ir.recordInitialStatus(initialStatus);
+	        ir.saveAsUrl();
+	    }
+	}
+	exports.endGame = endGame;
+	function addScore(v, pos) {
+	    if (v === void 0) { v = 1; }
+	    if (pos === void 0) { pos = null; }
+	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
+	        exports.score += v * exports.scoreMultiplier;
+	        if (pos != null) {
+	            var s = '+';
+	            if (exports.scoreMultiplier <= 1) {
+	                s += "" + v;
+	            }
+	            else if (v <= 1) {
+	                s += "" + exports.scoreMultiplier;
+	            }
+	            else {
+	                s += v + "X" + exports.scoreMultiplier;
+	            }
+	            var t = new actor_1.Text(s);
+	            t.pos.set(pos);
+	        }
+	    }
+	}
+	exports.addScore = addScore;
+	function addScoreMultiplier(v) {
+	    if (v === void 0) { v = 1; }
+	    exports.scoreMultiplier += v;
+	}
+	exports.addScoreMultiplier = addScoreMultiplier;
+	function clearModules() {
+	    modules = [];
+	}
+	exports.clearModules = clearModules;
+	function _addModule(module) {
+	    modules.push(module);
+	}
+	exports._addModule = _addModule;
+	function setup() {
+	    exports.p.noStroke();
+	    exports.p.noSmooth();
+	    ui.init();
+	    actor_1.Actor.init();
+	    initFunc();
+	    screen.init(exports.options.screenWidth, exports.options.screenHeight);
+	    if (exports.options.isLimitingColors) {
+	        limitColors();
+	    }
+	    if (exports.options.isEnableCapturing) {
+	        gcc.setOptions({
+	            scale: 2
+	        });
+	    }
+	    if (isDebugEnabled || !exports.options.isShowingTitle) {
+	        beginGame();
+	    }
+	    else {
+	        if (exports.options.isReplayEnabled && ir.loadFromUrl() === true) {
+	            beginReplay();
+	        }
+	        else {
+	            beginTitle();
+	            initGameFunc();
+	        }
+	    }
+	}
+	function beginGame() {
+	    clearGameStatus();
+	    exports.scene = Scene.game;
+	    var seed = exports.seedRandom.getInt(9999999);
+	    exports.random.setSeed(seed);
+	    if (exports.options.isReplayEnabled) {
+	        ir.startRecord();
+	        initialStatus.r = seed;
+	    }
+	    if (exports.options.isPlayingBgm) {
+	        sss.playBgm();
+	    }
+	    initGameFunc();
+	}
+	function clearGameStatus() {
+	    clearModules();
+	    actor_1.Actor.clear();
+	    ppe.clear();
+	    ui.clearJustPressed();
+	    exports.score = exports.ticks = 0;
+	    exports.scoreMultiplier = 1;
+	}
+	function beginTitle() {
+	    exports.scene = Scene.title;
+	    exports.ticks = 0;
+	}
+	function beginReplay() {
+	    if (exports.options.isReplayEnabled) {
+	        var status_1 = ir.startReplay();
+	        if (status_1 !== false) {
+	            clearGameStatus();
+	            exports.scene = Scene.replay;
+	            exports.random.setSeed(status_1.r);
+	            replayScore = status_1.s;
+	            initGameFunc();
+	        }
+	    }
+	}
+	function draw() {
+	    screen.clear();
+	    handleScene();
+	    sss.update();
+	    if (updateFunc != null) {
+	        updateFunc();
+	    }
+	    _.forEach(modules, function (m) {
+	        m.update();
+	    });
+	    actor_1.Actor.updateLowerZero();
+	    ppe.update();
+	    actor_1.Actor.update();
+	    if (postUpdateFunc != null) {
+	        postUpdateFunc();
+	    }
+	    if (exports.options.isShowingScore) {
+	        text.draw("" + exports.score, 1, 1, text.Align.left);
+	        if (exports.scoreMultiplier > 1) {
+	            text.draw("X" + exports.scoreMultiplier, 127, 1, text.Align.right);
+	        }
+	    }
+	    drawSceneText();
+	    if (exports.options.isEnableCapturing) {
+	        gcc.capture(screen.canvas);
+	    }
+	    exports.ticks++;
+	}
+	function handleScene() {
+	    if ((exports.scene === Scene.title && ui.isJustPressed) ||
+	        (exports.scene === Scene.replay && ui._isPressedInReplay)) {
+	        beginGame();
+	    }
+	    if (exports.scene === Scene.gameover &&
+	        (exports.ticks >= 60 || (exports.ticks >= 20 && ui.isJustPressed))) {
+	        beginTitle();
+	    }
+	    if (exports.options.isReplayEnabled && exports.scene === Scene.title && exports.ticks >= 120) {
+	        beginReplay();
+	    }
+	    if (exports.scene === Scene.replay) {
+	        var events = ir.getEvents();
+	        if (events !== false) {
+	            ui.updateInReplay(events);
+	        }
+	        else {
+	            beginTitle();
+	        }
+	    }
+	    else {
+	        ui.update();
+	        if (exports.options.isReplayEnabled && exports.scene === Scene.game) {
+	            ir.recordEvents(ui.getReplayEvents());
+	        }
+	    }
+	}
+	function drawSceneText() {
+	    switch (exports.scene) {
+	        case Scene.title:
+	            if (titleCont == null) {
+	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.45, titleHue);
+	            }
+	            else {
+	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.35, titleHue);
+	                text.drawScaled(titleCont, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.5, titleHue);
+	            }
+	            break;
+	        case Scene.gameover:
+	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
+	            break;
+	        case Scene.replay:
+	            if (exports.ticks < 60) {
+	                text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.4);
+	                text.draw("SCORE:" + replayScore, screen.size.x / 2, screen.size.y * 0.5);
+	            }
+	            else {
+	                text.draw('REPLAY', 0, screen.size.y - 6, text.Align.left);
+	            }
+	            break;
+	    }
+	}
+	function limitColors() {
+	    pag.setDefaultOptions({
+	        isLimitingColors: true
+	    });
+	    ppe.setOptions({
+	        isLimitingColors: true
+	    });
+	}
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function webpackUniversalModuleDefinition(root, factory) {
+		if(true)
+			module.exports = factory();
+		else if(typeof define === 'function' && define.amd)
+			define([], factory);
+		else if(typeof exports === 'object')
+			exports["pag"] = factory();
+		else
+			root["pag"] = factory();
+	})(this, function() {
+	return /******/ (function(modules) { // webpackBootstrap
+	/******/ 	// The module cache
+	/******/ 	var installedModules = {};
+	
+	/******/ 	// The require function
+	/******/ 	function __webpack_require__(moduleId) {
+	
+	/******/ 		// Check if module is in cache
+	/******/ 		if(installedModules[moduleId])
+	/******/ 			return installedModules[moduleId].exports;
+	
+	/******/ 		// Create a new module (and put it into the cache)
+	/******/ 		var module = installedModules[moduleId] = {
+	/******/ 			exports: {},
+	/******/ 			id: moduleId,
+	/******/ 			loaded: false
+	/******/ 		};
+	
+	/******/ 		// Execute the module function
+	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+	
+	/******/ 		// Flag the module as loaded
+	/******/ 		module.loaded = true;
+	
+	/******/ 		// Return the exports of the module
+	/******/ 		return module.exports;
+	/******/ 	}
+	
+	
+	/******/ 	// expose the modules object (__webpack_modules__)
+	/******/ 	__webpack_require__.m = modules;
+	
+	/******/ 	// expose the module cache
+	/******/ 	__webpack_require__.c = installedModules;
+	
+	/******/ 	// __webpack_public_path__
+	/******/ 	__webpack_require__.p = "";
+	
+	/******/ 	// Load entry module and return exports
+	/******/ 	return __webpack_require__(0);
+	/******/ })
+	/************************************************************************/
+	/******/ ([
+	/* 0 */
+	/***/ function(module, exports, __webpack_require__) {
+	
+		module.exports = __webpack_require__(1);
+	
+	
+	/***/ },
+	/* 1 */
+	/***/ function(module, exports) {
+	
+		"use strict";
+		exports.defaultOptions = {
+		    isMirrorX: false,
+		    isMirrorY: false,
+		    seed: 0,
+		    hue: null,
+		    saturation: 0.8,
+		    value: 1,
+		    rotationNum: 1,
+		    scale: 1,
+		    scaleX: null,
+		    scaleY: null,
+		    colorNoise: 0.1,
+		    colorLighting: 1,
+		    edgeDarkness: 0.4,
+		    isShowingEdge: true,
+		    isShowingBody: true,
+		    isLimitingColors: false,
+		};
+		var generatedPixels = {};
+		var seed = 0;
+		function generate(patterns, _options) {
+		    if (_options === void 0) { _options = {}; }
+		    _options.baseSeed = seed;
+		    var jso = JSON.stringify({ patterns: patterns, options: _options });
+		    if (generatedPixels[jso]) {
+		        return generatedPixels[jso];
+		    }
+		    var options = {};
+		    forOwn(exports.defaultOptions, function (v, k) {
+		        options[k] = v;
+		    });
+		    forOwn(_options, function (v, k) {
+		        options[k] = v;
+		    });
+		    var random = new Random();
+		    var rndSeed = seed + getHashFromString(patterns.join());
+		    if (options.seed != null) {
+		        rndSeed += options.seed;
+		    }
+		    random.setSeed(rndSeed);
+		    if (options.hue == null) {
+		        options.hue = random.get01();
+		    }
+		    if (options.scaleX == null) {
+		        options.scaleX = options.scale;
+		    }
+		    if (options.scaleY == null) {
+		        options.scaleY = options.scale;
+		    }
+		    var pixels = generatePixels(patterns, options, random);
+		    var result;
+		    if (options.rotationNum > 1) {
+		        result = map(createRotated(pixels, options.rotationNum), function (p) {
+		            return createColored(p, options);
+		        });
+		    }
+		    else {
+		        result = [createColored(pixels, options)];
+		    }
+		    generatedPixels[jso] = result;
+		    return result;
+		}
+		exports.generate = generate;
+		function generateImages(patterns, _options) {
+		    if (_options === void 0) { _options = {}; }
+		    var pixels = generate(patterns, _options);
+		    var width = pixels[0].length;
+		    var height = pixels[0][0].length;
+		    var canvas = document.createElement('canvas');
+		    canvas.width = width;
+		    canvas.height = height;
+		    var context = canvas.getContext('2d');
+		    var images = [];
+		    for (var i = 0; i < pixels.length; i++) {
+		        context.clearRect(0, 0, width, height);
+		        draw(context, pixels, width / 2, height / 2, i);
+		        var image = new Image();
+		        image.src = canvas.toDataURL();
+		        images.push(image);
+		    }
+		    return images;
+		}
+		exports.generateImages = generateImages;
+		function setSeed(_seed) {
+		    if (_seed === void 0) { _seed = 0; }
+		    seed = _seed;
+		}
+		exports.setSeed = setSeed;
+		function setDefaultOptions(_defaultOptions) {
+		    forOwn(_defaultOptions, function (v, k) {
+		        exports.defaultOptions[k] = v;
+		    });
+		}
+		exports.setDefaultOptions = setDefaultOptions;
+		var Pixel = (function () {
+		    function Pixel() {
+		        this.r = 0;
+		        this.g = 0;
+		        this.b = 0;
+		        this.isEmpty = true;
+		    }
+		    Pixel.prototype.setFromHsv = function (hue, saturation, value, isLimitingColors) {
+		        if (isLimitingColors === void 0) { isLimitingColors = false; }
+		        this.isEmpty = false;
+		        this.r = value;
+		        this.g = value;
+		        this.b = value;
+		        var h = hue * 6;
+		        var i = Math.floor(h);
+		        var f = h - i;
+		        switch (i) {
+		            case 0:
+		                this.g *= 1 - saturation * (1 - f);
+		                this.b *= 1 - saturation;
+		                break;
+		            case 1:
+		                this.b *= 1 - saturation;
+		                this.r *= 1 - saturation * f;
+		                break;
+		            case 2:
+		                this.b *= 1 - saturation * (1 - f);
+		                this.r *= 1 - saturation;
+		                break;
+		            case 3:
+		                this.r *= 1 - saturation;
+		                this.g *= 1 - saturation * f;
+		                break;
+		            case 4:
+		                this.r *= 1 - saturation * (1 - f);
+		                this.g *= 1 - saturation;
+		                break;
+		            case 5:
+		                this.g *= 1 - saturation;
+		                this.b *= 1 - saturation * f;
+		                break;
+		        }
+		        if (isLimitingColors === true) {
+		            this.r = this.limitColor(this.r);
+		            this.g = this.limitColor(this.g);
+		            this.b = this.limitColor(this.b);
+		        }
+		        this.setStyle();
+		    };
+		    Pixel.prototype.setStyle = function () {
+		        var r = Math.floor(this.r * 255);
+		        var g = Math.floor(this.g * 255);
+		        var b = Math.floor(this.b * 255);
+		        this.style = "rgb(" + r + "," + g + "," + b + ")";
+		    };
+		    Pixel.prototype.limitColor = function (v) {
+		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
+		    };
+		    return Pixel;
+		}());
+		exports.Pixel = Pixel;
+		function draw(context, pixels, x, y, rotationIndex) {
+		    if (rotationIndex === void 0) { rotationIndex = 0; }
+		    var pxs = pixels[rotationIndex];
+		    var pw = pxs.length;
+		    var ph = pxs[0].length;
+		    var sbx = Math.floor(x - pw / 2);
+		    var sby = Math.floor(y - ph / 2);
+		    for (var y_1 = 0, sy = sby; y_1 < ph; y_1++, sy++) {
+		        for (var x_1 = 0, sx = sbx; x_1 < pw; x_1++, sx++) {
+		            var px = pxs[x_1][y_1];
+		            if (!px.isEmpty) {
+		                context.fillStyle = px.style;
+		                context.fillRect(sx, sy, 1, 1);
+		            }
+		        }
+		    }
+		}
+		exports.draw = draw;
+		function drawImage(context, images, x, y, rotationIndex) {
+		    if (rotationIndex === void 0) { rotationIndex = 0; }
+		    var img = images[rotationIndex];
+		    context.drawImage(img, Math.floor(x - img.width / 2), Math.floor(y - img.height / 2));
+		}
+		exports.drawImage = drawImage;
+		function generatePixels(patterns, options, random) {
+		    var pw = reduce(patterns, function (w, p) { return Math.max(w, p.length); }, 0);
+		    var ph = patterns.length;
+		    var w = Math.round(pw * options.scaleX);
+		    var h = Math.round(ph * options.scaleY);
+		    w += options.isMirrorX ? 1 : 2;
+		    h += options.isMirrorY ? 1 : 2;
+		    var pixels = createPixels(patterns, pw, ph, w, h, options.scaleX, options.scaleY, random);
+		    if (options.isMirrorX) {
+		        pixels = mirrorX(pixels, w, h);
+		        w *= 2;
+		    }
+		    if (options.isMirrorY) {
+		        pixels = mirrorY(pixels, w, h);
+		        h *= 2;
+		    }
+		    pixels = createEdge(pixels, w, h);
+		    return pixels;
+		}
+		function createPixels(patterns, pw, ph, w, h, scaleX, scaleY, random) {
+		    return timesMap(w, function (x) {
+		        var px = Math.floor((x - 1) / scaleX);
+		        return timesMap(h, function (y) {
+		            var py = Math.floor((y - 1) / scaleY);
+		            if (px < 0 || px >= pw || py < 0 || py >= ph) {
+		                return 0;
+		            }
+		            var c = px < patterns[py].length ? patterns[py][px] : ' ';
+		            var m = 0;
+		            if (c === '-') {
+		                m = random.get01() < 0.5 ? 1 : 0;
+		            }
+		            else if (c === 'x' || c === 'X') {
+		                m = random.get01() < 0.5 ? 1 : -1;
+		            }
+		            else if (c === 'o' || c === 'O') {
+		                m = -1;
+		            }
+		            else if (c === '*') {
+		                m = 1;
+		            }
+		            return m;
+		        });
+		    });
+		}
+		function mirrorX(pixels, w, h) {
+		    return timesMap(w * 2, function (x) { return timesMap(h, function (y) {
+		        return x < w ? pixels[x][y] : pixels[w * 2 - x - 1][y];
+		    }); });
+		}
+		function mirrorY(pixels, w, h) {
+		    return timesMap(w, function (x) { return timesMap(h * 2, function (y) {
+		        return y < h ? pixels[x][y] : pixels[x][h * 2 - y - 1];
+		    }); });
+		}
+		function createEdge(pixels, w, h) {
+		    return timesMap(w, function (x) { return timesMap(h, function (y) {
+		        return ((pixels[x][y] === 0 &&
+		            ((x - 1 >= 0 && pixels[x - 1][y] > 0) ||
+		                (x + 1 < w && pixels[x + 1][y] > 0) ||
+		                (y - 1 >= 0 && pixels[x][y - 1] > 0) ||
+		                (y + 1 < h && pixels[x][y + 1] > 0))) ?
+		            -1 : pixels[x][y]);
+		    }); });
+		}
+		function createRotated(pixels, rotationNum) {
+		    var pw = pixels.length;
+		    var ph = pixels[0].length;
+		    var pcx = pw / 2;
+		    var pcy = ph / 2;
+		    var w = Math.round(pw * 1.5 / 2) * 2;
+		    var h = Math.round(ph * 1.5 / 2) * 2;
+		    var cx = w / 2;
+		    var cy = h / 2;
+		    var offset = { x: 0, y: 0 };
+		    return timesMap(rotationNum, function (ai) {
+		        var angle = -ai * Math.PI * 2 / rotationNum;
+		        return timesMap(w, function (x) { return timesMap(h, function (y) {
+		            offset.x = x - cx;
+		            offset.y = y - cy;
+		            rotateVector(offset, angle);
+		            var px = Math.round(offset.x + pcx);
+		            var py = Math.round(offset.y + pcy);
+		            return (px < 0 || px >= pw || py < 0 || py >= ph) ?
+		                0 : pixels[px][py];
+		        }); });
+		    });
+		}
+		function rotateVector(v, angle) {
+		    var vx = v.x;
+		    v.x = Math.cos(angle) * vx - Math.sin(angle) * v.y;
+		    v.y = Math.sin(angle) * vx + Math.cos(angle) * v.y;
+		}
+		function createColored(pixels, options) {
+		    var w = pixels.length;
+		    var h = pixels[0].length;
+		    var random = new Random();
+		    random.setSeed(options.seed);
+		    return timesMap(w, function (x) { return timesMap(h, function (y) {
+		        var p = pixels[x][y];
+		        if ((p === 1 && !options.isShowingBody) ||
+		            (p === -1 && !options.isShowingEdge)) {
+		            return new Pixel();
+		        }
+		        if (p !== 0) {
+		            var l = Math.sin(y / h * Math.PI) * options.colorLighting +
+		                (1 - options.colorLighting);
+		            var v = (l * (1 - options.colorNoise) +
+		                random.get01() * options.colorNoise) * options.value;
+		            v = v >= 0 ? (v <= 1 ? v : 1) : 0;
+		            if (p === -1) {
+		                v *= (1 - options.edgeDarkness);
+		            }
+		            var px = new Pixel();
+		            px.setFromHsv(options.hue, options.saturation, v, options.isLimitingColors);
+		            return px;
+		        }
+		        else {
+		            return new Pixel();
+		        }
+		    }); });
+		}
+		function getHashFromString(str) {
+		    var hash = 0;
+		    var len = str.length;
+		    for (var i = 0; i < len; i++) {
+		        var chr = str.charCodeAt(i);
+		        hash = ((hash << 5) - hash) + chr;
+		        hash |= 0;
+		    }
+		    return hash;
+		}
+		function nArray(n, v) {
+		    var a = [];
+		    for (var i = 0; i < n; i++) {
+		        a.push(v);
+		    }
+		    return a;
+		}
+		function times(n, func) {
+		    for (var i = 0; i < n; i++) {
+		        func(i);
+		    }
+		}
+		function timesMap(n, func) {
+		    var result = [];
+		    for (var i = 0; i < n; i++) {
+		        result.push(func(i));
+		    }
+		    return result;
+		}
+		function forEach(array, func) {
+		    for (var i = 0; i < array.length; i++) {
+		        func(array[i]);
+		    }
+		}
+		function forOwn(obj, func) {
+		    for (var p in obj) {
+		        func(obj[p], p);
+		    }
+		}
+		function map(array, func) {
+		    var result = [];
+		    for (var i = 0; i < array.length; i++) {
+		        result.push(func(array[i], i));
+		    }
+		    return result;
+		}
+		function reduce(array, func, initValue) {
+		    var result = initValue;
+		    for (var i = 0; i < array.length; i++) {
+		        result = func(result, array[i], i);
+		    }
+		    return result;
+		}
+		var Random = (function () {
+		    function Random() {
+		        this.setSeed();
+		        this.get01 = this.get01.bind(this);
+		    }
+		    Random.prototype.setSeed = function (v) {
+		        if (v === void 0) { v = -0x7fffffff; }
+		        if (v === -0x7fffffff) {
+		            v = Math.floor(Math.random() * 0x7fffffff);
+		        }
+		        this.x = v = 1812433253 * (v ^ (v >> 30));
+		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
+		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
+		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
+		        return this;
+		    };
+		    Random.prototype.getInt = function () {
+		        var t = this.x ^ (this.x << 11);
+		        this.x = this.y;
+		        this.y = this.z;
+		        this.z = this.w;
+		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
+		        return this.w;
+		    };
+		    Random.prototype.get01 = function () {
+		        return this.getInt() / 0x7fffffff;
+		    };
+		    return Random;
+		}());
+	
+	
+	/***/ }
+	/******/ ])
+	});
+	;
+
+/***/ },
 /* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function webpackUniversalModuleDefinition(root, factory) {
+		if(true)
+			module.exports = factory();
+		else if(typeof define === 'function' && define.amd)
+			define([], factory);
+		else if(typeof exports === 'object')
+			exports["ppe"] = factory();
+		else
+			root["ppe"] = factory();
+	})(this, function() {
+	return /******/ (function(modules) { // webpackBootstrap
+	/******/ 	// The module cache
+	/******/ 	var installedModules = {};
+	
+	/******/ 	// The require function
+	/******/ 	function __webpack_require__(moduleId) {
+	
+	/******/ 		// Check if module is in cache
+	/******/ 		if(installedModules[moduleId])
+	/******/ 			return installedModules[moduleId].exports;
+	
+	/******/ 		// Create a new module (and put it into the cache)
+	/******/ 		var module = installedModules[moduleId] = {
+	/******/ 			exports: {},
+	/******/ 			id: moduleId,
+	/******/ 			loaded: false
+	/******/ 		};
+	
+	/******/ 		// Execute the module function
+	/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+	
+	/******/ 		// Flag the module as loaded
+	/******/ 		module.loaded = true;
+	
+	/******/ 		// Return the exports of the module
+	/******/ 		return module.exports;
+	/******/ 	}
+	
+	
+	/******/ 	// expose the modules object (__webpack_modules__)
+	/******/ 	__webpack_require__.m = modules;
+	
+	/******/ 	// expose the module cache
+	/******/ 	__webpack_require__.c = installedModules;
+	
+	/******/ 	// __webpack_public_path__
+	/******/ 	__webpack_require__.p = "";
+	
+	/******/ 	// Load entry module and return exports
+	/******/ 	return __webpack_require__(0);
+	/******/ })
+	/************************************************************************/
+	/******/ ([
+	/* 0 */
+	/***/ function(module, exports, __webpack_require__) {
+	
+		module.exports = __webpack_require__(1);
+	
+	
+	/***/ },
+	/* 1 */
+	/***/ function(module, exports) {
+	
+		"use strict";
+		exports.options = {
+		    scaleRatio: 1,
+		    canvas: null,
+		    isLimitingColors: false
+		};
+		var emitters = {};
+		var seed = 0;
+		var context;
+		// emit the particle.
+		// specify the type with the first character of the patternName
+		// (e: explosion, m: muzzle, s: spark, t: trail, j: jet)
+		function emit(patternName, x, y, angle, emitOptions) {
+		    if (angle === void 0) { angle = 0; }
+		    if (emitOptions === void 0) { emitOptions = {}; }
+		    if (emitters[patternName] == null) {
+		        var random_1 = new Random();
+		        random_1.setSeed(seed + getHashFromString(patternName));
+		        emitters[patternName] = new Emitter(patternName[0], emitOptions, random_1);
+		    }
+		    var velX = emitOptions.velX == null ? 0 : emitOptions.velX;
+		    var velY = emitOptions.velY == null ? 0 : emitOptions.velY;
+		    emitters[patternName].emit(x, y, angle, velX, velY);
+		}
+		exports.emit = emit;
+		function update() {
+		    Particle.update();
+		}
+		exports.update = update;
+		function getParticles() {
+		    return Particle.s;
+		}
+		exports.getParticles = getParticles;
+		function setSeed(_seed) {
+		    if (_seed === void 0) { _seed = 0; }
+		    seed = _seed;
+		}
+		exports.setSeed = setSeed;
+		function reset() {
+		    emitters = {};
+		    clear();
+		}
+		exports.reset = reset;
+		function clear() {
+		    Particle.s = [];
+		}
+		exports.clear = clear;
+		function setOptions(_options) {
+		    for (var attr in _options) {
+		        exports.options[attr] = _options[attr];
+		    }
+		}
+		exports.setOptions = setOptions;
+		var Emitter = (function () {
+		    function Emitter(patternType, emitOptions, random) {
+		        this.base = new Particle();
+		        this.angleDeflection = 0;
+		        this.speedDeflection = 0.5;
+		        this.sizeDeflection = 0.5;
+		        this.ticksDeflection = 0.3;
+		        this.count = 1;
+		        var hue = emitOptions.hue == null ? random.get01() : emitOptions.hue;
+		        var sizeScale = emitOptions.sizeScale == null ? 1 : emitOptions.sizeScale;
+		        var countScale = emitOptions.countScale == null ? 1 : emitOptions.countScale;
+		        switch (patternType) {
+		            case 'e':
+		                this.base.speed = 0.7;
+		                this.base.slowdownRatio = 0.05;
+		                this.base.targetSize = 10;
+		                this.base.beginColor = new Color(hue, 1, 0.5, 0.3);
+		                this.base.middleColor = new Color(hue, 0.2, 0.9, 0.1);
+		                this.base.endColor = new Color(hue, 0, 0, 0);
+		                this.base.middleTicks = 20;
+		                this.base.endTicks = 30;
+		                this.angleDeflection = Math.PI * 2;
+		                this.count = 15;
+		                break;
+		            case 'm':
+		            case 's':
+		                this.base.speed = patternType === 'm' ? 1.5 : 0.5;
+		                this.base.slowdownRatio = 0.025;
+		                this.base.targetSize = 5;
+		                this.base.beginColor = new Color(hue, 0.5, 0.5, 0.3);
+		                this.base.middleColor = new Color(hue, 1, 0.9, 0.3);
+		                this.base.endColor = new Color(hue, 0.75, 0.75, 0.2);
+		                this.base.middleTicks = 10;
+		                this.base.endTicks = 20;
+		                this.angleDeflection = patternType === 'm' ?
+		                    0.3 * random.getForParam() : Math.PI * 2;
+		                this.count = 10;
+		                break;
+		            case 't':
+		            case 'j':
+		                this.base.speed = patternType === 't' ? 0.1 : 1;
+		                this.base.slowdownRatio = 0.03;
+		                this.base.targetSize = patternType === 't' ? 3 : 7;
+		                this.base.beginColor = new Color(hue, 0.7, 0.7, 0.4);
+		                this.base.middleColor = new Color(hue, 1, 0.9, 0.2);
+		                this.base.endColor = new Color(hue, 0.7, 0.7, 0.1);
+		                this.base.middleTicks = patternType === 't' ? 30 : 15;
+		                this.base.endTicks = patternType === 't' ? 40 : 20;
+		                this.angleDeflection = 0.5 * random.getForParam();
+		                this.speedDeflection = 0.1;
+		                this.sizeDeflection = 0.1;
+		                this.ticksDeflection = 0.1;
+		                this.count = 0.5;
+		                break;
+		        }
+		        if (emitOptions.speed != null) {
+		            this.base.speed = emitOptions.speed;
+		        }
+		        if (emitOptions.slowdownRatio != null) {
+		            this.base.slowdownRatio = emitOptions.slowdownRatio;
+		        }
+		        this.base.speed *= sizeScale * exports.options.scaleRatio;
+		        this.base.targetSize *= sizeScale * exports.options.scaleRatio;
+		        this.count *= countScale;
+		        this.base.speed *= random.getForParam();
+		        this.base.slowdownRatio *= random.getForParam();
+		        this.base.targetSize *= random.getForParam();
+		        var em = this.base.endTicks - this.base.middleTicks;
+		        this.base.middleTicks *= random.getForParam();
+		        this.base.endTicks = this.base.middleTicks + em * random.getForParam();
+		        this.speedDeflection *= random.getForParam();
+		        this.sizeDeflection *= random.getForParam();
+		        this.ticksDeflection *= random.getForParam();
+		        this.count *= random.getForParam();
+		    }
+		    Emitter.prototype.emit = function (x, y, angle, velX, velY) {
+		        if (angle === void 0) { angle = 0; }
+		        if (velX === void 0) { velX = 0; }
+		        if (velY === void 0) { velY = 0; }
+		        if (this.count < 1 && this.count < Math.random()) {
+		            return;
+		        }
+		        for (var i = 0; i < this.count; i++) {
+		            var p = new Particle();
+		            p.pos.x = x;
+		            p.pos.y = y;
+		            p.vel.x = velX;
+		            p.vel.y = velY;
+		            p.angle = angle + (Math.random() - 0.5) * this.angleDeflection;
+		            p.speed = this.base.speed *
+		                ((Math.random() * 2 - 1) * this.speedDeflection + 1);
+		            p.slowdownRatio = this.base.slowdownRatio;
+		            p.targetSize = this.base.targetSize *
+		                ((Math.random() * 2 - 1) * this.sizeDeflection + 1);
+		            p.middleTicks = this.base.middleTicks *
+		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
+		            p.endTicks = this.base.endTicks *
+		                ((Math.random() * 2 - 1) * this.ticksDeflection + 1);
+		            p.beginColor = this.base.beginColor;
+		            p.middleColor = this.base.middleColor;
+		            p.endColor = this.base.endColor;
+		            Particle.s.push(p);
+		        }
+		    };
+		    return Emitter;
+		}());
+		exports.Emitter = Emitter;
+		var Particle = (function () {
+		    function Particle() {
+		        this.pos = new Vector();
+		        this.vel = new Vector();
+		        this.size = 0;
+		        this.angle = 0;
+		        this.speed = 1;
+		        this.slowdownRatio = 0.01;
+		        this.targetSize = 10;
+		        this.middleTicks = 20;
+		        this.endTicks = 60;
+		        this.ticks = 0;
+		    }
+		    Particle.prototype.update = function () {
+		        this.pos.x += Math.cos(this.angle) * this.speed + this.vel.x;
+		        this.pos.y += Math.sin(this.angle) * this.speed + this.vel.y;
+		        this.speed *= (1 - this.slowdownRatio);
+		        this.vel.x *= 0.99;
+		        this.vel.y *= 0.99;
+		        if (this.ticks >= this.endTicks) {
+		            return false;
+		        }
+		        if (this.ticks < this.middleTicks) {
+		            this.color = this.beginColor.getLerped(this.middleColor, this.ticks / this.middleTicks);
+		            this.size += (this.targetSize - this.size) * 0.1;
+		        }
+		        else {
+		            this.color = this.middleColor.getLerped(this.endColor, (this.ticks - this.middleTicks) / (this.endTicks - this.middleTicks));
+		            this.size *= 0.95;
+		        }
+		        this.color = this.color.getSparkled();
+		        if (context != null) {
+		            context.fillStyle = this.color.getStyle();
+		            context.fillRect(this.pos.x - this.size / 2, this.pos.y - this.size / 2, this.size, this.size);
+		        }
+		        this.ticks++;
+		    };
+		    Particle.update = function () {
+		        if (context == null && exports.options.canvas != null) {
+		            context = exports.options.canvas.getContext('2d');
+		        }
+		        for (var i = 0; i < Particle.s.length;) {
+		            if (Particle.s[i].update() === false) {
+		                Particle.s.splice(i, 1);
+		            }
+		            else {
+		                i++;
+		            }
+		        }
+		    };
+		    Particle.s = [];
+		    return Particle;
+		}());
+		exports.Particle = Particle;
+		var Vector = (function () {
+		    function Vector(x, y) {
+		        if (x === void 0) { x = 0; }
+		        if (y === void 0) { y = 0; }
+		        this.x = x;
+		        this.y = y;
+		    }
+		    return Vector;
+		}());
+		exports.Vector = Vector;
+		var Color = (function () {
+		    function Color(hue, saturation, value, sparkleRatio) {
+		        if (hue === void 0) { hue = 0; }
+		        if (saturation === void 0) { saturation = 1; }
+		        if (value === void 0) { value = 1; }
+		        if (sparkleRatio === void 0) { sparkleRatio = 0; }
+		        this.hue = hue;
+		        this.saturation = saturation;
+		        this.value = value;
+		        this.sparkleRatio = sparkleRatio;
+		        this.r = 0;
+		        this.g = 0;
+		        this.b = 0;
+		        this.r = value;
+		        this.g = value;
+		        this.b = value;
+		        var h = hue * 6;
+		        var i = Math.floor(h);
+		        var f = h - i;
+		        switch (i) {
+		            case 0:
+		                this.g *= 1 - saturation * (1 - f);
+		                this.b *= 1 - saturation;
+		                break;
+		            case 1:
+		                this.b *= 1 - saturation;
+		                this.r *= 1 - saturation * f;
+		                break;
+		            case 2:
+		                this.b *= 1 - saturation * (1 - f);
+		                this.r *= 1 - saturation;
+		                break;
+		            case 3:
+		                this.r *= 1 - saturation;
+		                this.g *= 1 - saturation * f;
+		                break;
+		            case 4:
+		                this.r *= 1 - saturation * (1 - f);
+		                this.g *= 1 - saturation;
+		                break;
+		            case 5:
+		                this.g *= 1 - saturation;
+		                this.b *= 1 - saturation * f;
+		                break;
+		        }
+		        if (exports.options.isLimitingColors === true) {
+		            this.limitRgb();
+		        }
+		    }
+		    Color.prototype.getStyle = function () {
+		        var r = Math.floor(this.r * 255);
+		        var g = Math.floor(this.g * 255);
+		        var b = Math.floor(this.b * 255);
+		        return "rgb(" + r + "," + g + "," + b + ")";
+		    };
+		    Color.prototype.getSparkled = function () {
+		        if (this.sparkled == null) {
+		            this.sparkled = new Color();
+		        }
+		        this.sparkled.r = clamp(this.r + this.sparkleRatio * (Math.random() * 2 - 1));
+		        this.sparkled.g = clamp(this.g + this.sparkleRatio * (Math.random() * 2 - 1));
+		        this.sparkled.b = clamp(this.b + this.sparkleRatio * (Math.random() * 2 - 1));
+		        if (exports.options.isLimitingColors === true) {
+		            this.sparkled.limitRgb();
+		        }
+		        return this.sparkled;
+		    };
+		    Color.prototype.getLerped = function (other, ratio) {
+		        if (this.lerped == null) {
+		            this.lerped = new Color();
+		        }
+		        this.lerped.r = this.r * (1 - ratio) + other.r * ratio;
+		        this.lerped.g = this.g * (1 - ratio) + other.g * ratio;
+		        this.lerped.b = this.b * (1 - ratio) + other.b * ratio;
+		        this.lerped.sparkleRatio =
+		            this.sparkleRatio * (1 - ratio) + other.sparkleRatio * ratio;
+		        if (exports.options.isLimitingColors === true) {
+		            this.lerped.limitRgb();
+		        }
+		        return this.lerped;
+		    };
+		    Color.prototype.limitRgb = function () {
+		        this.r = this.limitColor(this.r);
+		        this.g = this.limitColor(this.g);
+		        this.b = this.limitColor(this.b);
+		    };
+		    Color.prototype.limitColor = function (v) {
+		        return v < 0.25 ? 0 : v < 0.75 ? 0.5 : 1;
+		    };
+		    return Color;
+		}());
+		exports.Color = Color;
+		function getHashFromString(str) {
+		    var hash = 0;
+		    var len = str.length;
+		    for (var i = 0; i < len; i++) {
+		        var chr = str.charCodeAt(i);
+		        hash = ((hash << 5) - hash) + chr;
+		        hash |= 0;
+		    }
+		    return hash;
+		}
+		function clamp(v) {
+		    if (v <= 0) {
+		        return 0;
+		    }
+		    else if (v >= 1) {
+		        return 1;
+		    }
+		    else {
+		        return v;
+		    }
+		}
+		var Random = (function () {
+		    function Random() {
+		        this.setSeed();
+		        this.get01 = this.get01.bind(this);
+		    }
+		    Random.prototype.setSeed = function (v) {
+		        if (v === void 0) { v = -0x7fffffff; }
+		        if (v === -0x7fffffff) {
+		            v = Math.floor(Math.random() * 0x7fffffff);
+		        }
+		        this.x = v = 1812433253 * (v ^ (v >> 30));
+		        this.y = v = 1812433253 * (v ^ (v >> 30)) + 1;
+		        this.z = v = 1812433253 * (v ^ (v >> 30)) + 2;
+		        this.w = v = 1812433253 * (v ^ (v >> 30)) + 3;
+		        return this;
+		    };
+		    Random.prototype.getInt = function () {
+		        var t = this.x ^ (this.x << 11);
+		        this.x = this.y;
+		        this.y = this.z;
+		        this.z = this.w;
+		        this.w = (this.w ^ (this.w >> 19)) ^ (t ^ (t >> 8));
+		        return this.w;
+		    };
+		    Random.prototype.get01 = function () {
+		        return this.getInt() / 0x7fffffff;
+		    };
+		    Random.prototype.getForParam = function () {
+		        return this.get01() + 0.5;
+		    };
+		    return Random;
+		}());
+	
+	
+	/***/ }
+	/******/ ])
+	});
+	;
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function webpackUniversalModuleDefinition(root, factory) {
@@ -20841,336 +20803,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	/******/ ])
 	});
 	;
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	function __export(m) {
-	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-	}
-	var _ = __webpack_require__(2);
-	var pag = __webpack_require__(4);
-	var ppe = __webpack_require__(5);
-	var sss = __webpack_require__(6);
-	var ir = __webpack_require__(7);
-	var gcc = __webpack_require__(9);
-	var actor_1 = __webpack_require__(1);
-	var random_1 = __webpack_require__(10);
-	exports.Random = random_1.default;
-	var ui = __webpack_require__(11);
-	exports.ui = ui;
-	var screen = __webpack_require__(12);
-	exports.screen = screen;
-	var text = __webpack_require__(13);
-	exports.text = text;
-	var debug = __webpack_require__(14);
-	exports.debug = debug;
-	__export(__webpack_require__(15));
-	__export(__webpack_require__(1));
-	__export(__webpack_require__(16));
-	exports.p5 = __webpack_require__(17);
-	exports.ticks = 0;
-	exports.score = 0;
-	exports.scoreMultiplier = 1;
-	exports.options = {
-	    isShowingScore: true,
-	    isShowingTitle: true,
-	    isReplayEnabled: true,
-	    isPlayingBgm: true,
-	    isLimitingColors: true,
-	    isEnableCapturing: false,
-	    screenWidth: 128,
-	    screenHeight: 128,
-	    titleScale: 3
-	};
-	var initFunc;
-	var initGameFunc;
-	var updateFunc;
-	var postUpdateFunc;
-	var onSeedChangedFunc;
-	var title = 'N/A';
-	var titleCont;
-	var titleHue;
-	var isDebugEnabled = false;
-	var modules = [];
-	var initialStatus = { r: 0, s: 0 };
-	var replayScore;
-	var Scene;
-	(function (Scene) {
-	    Scene[Scene["title"] = 0] = "title";
-	    Scene[Scene["game"] = 1] = "game";
-	    Scene[Scene["gameover"] = 2] = "gameover";
-	    Scene[Scene["replay"] = 3] = "replay";
-	})(Scene = exports.Scene || (exports.Scene = {}));
-	;
-	function init(_initFunc, _initGameFunc, _updateFunc, _postUpdateFunc) {
-	    if (_updateFunc === void 0) { _updateFunc = null; }
-	    if (_postUpdateFunc === void 0) { _postUpdateFunc = null; }
-	    initFunc = _initFunc;
-	    initGameFunc = _initGameFunc;
-	    updateFunc = _updateFunc;
-	    postUpdateFunc = _postUpdateFunc;
-	    exports.random = new random_1.default();
-	    exports.seedRandom = new random_1.default();
-	    sss.init();
-	    ir.setOptions({
-	        frameCount: -1,
-	        isRecordingEventsAsString: true
-	    });
-	    new exports.p5(function (_p) {
-	        exports.p = _p;
-	        exports.p.setup = setup;
-	        exports.p.draw = draw;
-	    });
-	}
-	exports.init = init;
-	function setTitle(_title, _titleCont) {
-	    if (_titleCont === void 0) { _titleCont = null; }
-	    title = _title;
-	    titleCont = _titleCont;
-	    var lc = 0;
-	    for (var i = 0; i < _title.length; i++) {
-	        lc = _title.charCodeAt(i);
-	    }
-	    titleHue = lc * 0.17;
-	}
-	exports.setTitle = setTitle;
-	function enableDebug(_onSeedChangedFunc) {
-	    if (_onSeedChangedFunc === void 0) { _onSeedChangedFunc = null; }
-	    onSeedChangedFunc = _onSeedChangedFunc;
-	    debug.initSeedUi(setSeeds);
-	    debug.enableShowingErrors();
-	    isDebugEnabled = true;
-	}
-	exports.enableDebug = enableDebug;
-	function setOptions(_options) {
-	    for (var attr in _options) {
-	        exports.options[attr] = _options[attr];
-	    }
-	}
-	exports.setOptions = setOptions;
-	function setSeeds(seed) {
-	    pag.setSeed(seed);
-	    ppe.setSeed(seed);
-	    ppe.reset();
-	    sss.reset();
-	    sss.setSeed(seed);
-	    if (exports.scene === Scene.game) {
-	        sss.playBgm();
-	    }
-	    if (onSeedChangedFunc != null) {
-	        onSeedChangedFunc();
-	    }
-	}
-	exports.setSeeds = setSeeds;
-	function endGame() {
-	    if (exports.scene === Scene.gameover) {
-	        return;
-	    }
-	    var isReplay = exports.scene === Scene.replay;
-	    exports.scene = Scene.gameover;
-	    exports.ticks = 0;
-	    sss.stopBgm();
-	    if (!isReplay && exports.options.isReplayEnabled) {
-	        initialStatus.s = exports.score;
-	        ir.recordInitialStatus(initialStatus);
-	        ir.saveAsUrl();
-	    }
-	}
-	exports.endGame = endGame;
-	function addScore(v, pos) {
-	    if (v === void 0) { v = 1; }
-	    if (pos === void 0) { pos = null; }
-	    if (exports.scene === Scene.game || exports.scene === Scene.replay) {
-	        exports.score += v * exports.scoreMultiplier;
-	        if (pos != null) {
-	            var s = '+';
-	            if (exports.scoreMultiplier <= 1) {
-	                s += "" + v;
-	            }
-	            else if (v <= 1) {
-	                s += "" + exports.scoreMultiplier;
-	            }
-	            else {
-	                s += v + "X" + exports.scoreMultiplier;
-	            }
-	            var t = new actor_1.Text(s);
-	            t.pos.set(pos);
-	        }
-	    }
-	}
-	exports.addScore = addScore;
-	function addScoreMultiplier(v) {
-	    if (v === void 0) { v = 1; }
-	    exports.scoreMultiplier += v;
-	}
-	exports.addScoreMultiplier = addScoreMultiplier;
-	function clearModules() {
-	    modules = [];
-	}
-	exports.clearModules = clearModules;
-	function _addModule(module) {
-	    modules.push(module);
-	}
-	exports._addModule = _addModule;
-	function setup() {
-	    exports.p.noStroke();
-	    exports.p.noSmooth();
-	    ui.init();
-	    actor_1.Actor.init();
-	    initFunc();
-	    screen.init(exports.options.screenWidth, exports.options.screenHeight);
-	    if (exports.options.isLimitingColors) {
-	        limitColors();
-	    }
-	    if (exports.options.isEnableCapturing) {
-	        gcc.setOptions({
-	            scale: 2
-	        });
-	    }
-	    if (isDebugEnabled || !exports.options.isShowingTitle) {
-	        beginGame();
-	    }
-	    else {
-	        if (exports.options.isReplayEnabled && ir.loadFromUrl() === true) {
-	            beginReplay();
-	        }
-	        else {
-	            beginTitle();
-	            initGameFunc();
-	        }
-	    }
-	}
-	function beginGame() {
-	    clearGameStatus();
-	    exports.scene = Scene.game;
-	    var seed = exports.seedRandom.getInt(9999999);
-	    exports.random.setSeed(seed);
-	    if (exports.options.isReplayEnabled) {
-	        ir.startRecord();
-	        initialStatus.r = seed;
-	    }
-	    if (exports.options.isPlayingBgm) {
-	        sss.playBgm();
-	    }
-	    initGameFunc();
-	}
-	function clearGameStatus() {
-	    clearModules();
-	    actor_1.Actor.clear();
-	    ppe.clear();
-	    ui.clearJustPressed();
-	    exports.score = exports.ticks = 0;
-	    exports.scoreMultiplier = 1;
-	}
-	function beginTitle() {
-	    exports.scene = Scene.title;
-	    exports.ticks = 0;
-	}
-	function beginReplay() {
-	    if (exports.options.isReplayEnabled) {
-	        var status_1 = ir.startReplay();
-	        if (status_1 !== false) {
-	            clearGameStatus();
-	            exports.scene = Scene.replay;
-	            exports.random.setSeed(status_1.r);
-	            replayScore = status_1.s;
-	            initGameFunc();
-	        }
-	    }
-	}
-	function draw() {
-	    screen.clear();
-	    handleScene();
-	    sss.update();
-	    if (updateFunc != null) {
-	        updateFunc();
-	    }
-	    _.forEach(modules, function (m) {
-	        m.update();
-	    });
-	    actor_1.Actor.updateLowerZero();
-	    ppe.update();
-	    actor_1.Actor.update();
-	    if (postUpdateFunc != null) {
-	        postUpdateFunc();
-	    }
-	    if (exports.options.isShowingScore) {
-	        text.draw("" + exports.score, 1, 1, text.Align.left);
-	        if (exports.scoreMultiplier > 1) {
-	            text.draw("X" + exports.scoreMultiplier, 127, 1, text.Align.right);
-	        }
-	    }
-	    drawSceneText();
-	    if (exports.options.isEnableCapturing) {
-	        gcc.capture(screen.canvas);
-	    }
-	    exports.ticks++;
-	}
-	function handleScene() {
-	    if ((exports.scene === Scene.title && ui.isJustPressed) ||
-	        (exports.scene === Scene.replay && ui._isPressedInReplay)) {
-	        beginGame();
-	    }
-	    if (exports.scene === Scene.gameover &&
-	        (exports.ticks >= 60 || (exports.ticks >= 20 && ui.isJustPressed))) {
-	        beginTitle();
-	    }
-	    if (exports.options.isReplayEnabled && exports.scene === Scene.title && exports.ticks >= 120) {
-	        beginReplay();
-	    }
-	    if (exports.scene === Scene.replay) {
-	        var events = ir.getEvents();
-	        if (events !== false) {
-	            ui.updateInReplay(events);
-	        }
-	        else {
-	            beginTitle();
-	        }
-	    }
-	    else {
-	        ui.update();
-	        if (exports.options.isReplayEnabled && exports.scene === Scene.game) {
-	            ir.recordEvents(ui.getReplayEvents());
-	        }
-	    }
-	}
-	function drawSceneText() {
-	    switch (exports.scene) {
-	        case Scene.title:
-	            if (titleCont == null) {
-	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.45, titleHue);
-	            }
-	            else {
-	                text.drawScaled(title, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.35, titleHue);
-	                text.drawScaled(titleCont, exports.options.titleScale, screen.size.x / 2, screen.size.y * 0.5, titleHue);
-	            }
-	            break;
-	        case Scene.gameover:
-	            text.draw('GAME OVER', screen.size.x / 2, screen.size.y * 0.45);
-	            break;
-	        case Scene.replay:
-	            if (exports.ticks < 60) {
-	                text.draw('REPLAY', screen.size.x / 2, screen.size.y * 0.4);
-	                text.draw("SCORE:" + replayScore, screen.size.x / 2, screen.size.y * 0.5);
-	            }
-	            else {
-	                text.draw('REPLAY', 0, screen.size.y - 6, text.Align.left);
-	            }
-	            break;
-	    }
-	}
-	function limitColors() {
-	    pag.setDefaultOptions({
-	        isLimitingColors: true
-	    });
-	    ppe.setOptions({
-	        isLimitingColors: true
-	    });
-	}
-
 
 /***/ },
 /* 9 */
@@ -22704,6 +22336,391 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(6);
+	var ppe = __webpack_require__(7);
+	var sss = __webpack_require__(4);
+	var ir = __webpack_require__(8);
+	var ob = __webpack_require__(5);
+	var p5;
+	var rotationNum = 16;
+	var Actor = (function () {
+	    function Actor() {
+	        this.pos = new p5.Vector();
+	        this.vel = new p5.Vector();
+	        this.angle = 0;
+	        this.speed = 0;
+	        this.isAlive = true;
+	        this.priority = 1;
+	        this.ticks = 0;
+	        this.collision = new p5.Vector(8, 8);
+	        this.context = ob.screen.context;
+	        this.modules = [];
+	        this.moduleNames = [];
+	        Actor.add(this);
+	        this.type = ob.getClassName(this);
+	        new ob.RemoveWhenInAndOut(this);
+	    }
+	    Actor.prototype.update = function () {
+	        this.pos.add(this.vel);
+	        this.pos.x += Math.cos(this.angle) * this.speed;
+	        this.pos.y += Math.sin(this.angle) * this.speed;
+	        if (this.pixels != null) {
+	            this.drawPixels();
+	        }
+	        _.forEach(this.modules, function (m) {
+	            m.update();
+	        });
+	        this.ticks++;
+	    };
+	    Actor.prototype.remove = function () {
+	        this.isAlive = false;
+	    };
+	    Actor.prototype.destroy = function () {
+	        this.remove();
+	    };
+	    Actor.prototype.clearModules = function () {
+	        this.modules = [];
+	        this.moduleNames = [];
+	    };
+	    Actor.prototype.testCollision = function (type) {
+	        var _this = this;
+	        return _.filter(Actor.getByCollitionType(type), function (a) {
+	            return Math.abs(_this.pos.x - a.pos.x) < (_this.collision.x + a.collision.x) / 2 &&
+	                Math.abs(_this.pos.y - a.pos.y) < (_this.collision.y + a.collision.y) / 2;
+	        });
+	    };
+	    Actor.prototype.emitParticles = function (patternName, options) {
+	        if (options === void 0) { options = {}; }
+	        ppe.emit(patternName, this.pos.x, this.pos.y, this.angle, options);
+	    };
+	    Actor.prototype.drawPixels = function (x, y) {
+	        if (x === void 0) { x = null; }
+	        if (y === void 0) { y = null; }
+	        if (x == null) {
+	            x = this.pos.x;
+	        }
+	        if (y == null) {
+	            y = this.pos.y;
+	        }
+	        if (this.pixels.length <= 1) {
+	            pag.draw(this.context, this.pixels, x, y);
+	        }
+	        else {
+	            var a = this.angle;
+	            if (a < 0) {
+	                a = Math.PI * 2 - Math.abs(a % (Math.PI * 2));
+	            }
+	            var ri = Math.round(a / (Math.PI * 2 / rotationNum)) % rotationNum;
+	            pag.draw(this.context, this.pixels, x, y, ri);
+	        }
+	    };
+	    Actor.prototype.getModule = function (moduleName) {
+	        return this.modules[_.indexOf(this.moduleNames, moduleName)];
+	    };
+	    Actor.prototype._addModule = function (module) {
+	        this.modules.push(module);
+	        this.moduleNames.push(ob.getClassName(module));
+	    };
+	    Actor.prototype.getReplayStatus = function () {
+	        if (this.replayPropertyNames == null) {
+	            return null;
+	        }
+	        return ir.objectToArray(this, this.replayPropertyNames);
+	    };
+	    Actor.prototype.setReplayStatus = function (status) {
+	        ir.arrayToObject(status, this.replayPropertyNames, this);
+	    };
+	    Actor.init = function () {
+	        p5 = ob.p5;
+	        pag.setDefaultOptions({
+	            isMirrorY: true,
+	            rotationNum: rotationNum,
+	            scale: 2
+	        });
+	        Actor.clear();
+	    };
+	    Actor.add = function (actor) {
+	        Actor.actors.push(actor);
+	    };
+	    Actor.clear = function () {
+	        Actor.actors = [];
+	    };
+	    Actor.updateLowerZero = function () {
+	        _.sortBy(Actor.actors, 'priority');
+	        Actor.updateSorted(true);
+	    };
+	    Actor.update = function () {
+	        Actor.updateSorted();
+	    };
+	    Actor.updateSorted = function (isLowerZero) {
+	        if (isLowerZero === void 0) { isLowerZero = false; }
+	        for (var i = 0; i < Actor.actors.length;) {
+	            var a = Actor.actors[i];
+	            if (isLowerZero && a.priority >= 0) {
+	                return;
+	            }
+	            if (!isLowerZero && a.priority < 0) {
+	                i++;
+	                continue;
+	            }
+	            if (a.isAlive !== false) {
+	                a.update();
+	            }
+	            if (a.isAlive === false) {
+	                Actor.actors.splice(i, 1);
+	            }
+	            else {
+	                i++;
+	            }
+	        }
+	    };
+	    Actor.get = function (type) {
+	        if (type === void 0) { type = null; }
+	        return type == null ? Actor.actors :
+	            _.filter(Actor.actors, function (a) { return a.type === type; });
+	    };
+	    Actor.getByModuleName = function (moduleName) {
+	        return _.filter(Actor.actors, function (a) { return _.indexOf(a.moduleNames, moduleName) >= 0; });
+	    };
+	    Actor.getByCollitionType = function (collitionType) {
+	        return _.filter(Actor.actors, function (a) { return a.collisionType == collitionType; });
+	    };
+	    Actor.getReplayStatus = function () {
+	        var status = [];
+	        _.forEach(Actor.actors, function (a) {
+	            var array = a.getReplayStatus();
+	            if (array != null) {
+	                status.push([a.type, array]);
+	            }
+	        });
+	        return status;
+	    };
+	    Actor.setReplayStatus = function (status, actorGeneratorFunc) {
+	        _.forEach(status, function (s) {
+	            actorGeneratorFunc(s[0], s[1]);
+	        });
+	    };
+	    return Actor;
+	}());
+	exports.Actor = Actor;
+	var Player = (function (_super) {
+	    __extends(Player, _super);
+	    function Player() {
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate(['x x', ' xxx'], { hue: 0.2 });
+	        _this.type = _this.collisionType = 'player';
+	        _this.collision.set(5, 5);
+	        return _this;
+	    }
+	    Player.prototype.update = function () {
+	        this.emitParticles("t_" + this.type);
+	        _super.prototype.update.call(this);
+	        if (this.testCollision('enemy').length > 0 ||
+	            this.testCollision('bullet').length > 0) {
+	            this.destroy();
+	        }
+	    };
+	    Player.prototype.destroy = function () {
+	        sss.play("u_" + this.type + "_d");
+	        this.emitParticles("e_" + this.type + "_d", { sizeScale: 2 });
+	        _super.prototype.destroy.call(this);
+	        ob.endGame();
+	    };
+	    return Player;
+	}(Actor));
+	exports.Player = Player;
+	var Enemy = (function (_super) {
+	    __extends(Enemy, _super);
+	    function Enemy() {
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate([' xx', 'xxxx'], { hue: 0 });
+	        _this.type = _this.collisionType = 'enemy';
+	        return _this;
+	    }
+	    Enemy.prototype.update = function () {
+	        this.emitParticles("t_" + this.type);
+	        _super.prototype.update.call(this);
+	        var cs = this.testCollision('shot');
+	        if (cs.length > 0) {
+	            this.destroy();
+	            _.forEach(cs, function (s) {
+	                s.destroy();
+	            });
+	        }
+	    };
+	    Enemy.prototype.destroy = function () {
+	        sss.play("e_" + this.type + "_d");
+	        this.emitParticles("e_" + this.type + "_d");
+	        ob.addScore(1, this.pos);
+	        _super.prototype.destroy.call(this);
+	    };
+	    return Enemy;
+	}(Actor));
+	exports.Enemy = Enemy;
+	var Shot = (function (_super) {
+	    __extends(Shot, _super);
+	    function Shot(actor, speed, angle) {
+	        if (speed === void 0) { speed = 2; }
+	        if (angle === void 0) { angle = null; }
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate(['xxx'], { hue: 0.4 });
+	        _this.type = _this.collisionType = 'shot';
+	        _this.pos.set(actor.pos);
+	        _this.angle = angle == null ? actor.angle : angle;
+	        _this.speed = speed;
+	        _this.priority = 0.3;
+	        return _this;
+	    }
+	    Shot.prototype.update = function () {
+	        if (this.ticks === 0) {
+	            this.emitParticles("m_" + this.type);
+	            sss.play("l_" + this.type);
+	        }
+	        this.emitParticles("t_" + this.type);
+	        _super.prototype.update.call(this);
+	    };
+	    return Shot;
+	}(Actor));
+	exports.Shot = Shot;
+	var Bullet = (function (_super) {
+	    __extends(Bullet, _super);
+	    function Bullet(actor, speed, angle) {
+	        if (speed === void 0) { speed = 2; }
+	        if (angle === void 0) { angle = null; }
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate(['xxxx'], { hue: 0.1 });
+	        _this.type = _this.collisionType = 'bullet';
+	        _this.pos.set(actor.pos);
+	        _this.angle = angle == null ? actor.angle : angle;
+	        _this.speed = speed;
+	        return _this;
+	    }
+	    Bullet.prototype.update = function () {
+	        if (this.ticks === 0) {
+	            this.emitParticles("m_" + this.type);
+	            sss.play("l_" + this.type);
+	        }
+	        this.emitParticles("t_" + this.type);
+	        _super.prototype.update.call(this);
+	    };
+	    return Bullet;
+	}(Actor));
+	exports.Bullet = Bullet;
+	var Item = (function (_super) {
+	    __extends(Item, _super);
+	    function Item(pos, vel, gravity) {
+	        if (vel === void 0) { vel = null; }
+	        if (gravity === void 0) { gravity = null; }
+	        var _this = _super.call(this) || this;
+	        _this.gravity = gravity;
+	        _this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.25 });
+	        _this.type = _this.collisionType = 'item';
+	        _this.pos.set(pos);
+	        if (vel != null) {
+	            _this.vel = vel;
+	        }
+	        _this.priority = 0.6;
+	        _this.collision.set(10, 10);
+	        return _this;
+	    }
+	    Item.prototype.update = function () {
+	        this.vel.add(this.gravity);
+	        this.vel.mult(0.99);
+	        this.emitParticles("t_" + this.type);
+	        _super.prototype.update.call(this);
+	        if (this.testCollision('player').length > 0) {
+	            this.emitParticles("s_" + this.type);
+	            sss.play("s_" + this.type);
+	            this.destroy();
+	        }
+	        _super.prototype.update.call(this);
+	    };
+	    Item.prototype.destroy = function () {
+	        ob.addScore(1, this.pos);
+	        _super.prototype.destroy.call(this);
+	    };
+	    return Item;
+	}(Actor));
+	exports.Item = Item;
+	var Star = (function (_super) {
+	    __extends(Star, _super);
+	    function Star(minSpeedY, maxSpeedY, minSpeedX, maxSpeedX) {
+	        if (minSpeedY === void 0) { minSpeedY = 0.5; }
+	        if (maxSpeedY === void 0) { maxSpeedY = 1.5; }
+	        if (minSpeedX === void 0) { minSpeedX = 0; }
+	        if (maxSpeedX === void 0) { maxSpeedX = 0; }
+	        var _this = _super.call(this) || this;
+	        _this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
+	        _this.vel.set(ob.p.random(minSpeedX, maxSpeedX), ob.p.random(minSpeedY, maxSpeedY));
+	        _this.clearModules();
+	        new ob.WrapPos(_this);
+	        var colorStrs = ['00', '7f', 'ff'];
+	        _this.color = '#' + _.times(3, function () { return colorStrs[Math.floor(ob.p.random(3))]; }).join('');
+	        _this.priority = -1;
+	        return _this;
+	    }
+	    Star.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        ob.p.fill(this.color);
+	        ob.p.rect(Math.floor(this.pos.x), Math.floor(this.pos.y), 1, 1);
+	    };
+	    return Star;
+	}(Actor));
+	exports.Star = Star;
+	var Panel = (function (_super) {
+	    __extends(Panel, _super);
+	    function Panel(x, y) {
+	        var _this = _super.call(this) || this;
+	        var pagOptions = { isMirrorX: true, value: 0.5, rotationNum: 1 };
+	        if (ob.options.isLimitingColors) {
+	            pagOptions.colorLighting = 0;
+	        }
+	        _this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], pagOptions);
+	        _this.pos.set(x, y);
+	        new ob.WrapPos(_this);
+	        _this.vel.y = 1;
+	        _this.priority = -1;
+	        return _this;
+	    }
+	    return Panel;
+	}(Actor));
+	exports.Panel = Panel;
+	var Text = (function (_super) {
+	    __extends(Text, _super);
+	    function Text(str, duration, align) {
+	        if (duration === void 0) { duration = 30; }
+	        if (align === void 0) { align = null; }
+	        var _this = _super.call(this) || this;
+	        _this.str = str;
+	        _this.duration = duration;
+	        _this.align = align;
+	        _this.vel.y = -2;
+	        return _this;
+	    }
+	    Text.prototype.update = function () {
+	        _super.prototype.update.call(this);
+	        this.vel.mult(0.9);
+	        ob.text.draw(this.str, this.pos.x, this.pos.y, this.align);
+	        if (this.ticks >= this.duration) {
+	            this.remove();
+	        }
+	    };
+	    return Text;
+	}(Actor));
+	exports.Text = Text;
+
+
+/***/ },
+/* 11 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -22754,12 +22771,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var sss = __webpack_require__(6);
-	var ob = __webpack_require__(8);
+	var sss = __webpack_require__(4);
+	var ob = __webpack_require__(5);
 	exports.isPressed = false;
 	exports.isJustPressed = false;
 	exports._isPressedInReplay = false;
@@ -22810,13 +22827,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var ppe = __webpack_require__(5);
-	var s1 = __webpack_require__(8);
-	var text = __webpack_require__(13);
+	var ppe = __webpack_require__(7);
+	var s1 = __webpack_require__(5);
+	var text = __webpack_require__(14);
 	var p5;
 	var p;
 	var backgroundColor;
@@ -22843,13 +22860,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	var _ = __webpack_require__(2);
-	var pag = __webpack_require__(4);
-	var ob = __webpack_require__(8);
+	var pag = __webpack_require__(6);
+	var ob = __webpack_require__(5);
 	var dotPatterns;
 	var charToIndex;
 	var context;
@@ -23017,7 +23034,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -23053,12 +23070,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	var _ = __webpack_require__(2);
-	var ob = __webpack_require__(8);
+	var ob = __webpack_require__(5);
 	function isIn(v, low, high) {
 	    return v >= low && v <= high;
 	}
@@ -23078,9 +23095,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return ob.scene === ob.Scene.title ? 1 : ob.ticks * 0.001 + 1;
 	}
 	exports.getDifficulty = getDifficulty;
-	function fillStar(c) {
+	function fillStar(c, minSpeedY, maxSpeedY, minSpeedX, maxSpeedX) {
 	    if (c === void 0) { c = 64; }
-	    _.times(c, function () { return new ob.Star(); });
+	    if (minSpeedY === void 0) { minSpeedY = 0.5; }
+	    if (maxSpeedY === void 0) { maxSpeedY = 1.5; }
+	    if (minSpeedX === void 0) { minSpeedX = 0; }
+	    if (maxSpeedX === void 0) { maxSpeedX = 0; }
+	    _.times(c, function () { return new ob.Star(minSpeedY, maxSpeedY, minSpeedX, maxSpeedX); });
 	}
 	exports.fillStar = fillStar;
 	function fillPanel() {
@@ -23091,6 +23112,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	}
 	exports.fillPanel = fillPanel;
+	function getClassName(obj) {
+	    return ('' + obj.constructor).replace(/^\s*function\s*([^\(]*)[\S\s]+$/im, '$1');
+	}
+	exports.getClassName = getClassName;
 	var Vector = (function () {
 	    function Vector() {
 	    }
@@ -23098,9 +23123,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (to === void 0) { to = null; }
 	        return to == null ? Math.atan2(v.y, v.x) : Math.atan2(to.y - v.y, to.x - v.x);
 	    };
+	    Vector.addAngle = function (v, angle, value) {
+	        v.x += Math.cos(angle) * value;
+	        v.y += Math.sin(angle) * value;
+	    };
 	    Vector.constrain = function (v, lowX, highX, lowY, highY) {
 	        v.x = ob.p.constrain(v.x, lowX, highX);
 	        v.y = ob.p.constrain(v.y, lowY, highY);
+	    };
+	    Vector.swapXy = function (v) {
+	        var t = v.x;
+	        v.x = v.y;
+	        v.y = t;
 	    };
 	    return Vector;
 	}());
@@ -23108,7 +23142,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -23118,7 +23152,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var _ = __webpack_require__(2);
-	var ob = __webpack_require__(8);
+	var ob = __webpack_require__(5);
 	var Module = (function () {
 	    function Module(actor) {
 	        this.actor = actor;
@@ -23197,6 +23231,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return RemoveWhenOut;
 	}(Module));
 	exports.RemoveWhenOut = RemoveWhenOut;
+	var RemoveWhenInAndOut = (function (_super) {
+	    __extends(RemoveWhenInAndOut, _super);
+	    function RemoveWhenInAndOut(actor, padding, paddingRight, paddingBottom, paddingLeft, paddingTop) {
+	        if (padding === void 0) { padding = 8; }
+	        if (paddingRight === void 0) { paddingRight = null; }
+	        if (paddingBottom === void 0) { paddingBottom = null; }
+	        if (paddingLeft === void 0) { paddingLeft = null; }
+	        if (paddingTop === void 0) { paddingTop = null; }
+	        var _this = _super.call(this, actor, padding, paddingRight, paddingBottom, paddingLeft, paddingTop) || this;
+	        _this.isIn = false;
+	        _this.paddingOuter = 64;
+	        return _this;
+	    }
+	    RemoveWhenInAndOut.prototype.update = function () {
+	        if (this.isIn) {
+	            return _super.prototype.update.call(this);
+	        }
+	        if (ob.isIn(this.actor.pos.x, -this.paddingLeft, ob.screen.size.x + this.paddingRight) &&
+	            ob.isIn(this.actor.pos.y, -this.paddingTop, ob.screen.size.y + this.paddingBottom)) {
+	            this.isIn = true;
+	        }
+	        if (!ob.isIn(this.actor.pos.x, -this.paddingOuter, ob.screen.size.x + this.paddingOuter) ||
+	            !ob.isIn(this.actor.pos.y, -this.paddingOuter, ob.screen.size.y + this.paddingOuter)) {
+	            this.actor.remove();
+	        }
+	    };
+	    return RemoveWhenInAndOut;
+	}(RemoveWhenOut));
+	exports.RemoveWhenInAndOut = RemoveWhenInAndOut;
 	var WrapPos = (function (_super) {
 	    __extends(WrapPos, _super);
 	    function WrapPos(actor, padding) {
@@ -23216,14 +23279,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.WrapPos = WrapPos;
 	var MoveSin = (function (_super) {
 	    __extends(MoveSin, _super);
-	    function MoveSin(actor, prop, center, width, speed, startAngle) {
+	    function MoveSin(actor, prop, center, amplitude, speed, startAngle) {
 	        if (center === void 0) { center = 64; }
-	        if (width === void 0) { width = 48; }
+	        if (amplitude === void 0) { amplitude = 48; }
 	        if (speed === void 0) { speed = 0.1; }
 	        if (startAngle === void 0) { startAngle = 0; }
 	        var _this = _super.call(this, actor) || this;
 	        _this.center = center;
-	        _this.width = width;
+	        _this.amplitude = amplitude;
 	        _this.speed = speed;
 	        _this.prop = getPropValue(actor, prop);
 	        _this.prop.value[_this.prop.name] = _this.center;
@@ -23232,7 +23295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    MoveSin.prototype.update = function () {
 	        this.angle += this.speed;
-	        this.prop.value[this.prop.name] = Math.sin(this.angle) * this.width + this.center;
+	        this.prop.value[this.prop.name] = Math.sin(this.angle) * this.amplitude + this.center;
 	    };
 	    return MoveSin;
 	}(Module));
@@ -23264,6 +23327,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return MoveRoundTrip;
 	}(Module));
 	exports.MoveRoundTrip = MoveRoundTrip;
+	var MoveTo = (function (_super) {
+	    __extends(MoveTo, _super);
+	    function MoveTo(actor, ratio) {
+	        if (ratio === void 0) { ratio = 0.1; }
+	        var _this = _super.call(this, actor) || this;
+	        _this.ratio = ratio;
+	        _this.targetPos = ob.p.createVector();
+	        return _this;
+	    }
+	    MoveTo.prototype.update = function () {
+	        this.actor.pos.x += (this.targetPos.x - this.actor.pos.x) * this.ratio;
+	        this.actor.pos.y += (this.targetPos.y - this.actor.pos.y) * this.ratio;
+	    };
+	    return MoveTo;
+	}(Module));
+	exports.MoveTo = MoveTo;
 	var AbsorbPos = (function (_super) {
 	    __extends(AbsorbPos, _super);
 	    function AbsorbPos(actor, type, dist) {
@@ -23293,6 +23372,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return AbsorbPos;
 	}(Module));
 	exports.AbsorbPos = AbsorbPos;
+	var HaveGravity = (function (_super) {
+	    __extends(HaveGravity, _super);
+	    function HaveGravity(actor, mass) {
+	        if (mass === void 0) { mass = 0.1; }
+	        var _this = _super.call(this, actor) || this;
+	        _this.mass = mass;
+	        _this.velocity = 0.01;
+	        return _this;
+	    }
+	    HaveGravity.prototype.update = function () {
+	        var _this = this;
+	        _.forEach(ob.Actor.getByModuleName('HaveGravity'), function (a) {
+	            if (a === _this.actor) {
+	                return;
+	            }
+	            var r = ob.wrap(a.pos.dist(_this.actor.pos), 1, 999) * 0.1;
+	            var v = (a.getModule('HaveGravity').mass * _this.mass) / r / r /
+	                _this.mass * _this.velocity;
+	            var an = ob.Vector.getAngle(_this.actor.pos, a.pos);
+	            ob.Vector.addAngle(_this.actor.vel, an, v);
+	        });
+	    };
+	    return HaveGravity;
+	}(Module));
+	exports.HaveGravity = HaveGravity;
+	var LimitInstances = (function () {
+	    function LimitInstances(actor, count) {
+	        if (count === void 0) { count = 1; }
+	        if (ob.Actor.get(actor.type).length > count) {
+	            actor.remove();
+	        }
+	    }
+	    return LimitInstances;
+	}());
+	exports.LimitInstances = LimitInstances;
 	var DrawText = (function (_super) {
 	    __extends(DrawText, _super);
 	    function DrawText(actor, text) {
@@ -23323,10 +23437,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var require;var require;/*! p5.js v0.5.4 October 01, 2016 */
+	var require;var require;/*! p5.js v0.5.5 December 05, 2016 */
 	(function(f){if(true){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.p5 = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return require(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 	
 	},{}],2:[function(_dereq_,module,exports){
@@ -29173,7 +29287,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (li < 1) {
 	      sat = chroma / li;
 	    } else {
-	      sat = chroma / (2 - chroma);
+	      sat = chroma / (2 - li);
 	    }
 	    if (red === val) {  // Magenta to yellow.
 	      hue = (green - blue) / chroma;
@@ -29337,7 +29451,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param  {Number|String} gray    number specifying value between white
 	 *                                 and black.
 	 * @param  {Number}        [alpha] alpha value relative to current color range
-	 *                                 (default is 0-100)
+	 *                                 (default is 0-255)
 	 * @return {Array}                 resulting color
 	 *
 	 * @example
@@ -31148,7 +31262,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * height is a circle. By default, the first two parameters set the location,
 	 * and the third and fourth parameters set the shape's width and height. If
 	 * no height is specified, the value of width is used for both the width and
-	 * height. The origin may be changed with the ellipseMode() function.
+	 * height. If a negative height or width is specified, the absolute value is taken.
+	 * The origin may be changed with the ellipseMode() function.
 	 *
 	 * @method ellipse
 	 * @param  {Number} x x-coordinate of the ellipse.
@@ -32470,7 +32585,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this._setProperty('frameCount', this.frameCount + 1);
 	      this.redraw();
 	      this._updateMouseCoords();
-	      this._updateTouchCoords();
 	      this._frameRate = 1000.0/(now - this._lastFrameTime);
 	      this._lastFrameTime = now;
 	    }
@@ -32852,25 +32966,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  for (var i = 0; i < args.length; ++i) {
 	    args[i] = arguments[i];
 	  }
-	  if(this._renderer.isP3D){
-	    this._validateParameters(
-	      'bezier',
-	      args,
-	      ['Number', 'Number', 'Number',
-	      'Number', 'Number', 'Number',
-	      'Number', 'Number', 'Number',
-	      'Number', 'Number', 'Number'
-	      ]
-	    );
-	  } else{
-	    this._validateParameters(
-	      'bezier',
-	      args,
-	      [ 'Number', 'Number', 'Number', 'Number',
-	        'Number', 'Number', 'Number', 'Number' ]
-	    );
-	  }
-	  if (!this._renderer._doStroke) {
+	  if (!this._renderer._doStroke && !this._renderer._doFill) {
 	    return this;
 	  }
 	  if (this._renderer.isP3D){
@@ -33110,24 +33206,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var args = new Array(arguments.length);
 	  for (var i = 0; i < args.length; ++i) {
 	    args[i] = arguments[i];
-	  }
-	  if(this._renderer.isP3D){
-	    this._validateParameters(
-	      'curve',
-	      args,
-	      ['Number', 'Number', 'Number',
-	      'Number', 'Number', 'Number',
-	      'Number', 'Number', 'Number',
-	      'Number', 'Number', 'Number'
-	      ]
-	    );
-	  } else{
-	    this._validateParameters(
-	      'curve',
-	      args,
-	      [ 'Number', 'Number', 'Number', 'Number',
-	        'Number', 'Number', 'Number', 'Number' ]
-	    );
 	  }
 	  if (!this._renderer._doStroke) {
 	    return this;
@@ -33673,7 +33751,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * The windowResized() function is called once every time the browser window
 	 * is resized. This is a good place to resize the canvas or do any other
-	 * adjustements to accomodate the new window size.
+	 * adjustments to accommodate the new window size.
 	 *
 	 * @method windowResized
 	 * @example
@@ -34006,37 +34084,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    class2type[ toString.call(obj) ] || 'object' :
 	    typeof obj;
 	};
-	var isArray = Array.isArray || function( obj ) {
-	  return getType(obj) === 'array';
-	};
-	var isNumeric =function( obj ) {
-	  // parseFloat NaNs numeric-cast false positives (null|true|false|"")
-	  // ...but misinterprets leading-number strings, particularly hex literals
-	  // subtraction forces infinities to NaN
-	  // adding 1 corrects loss of precision from parseFloat (#15100)
-	  return !isArray( obj ) && (obj - parseFloat( obj ) + 1) >= 0;
-	};
+	
 	// -- End borrow --
 	
-	/**
-	 * Checks the definition type against the argument type
-	 * If any of these passes (in order), it matches:
-	 *
-	 * - p5.* definitions are checked with instanceof
-	 * - Booleans are let through (everything is truthy or falsey)
-	 * - Lowercase of the definition is checked against the js type
-	 * - Number types are checked to see if they are numerically castable
-	 */
-	var numberTypes = ['Number', 'Integer', 'Number/Constant'];
-	function typeMatches(defType, argType, arg) {
-	  if(defType.match(/^p5\./)) {
-	    var parts = defType.split('.');
-	    return arg instanceof p5[parts[1]];
-	  }
-	  return defType === 'Boolean' || // Anything is truthy, cover in Debug Guide
-	    (defType.toLowerCase() === argType) ||
-	    (numberTypes.indexOf(defType) > -1 && isNumeric(arg));
-	}
 	
 	/**
 	 * Prints out a fancy, colorful message to the console log
@@ -34048,9 +34098,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @return console logs
 	 */
 	// Wrong number of params, undefined param, wrong type
-	var PARAM_COUNT = 0;
-	var EMPTY_VAR = 1;
-	var WRONG_TYPE = 2;
 	var FILE_LOAD = 3;
 	// p5.js blue, p5.js orange, auto dark green; fallback p5.js darkened magenta
 	// See testColors below for all the color codes and names
@@ -34084,96 +34131,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  //   );
 	  // }
 	}
-	
-	/**
-	 * Validate all the parameters of a function for number and type
-	 * NOTE THIS FUNCTION IS TEMPORARILY DISABLED UNTIL FURTHER WORK
-	 * AND UPDATES ARE IMPLEMENTED. -LMCCART
-	 *
-	 * @param  {String} func  name of function we're checking
-	 * @param  {Array}  args  pass of the JS default arguments array
-	 * @param  {Array}  types List of types accepted ['Number', 'String, ...] OR
-	 *                        a list of lists for each format: [
-	 *                          ['String', 'Number', 'Number'],
-	 *                          ['String', 'Number', 'Number', 'Number', 'Number'
-	 *                        ]
-	 *
-	 * @return console logs
-	 */
-	p5.prototype._validateParameters = function(func, args, types) {
-	  if (!isArray(types[0])) {
-	    types = [types];
-	  }
-	  // Check number of parameters
-	  // Example: "You wrote ellipse(X,X,X). ellipse was expecting 4
-	  //          parameters. Try ellipse(X,X,X,X)."
-	  var diff = Math.abs(args.length-types[0].length);
-	  var message, tindex = 0;
-	  for (var i=1, len=types.length; i<len; i++) {
-	    var d = Math.abs(args.length-types[i].length);
-	    if (d <= diff) {
-	      tindex = i;
-	      diff = d;
-	    }
-	  }
-	  var symbol = 'X'; // Parameter placeholder
-	  if(diff > 0) {
-	    message = 'You wrote ' + func + '(';
-	    // Concat an appropriate number of placeholders for call
-	    if (args.length > 0) {
-	      message += symbol + Array(args.length).join(',' + symbol);
-	    }
-	    message += '). ' + func + ' was expecting ' + types[tindex].length +
-	      ' parameters. Try ' + func + '(';
-	    // Concat an appropriate number of placeholders for definition
-	    if (types[tindex].length > 0) {
-	      message += symbol + Array(types[tindex].length).join(',' + symbol);
-	    }
-	    message += ').';
-	    // If multiple definitions
-	    if (types.length > 1) {
-	      message += ' ' + func + ' takes different numbers of parameters ' +
-	        'depending on what you want to do. Click this link to learn more: ';
-	    }
-	    report(message, func, PARAM_COUNT);
-	  }
-	  // Type checking
-	  // Example: "It looks like ellipse received an empty variable in spot #2."
-	  // Example: "ellipse was expecting a number for parameter #1,
-	  //           received "foo" instead."
-	  for (var format=0; format<types.length; format++) {
-	    for (var p=0; p < types[format].length && p < args.length; p++) {
-	      var defType = types[format][p];
-	      var argType = getType(args[p]);
-	      if ('undefined' === argType || null === argType) {
-	        report('It looks like ' + func +
-	          ' received an empty variable in spot #' + (p+1) +
-	          '. If not intentional, this is often a problem with scope: ' +
-	          '[link to scope].', func, EMPTY_VAR);
-	      } else if (defType !== '*' && !typeMatches(defType, argType, args[p])) {
-	        message = func + ' was expecting a ' + defType.toLowerCase() +
-	          ' for parameter #' + (p+1) + ', received ';
-	        // Wrap strings in quotes
-	        message += 'string' === argType ? '"' + args[p] + '"' : args[p];
-	        message += ' instead.';
-	        // If multiple definitions
-	        if (types.length > 1) {
-	          message += ' ' + func + ' takes different numbers of parameters ' +
-	            'depending on what you want to do. ' +
-	            'Click this link to learn more:';
-	        }
-	        report(message, func, WRONG_TYPE);
-	      }
-	    }
-	  }
-	};
-	/*
-	 * NOTE THIS FUNCTION IS TEMPORARILY DISABLED UNTIL FURTHER WORK
-	 * AND UPDATES ARE IMPLEMENTED. -LMCCART
-	 */
-	p5.prototype._validateParameters = function() {
-	  return true;
-	};
 	
 	var errorCases = {
 	  '0': {
@@ -34342,7 +34299,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    //   * ReferenceError: PI is undefined             (Firefox)
 	    //   * Uncaught ReferenceError: PI is not defined  (Chrome)
 	
-	    if (e.message && e.message.indexOf(symbol.name) !== -1) {
+	    if (e.message && e.message.match('\\W?'+symbol.name+'\\W') !== null) {
 	      log('%cDid you just try to use p5.js\'s ' + symbol.name +
 	          (symbol.type === 'function' ? '() ' : ' ') + symbol.type +
 	          '? If so, you may want to ' +
@@ -35734,9 +35691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	p5.Renderer2D._copyHelper =
 	function (srcImage, sx, sy, sw, sh, dx, dy, dw, dh) {
-	  if (!srcImage.canvas) {
-	    srcImage.loadPixels();
-	  }
+	  srcImage.loadPixels();
 	  var s = srcImage.canvas.width / srcImage.width;
 	  this.drawingContext.drawImage(srcImage.canvas,
 	    s * sx, s * sy, s * sw, s * sh, dx, dy, dw, dh);
@@ -35760,12 +35715,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  var ctx = this._pInst || this;
+	  ctx.loadPixels();
 	
 	  var pd = ctx._pixelDensity;
 	
 	  // round down to get integer numbers
 	  x = Math.floor(x);
 	  y = Math.floor(y);
+	  w = Math.floor(w);
+	  h = Math.floor(h);
 	
 	  var sx = x * pd;
 	  var sy = y * pd;
@@ -37740,18 +37698,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @return {[type]}     [description]
 	 */
 	p5.prototype.rotateX = function(rad) {
-	  var args = new Array(arguments.length);
-	  for (var i = 0; i < args.length; ++i) {
-	    args[i] = arguments[i];
-	  }
 	  if (this._renderer.isP3D) {
-	    this._validateParameters(
-	      'rotateX',
-	      args,
-	      [
-	        ['Number']
-	      ]
-	    );
 	    this._renderer.rotateX(rad);
 	  } else {
 	    throw 'not supported in p2d. Please use webgl mode';
@@ -37767,17 +37714,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	p5.prototype.rotateY = function(rad) {
 	  if (this._renderer.isP3D) {
-	    var args = new Array(arguments.length);
-	    for (var i = 0; i < args.length; ++i) {
-	      args[i] = arguments[i];
-	    }
-	    this._validateParameters(
-	      'rotateY',
-	      args,
-	      [
-	        ['Number']
-	      ]
-	    );
 	    this._renderer.rotateY(rad);
 	  } else {
 	    throw 'not supported in p2d. Please use webgl mode';
@@ -37793,17 +37729,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	p5.prototype.rotateZ = function(rad) {
 	  if (this._renderer.isP3D) {
-	    var args = new Array(arguments.length);
-	    for (var i = 0; i < args.length; ++i) {
-	      args[i] = arguments[i];
-	    }
-	    this._validateParameters(
-	      'rotateZ',
-	      args,
-	      [
-	        ['Number']
-	      ]
-	    );
 	    this._renderer.rotateZ(rad);
 	  } else {
 	    throw 'not supported in p2d. Please use webgl mode';
@@ -38015,30 +37940,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.translate = function(x, y, z) {
-	  var args = new Array(arguments.length);
-	  for (var i = 0; i < args.length; ++i) {
-	    args[i] = arguments[i];
-	  }
-	
 	  if (this._renderer.isP3D) {
-	    this._validateParameters(
-	      'translate',
-	      args,
-	      [
-	        //p3d
-	        ['Number', 'Number', 'Number']
-	      ]
-	    );
 	    this._renderer.translate(x, y, z);
 	  } else {
-	    this._validateParameters(
-	      'translate',
-	      args,
-	      [
-	        //p2d
-	        ['Number', 'Number']
-	      ]
-	    );
 	    this._renderer.translate(x, y);
 	  }
 	  return this;
@@ -38652,29 +38556,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.vertex = function(x, y, moveTo) {
-	  var args = new Array(arguments.length);
-	  for (var i = 0; i < args.length; ++i) {
-	    args[i] = arguments[i];
-	  }
 	  if(this._renderer.isP3D){
-	    this._validateParameters(
-	      'vertex',
-	      args,
-	      [
-	        ['Number', 'Number', 'Number']
-	      ]
-	    );
-	    this._renderer.vertex
-	    (arguments[0], arguments[1], arguments[2]);
+	    this._renderer.vertex(x, y, moveTo);
 	  }else{
-	    this._validateParameters(
-	      'vertex',
-	      args,
-	      [
-	        ['Number', 'Number'],
-	        ['Number', 'Number', 'Number']
-	      ]
-	    );
 	    var vert = [];
 	    vert.isVert = true;
 	    vert[0] = x;
@@ -38701,6 +38585,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	module.exports = p5;
+	
 	},{"./constants":36,"./core":37}],50:[function(_dereq_,module,exports){
 	/**
 	 * @module Events
@@ -39371,6 +39256,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * The variable keyCode is used to detect special keys such as BACKSPACE,
 	 * DELETE, ENTER, RETURN, TAB, ESCAPE, SHIFT, CONTROL, OPTION, ALT, UP_ARROW,
 	 * DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW.
+	 * You can also check for custom keys by looking up the keyCode of any key
+	 * on a site like this: <a href="http://keycode.info/">keycode.info</a>.
 	 *
 	 * @property keyCode
 	 * @example
@@ -39676,7 +39563,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * The system variable mouseX always contains the current horizontal
-	 * position of the mouse, relative to (0, 0) of the canvas.
+	 * position of the mouse, relative to (0, 0) of the canvas. If touch is
+	 * used instead of mouse input, mouseX will hold the x value of the most
+	 * recent touch point.
 	 *
 	 * @property mouseX
 	 *
@@ -39699,7 +39588,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * The system variable mouseY always contains the current vertical position
-	 * of the mouse, relative to (0, 0) of the canvas.
+	 * of the mouse, relative to (0, 0) of the canvas. If touch is
+	 * used instead of mouse input, mouseY will hold the y value of the most
+	 * recent touch point.
 	 *
 	 * @property mouseY
 	 *
@@ -39722,8 +39613,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * The system variable pmouseX always contains the horizontal position of
-	 * the mouse in the frame previous to the current frame, relative to (0, 0)
-	 * of the canvas.
+	 * the mouse or finger in the frame previous to the current frame, relative to
+	 * (0, 0) of the canvas.
 	 *
 	 * @property pmouseX
 	 *
@@ -39753,8 +39644,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	/**
 	 * The system variable pmouseY always contains the vertical position of the
-	 * mouse in the frame previous to the current frame, relative to (0, 0) of
-	 * the canvas.
+	 * mouse or finger in the frame previous to the current frame, relative to
+	 * (0, 0) of the canvas.
 	 *
 	 * @property pmouseY
 	 *
@@ -40003,28 +39894,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	p5.prototype.isMousePressed = false; // both are supported
 	
 	p5.prototype._updateNextMouseCoords = function(e) {
-	  var x = this.mouseX;
-	  var y = this.mouseY;
-	  var winX = this.winMouseX;
-	  var winY = this.winMouseY;
-	  if(e.type === 'touchstart' ||
-	     e.type === 'touchmove' ||
-	     e.type === 'touchend' || e.touches) {
-	    x = this.touchX;
-	    y = this.touchY;
-	    winX = this.winTouchX;
-	    winY = this.winTouchY;
-	  } else if(this._curElement !== null) {
-	    var mousePos = getMousePos(this._curElement.elt, e);
-	    x = mousePos.x;
-	    y = mousePos.y;
-	    winX = mousePos.winX;
-	    winY = mousePos.winY;
+	  if(this._curElement !== null) {
+	    var mousePos = getMousePos(this._curElement.elt, this.width, this.height, e);
+	    this._setProperty('mouseX', mousePos.x);
+	    this._setProperty('mouseY', mousePos.y);
+	    this._setProperty('winMouseX', mousePos.winX);
+	    this._setProperty('winMouseY', mousePos.winY);
 	  }
-	  this._setProperty('mouseX', x);
-	  this._setProperty('mouseY', y);
-	  this._setProperty('winMouseX', winX);
-	  this._setProperty('winMouseY', winY);
 	  if (!this._hasMouseInteracted) {
 	    // For first draw, make previous and next equal
 	    this._updateMouseCoords();
@@ -40039,11 +39915,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this._setProperty('pwinMouseY', this.winMouseY);
 	};
 	
-	function getMousePos(canvas, evt) {
+	function getMousePos(canvas, w, h, evt) {
 	  var rect = canvas.getBoundingClientRect();
+	  var sx = canvas.scrollWidth / w;
+	  var sy = canvas.scrollHeight / h;
 	  return {
-	    x: evt.clientX - rect.left,
-	    y: evt.clientY - rect.top,
+	    x: (evt.clientX - rect.left) / sx,
+	    y: (evt.clientY - rect.top) / sy,
 	    winX: evt.clientX,
 	    winY: evt.clientY
 	  };
@@ -40151,7 +40029,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var context = this._isGlobal ? window : this;
 	  var executeDefault;
 	  this._updateNextMouseCoords(e);
-	  this._updateNextTouchCoords(e);
 	  if (!this.isMousePressed) {
 	    if (typeof context.mouseMoved === 'function') {
 	      executeDefault = context.mouseMoved(e);
@@ -40229,7 +40106,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this._setProperty('mouseIsPressed', true);
 	  this._setMouseButton(e);
 	  this._updateNextMouseCoords(e);
-	  this._updateNextTouchCoords(e);
 	  if (typeof context.mousePressed === 'function') {
 	    executeDefault = context.mousePressed(e);
 	    if(executeDefault === false) {
@@ -40432,128 +40308,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var p5 = _dereq_('../core/core');
 	
-	/*
-	 * This is a flag which is false until the first time
-	 * we receive a touch event. The ptouchX and ptouchY
-	 * values will match the touchX and touchY values until
-	 * this interaction takes place.
-	 */
-	p5.prototype._hasTouchInteracted = false;
-	
-	/**
-	 * The system variable touchX always contains the horizontal position of
-	 * one finger, relative to (0, 0) of the canvas. This is best used for
-	 * single touch interactions. For multi-touch interactions, use the
-	 * touches[] array.
-	 *
-	 * @property touchX
-	 * @method touchX
-	 * @example
-	 * <div>
-	 * <code>
-	 * // Touch and move  the finger in horizontally  across the canvas
-	 * function setup() {
-	 *   createCanvas(100, 100);
-	 * }
-	 *
-	 * function draw() {
-	 *   background(51);
-	 *   stroke(255, 204, 0);
-	 *   strokeWeight(4);
-	 *   rect(touchX, 50, 10, 10);
-	 * }
-	 * </code>
-	 * </div>
-	 *
-	 * @alt
-	 * 10x10 white rect with thick gold outline moves left and right with touch x.
-	 *
-	 */
-	p5.prototype.touchX = 0;
-	
-	/**
-	 * The system variable touchY always contains the vertical position of
-	 * one finger, relative to (0, 0) of the canvas. This is best used for
-	 * single touch interactions. For multi-touch interactions, use the
-	 * touches[] array.
-	 *
-	 * @property touchY
-	 * @method touchY
-	 * @example
-	 * <div>
-	 * <code>
-	 * // Touch and move the finger vertically across the canvas
-	 * function setup() {
-	 *   createCanvas(100, 100);
-	 * }
-	 *
-	 * function draw() {
-	 *   background(51);
-	 *   stroke(255, 204, 0);
-	 *   strokeWeight(4);
-	 *   rect(50, touchY, 10, 10);
-	 * }
-	 * </code>
-	 * </div>
-	 *
-	 * @alt
-	 * 10x10 white rect with thick gold outline moves up and down with touch y.
-	 *
-	 */
-	p5.prototype.touchY = 0;
-	
-	/**
-	 * The system variable ptouchX always contains the horizontal position of
-	 * one finger, relative to (0, 0) of the canvas, in the frame previous to the
-	 * current frame.
-	 *
-	 * @property ptouchX
-	 */
-	p5.prototype.ptouchX = 0;
-	
-	/**
-	 * The system variable ptouchY always contains the vertical position of
-	 * one finger, relative to (0, 0) of the canvas, in the frame previous to the
-	 * current frame.
-	 *
-	 * @property ptouchY
-	 */
-	p5.prototype.ptouchY = 0;
-	
-	/**
-	 * The system variable winTouchX always contains the horizontal position of
-	 * one finger, relative to (0, 0) of the window.
-	 *
-	 * @property winTouchX
-	 */
-	p5.prototype.winTouchX = 0;
-	
-	/**
-	 * The system variable winTouchY always contains the vertical position of
-	 * one finger, relative to (0, 0) of the window.
-	 *
-	 * @property winTouchY
-	 */
-	p5.prototype.winTouchY = 0;
-	
-	/**
-	 * The system variable pwinTouchX always contains the horizontal position of
-	 * one finger, relative to (0, 0) of the window, in the frame previous to the
-	 * current frame.
-	 *
-	 * @property pwinTouchX
-	 */
-	p5.prototype.pwinTouchX = 0;
-	
-	/**
-	 * The system variable pwinTouchY always contains the vertical position of
-	 * one finger, relative to (0, 0) of the window, in the frame previous to the
-	 * current frame.
-	 *
-	 * @property pwinTouchY
-	 */
-	p5.prototype.pwinTouchY = 0;
-	
 	/**
 	 * The system variable touches[] contains an array of the positions of all
 	 * current touch points, relative to (0, 0) of the canvas, and IDs identifying a
@@ -40564,66 +40318,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	p5.prototype.touches = [];
 	
-	/**
-	 * The boolean system variable touchIsDown is true if the screen is
-	 * touched and false if not.
-	 *
-	 * @property touchIsDown
-	 */
-	p5.prototype.touchIsDown = false;
-	
-	p5.prototype._updateNextTouchCoords = function(e) {
-	  var x = this.touchX;
-	  var y = this.touchY;
-	  var winX = this.winTouchX;
-	  var winY = this.winTouchY;
-	  if(e.type === 'mousedown' ||
-	     e.type === 'mousemove' ||
-	     e.type === 'mouseup' || !e.touches) {
-	    x = this.mouseX;
-	    y = this.mouseY;
-	    winX = this.winMouseX;
-	    winY = this.winMouseY;
-	  } else {
-	    if(this._curElement !== null) {
-	      var touchInfo = getTouchInfo(this._curElement.elt, e, 0);
-	      x = touchInfo.x;
-	      y = touchInfo.y;
-	      winX = touchInfo.winX;
-	      winY = touchInfo.winY;
-	
-	      var touches = [];
-	      for(var i = 0; i < e.touches.length; i++){
-	        touches[i] = getTouchInfo(this._curElement.elt, e, i);
-	      }
-	      this._setProperty('touches', touches);
+	p5.prototype._updateTouchCoords = function(e) {
+	  if (this._curElement !== null) {
+	    var touches = [];
+	    for(var i = 0; i < e.touches.length; i++){
+	      touches[i] = getTouchInfo(this._curElement.elt,
+	        this.width, this.height, e, i);
 	    }
-	  }
-	  this._setProperty('touchX', x);
-	  this._setProperty('touchY', y);
-	  this._setProperty('winTouchX', winX);
-	  this._setProperty('winTouchY', winY);
-	  if (!this._hasTouchInteracted) {
-	    // For first draw, make previous and next equal
-	    this._updateTouchCoords();
-	    this._setProperty('_hasTouchInteracted', true);
+	    this._setProperty('touches', touches);
 	  }
 	};
 	
-	p5.prototype._updateTouchCoords = function() {
-	  this._setProperty('ptouchX', this.touchX);
-	  this._setProperty('ptouchY', this.touchY);
-	  this._setProperty('pwinTouchX', this.winTouchX);
-	  this._setProperty('pwinTouchY', this.winTouchY);
-	};
 	
-	function getTouchInfo(canvas, e, i) {
+	function getTouchInfo(canvas, w, h, e, i) {
 	  i = i || 0;
 	  var rect = canvas.getBoundingClientRect();
+	  var sx = canvas.scrollWidth / w;
+	  var sy = canvas.scrollHeight / h;
 	  var touch = e.touches[i] || e.changedTouches[i];
 	  return {
-	    x: touch.clientX - rect.left,
-	    y: touch.clientY - rect.top,
+	    x: (touch.clientX - rect.left) / sx,
+	    y: (touch.clientY - rect.top) / sy,
 	    winX: touch.clientX,
 	    winY: touch.clientY,
 	    id: touch.identifier
@@ -40663,7 +40378,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * <div class="norender">
 	 * <code>
 	 * function touchStarted() {
-	 *   ellipse(touchX, touchY, 5, 5);
+	 *   ellipse(mouseX, mouseY, 5, 5);
 	 *   // prevent default
 	 *   return false;
 	 * }
@@ -40677,9 +40392,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	p5.prototype._ontouchstart = function(e) {
 	  var context = this._isGlobal ? window : this;
 	  var executeDefault;
-	  this._updateNextTouchCoords(e);
+	  this._updateTouchCoords(e);
 	  this._updateNextMouseCoords(e);
-	  this._setProperty('touchIsDown', true);
 	  if(typeof context.touchStarted === 'function') {
 	    executeDefault = context.touchStarted(e);
 	    if(executeDefault === false) {
@@ -40726,7 +40440,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * <div class="norender">
 	 * <code>
 	 * function touchMoved() {
-	 *   ellipse(touchX, touchY, 5, 5);
+	 *   ellipse(mouseX, mouseY, 5, 5);
 	 *   // prevent default
 	 *   return false;
 	 * }
@@ -40741,7 +40455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	p5.prototype._ontouchmove = function(e) {
 	  var context = this._isGlobal ? window : this;
 	  var executeDefault;
-	  this._updateNextTouchCoords(e);
+	  this._updateTouchCoords(e);
 	  this._updateNextMouseCoords(e);
 	  if (typeof context.touchMoved === 'function') {
 	    executeDefault = context.touchMoved(e);
@@ -40789,7 +40503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * <div class="norender">
 	 * <code>
 	 * function touchEnded() {
-	 *   ellipse(touchX, touchY, 5, 5);
+	 *   ellipse(mouseX, mouseY, 5, 5);
 	 *   // prevent default
 	 *   return false;
 	 * }
@@ -40802,7 +40516,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype._ontouchend = function(e) {
-	  this._updateNextTouchCoords(e);
+	  this._updateTouchCoords(e);
 	  this._updateNextMouseCoords(e);
 	  if (this.touches.length === 0) {
 	    this._setProperty('touchIsDown', false);
@@ -41896,28 +41610,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * @method image
 	 * @param  {p5.Image} img    the image to display
-	 * @param  {Number}   [sx=0]   The X coordinate of the top left corner of the
-	 *                             sub-rectangle of the source image to draw into
-	 *                             the destination canvas.
-	 * @param  {Number}   [sy=0]   The Y coordinate of the top left corner of the
-	 *                             sub-rectangle of the source image to draw into
-	 *                             the destination canvas.
-	 * @param {Number} [sWidth=img.width] The width of the sub-rectangle of the
-	 *                                    source image to draw into the destination
-	 *                                    canvas.
-	 * @param {Number} [sHeight=img.height] The height of the sub-rectangle of the
-	 *                                      source image to draw into the
-	 *                                      destination context.
-	 * @param  {Number}   [dx=0]    The X coordinate in the destination canvas at
-	 *                              which to place the top-left corner of the
-	 *                              source image.
-	 * @param  {Number}   [dy=0]    The Y coordinate in the destination canvas at
-	 *                              which to place the top-left corner of the
-	 *                              source image.
-	 * @param  {Number}   [dWidth]  The width to draw the image in the destination
-	 *                              canvas. This allows scaling of the drawn image.
-	 * @param  {Number}   [dHeight] The height to draw the image in the destination
-	 *                              canvas. This allows scaling of the drawn image.
+	 * @param  {Number}   x      the x-coordinate at which to place the top-left
+	 *                           corner of the source image
+	 * @param  {Number}   y      the y-coordinate at which to place the top-left
+	 *                           corner of the source image
+	 * @param  {Number}   width  the width to draw the image
+	 * @param  {Number}   height the height to draw the image
 	 * @example
 	 * <div>
 	 * <code>
@@ -41948,62 +41646,75 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * image of the underside of a white umbrella and grided ceiling above
 	 *
 	 */
+	/**
+	 * @method image
+	 * @param  {p5.Image} img
+	 * @param  {Number}   dx     the -xcoordinate in the destination canvas at
+	 *                           which to place the top-left corner of the
+	 *                           source image
+	 * @param  {Number}   dy     the y-coordinate in the destination canvas at
+	 *                           which to place the top-left corner of the
+	 *                           source image
+	 * @param  {Number}   dWidth the width to draw the image in the destination
+	 *                           canvas
+	 * @param  {Number}   dHeight the height to draw the image in the destination
+	 *                            canvas
+	 * @param  {Number}   sx     the x-coordinate of the top left corner of the
+	 *                           sub-rectangle of the source image to draw into
+	 *                           the destination canvas
+	 * @param  {Number}   sy     the y-coordinate of the top left corner of the
+	 *                           sub-rectangle of the source image to draw into
+	 *                           the destination canvas
+	 * @param {Number}    [sWidth] the width of the sub-rectangle of the
+	 *                           source image to draw into the destination
+	 *                           canvas
+	 * @param {Number}    [sHeight] the height of the sub-rectangle of the
+	 *                            source image to draw into the destination context
+	 */
 	p5.prototype.image =
-	  function(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-	  // Temporarily disabling until options for p5.Graphics are added.
-	  // var args = new Array(arguments.length);
-	  // for (var i = 0; i < args.length; ++i) {
-	  //   args[i] = arguments[i];
-	  // }
-	  // this._validateParameters(
-	  //   'image',
-	  //   args,
-	  //   [
-	  //     ['p5.Image', 'Number', 'Number'],
-	  //     ['p5.Image', 'Number', 'Number', 'Number', 'Number']
-	  //   ]
-	  // );
-	
+	  function(img, dx, dy, dWidth, dHeight, sx, sy, sWidth, sHeight) {
 	  // set defaults per spec: https://goo.gl/3ykfOq
-	  if (arguments.length <= 5) {
-	    dx = sx || 0;
-	    dy = sy || 0;
-	    sx = 0;
-	    sy = 0;
-	    if (img.elt && img.elt.videoWidth && !img.canvas) { // video no canvas
-	      var actualW = img.elt.videoWidth;
-	      var actualH = img.elt.videoHeight;
-	      dWidth = sWidth || img.elt.width;
-	      dHeight = sHeight || img.elt.width*actualH/actualW;
-	      sWidth = actualW;
-	      sHeight = actualH;
-	    } else {
-	      dWidth = sWidth || img.width;
-	      dHeight = sHeight || img.height;
-	      sWidth = img.width;
-	      sHeight = img.height;
-	    }
-	  } else if (arguments.length === 9) {
-	    sx = sx || 0;
-	    sy = sy || 0;
-	    sWidth = _sAssign(sWidth, img.width);
-	    sHeight = _sAssign(sHeight, img.height);
 	
-	    dx = dx || 0;
-	    dy = dy || 0;
-	    dWidth = dWidth || img.width;
-	    dHeight = dHeight || img.height;
-	  } else {
-	    throw 'Wrong number of arguments to image()';
+	  var defW = img.width;
+	  var defH = img.height;
+	
+	  if (img.elt && img.elt.videoWidth && !img.canvas) { // video no canvas
+	    var actualW = img.elt.videoWidth;
+	    var actualH = img.elt.videoHeight;
+	    defW = img.elt.videoWidth;
+	    defH = img.elt.width*actualH/actualW;
 	  }
 	
-	  var vals = canvas.modeAdjust(dx, dy, dWidth, dHeight,
+	  var _dx = dx;
+	  var _dy = dy;
+	  var _dw = dWidth || defW;
+	  var _dh = dHeight || defH;
+	  var _sx = sx || 0;
+	  var _sy = sy || 0;
+	  var _sw = sWidth || defW;
+	  var _sh = sHeight || defH;
+	
+	  _sw = _sAssign(_sw, defW);
+	  _sh = _sAssign(_sh, defH);
+	
+	  var pd = 1;
+	  if (img.elt && img.elt.width) {
+	    pd = img.elt.width / parseInt(img.elt.style.width, 10);
+	  }
+	
+	  _sx *= pd;
+	  _sy *= pd;
+	  _sh *= pd;
+	  _sw *= pd;
+	
+	  var vals = canvas.modeAdjust(_dx, _dy, _dw, _dh,
 	    this._renderer._imageMode);
 	
 	  // tint the image if there is a tint
-	  this._renderer.image(img, sx, sy, sWidth, sHeight, vals.x, vals.y, vals.w,
+	  this._renderer.image(img, _sx, _sy, _sw, _sh, vals.x, vals.y, vals.w,
 	    vals.h);
 	};
+	
 	
 	/**
 	 * Sets the fill value for displaying images. Images can be tinted to
@@ -44404,7 +44115,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var i = 1; i < arguments.length; i++) {
 	      var a = arguments[i];
 	      if (typeof a === 'string') {
-	        if (a === 'GET' || a === 'POST' || a === 'PUT') {
+	        if (a === 'GET' || a === 'POST' || a === 'PUT' || a === 'DELETE') {
 	          method = a;
 	        } else {
 	          type = a;
@@ -47333,9 +47044,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	p5.prototype.dist = function(x1, y1, z1, x2, y2, z2) {
 	  if (arguments.length === 4) {
 	    // In the case of 2d: z1 means x2 and x2 means y2
-	    return Math.sqrt( (z1-x1)*(z1-x1) + (x2-y1)*(x2-y1) );
+	    return hypot(z1-x1, x2-y1);
 	  } else if (arguments.length === 6) {
-	    return Math.sqrt( (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1) );
+	    return hypot(x2-x1, y2-y1, z2-z1);
 	  }
 	};
 	
@@ -47546,13 +47257,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *   var y2 = 70;
 	 *
 	 *   line(0, 0, x1, y1);
-	 *   print(mag(x1, y1));  // Prints "36.05551"
+	 *   print(mag(x1, y1));  // Prints "36.05551275463989"
 	 *   line(0, 0, x2, y1);
-	 *   print(mag(x2, y1));  // Prints "85.44004"
+	 *   print(mag(x2, y1));  // Prints "85.44003745317531"
 	 *   line(0, 0, x1, y2);
-	 *   print(mag(x1, y2));  // Prints "72.8011"
+	 *   print(mag(x1, y2));  // Prints "72.80109889280519"
 	 *   line(0, 0, x2, y2);
-	 *   print(mag(x2, y2));  // Prints "106.30146"
+	 *   print(mag(x2, y2));  // Prints "106.3014581273465"
 	 * }
 	 * </code></div>
 	 *
@@ -47561,7 +47272,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.mag = function(x, y) {
-	  return Math.sqrt(x*x+y*y);
+	  return hypot(x, y);
 	};
 	
 	/**
@@ -47909,6 +47620,48 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.sqrt = Math.sqrt;
+	
+	// Calculate the length of the hypotenuse of a right triangle
+	// This won't under- or overflow in intermediate steps
+	// https://en.wikipedia.org/wiki/Hypot
+	function hypot(x, y, z) {
+	  // Use the native implementation if it's available
+	  if (typeof Math.hypot === 'function') {
+	    return Math.hypot.apply(null, arguments);
+	  }
+	
+	  // Otherwise use the V8 implementation
+	  // https://github.com/v8/v8/blob/8cd3cf297287e581a49e487067f5cbd991b27123/src/js/math.js#L217
+	  var length = arguments.length;
+	  var args = [];
+	  var max = 0;
+	  for (var i = 0; i < length; i++) {
+	    var n = arguments[i];
+	    n = +n;
+	    if (n === Infinity || n === -Infinity) {
+	      return Infinity;
+	    }
+	    n = Math.abs(n);
+	    if (n > max) {
+	      max = n;
+	    }
+	    args[i] = n;
+	  }
+	
+	  if (max === 0) {
+	    max = 1;
+	  }
+	  var sum = 0;
+	  var compensation = 0;
+	  for (var j = 0; j < length; j++) {
+	    var m = args[j] / max;
+	    var summand = m * m - compensation;
+	    var preliminary = sum + summand;
+	    compensation = (preliminary - sum) - summand;
+	    sum = preliminary;
+	  }
+	  return Math.sqrt(sum) * max;
+	}
 	
 	module.exports = p5;
 	
@@ -49331,6 +49084,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var p5 = _dereq_('../core/core');
 	
 	var seeded = false;
+	var previous = false;
+	var y2 = 0;
 	
 	// Linear Congruential Generator
 	// Variant of a Lehman Generator
@@ -49391,6 +49146,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	p5.prototype.randomSeed = function(seed) {
 	  lcg.setSeed(seed);
 	  seeded = true;
+	  previous = false;
 	};
 	
 	/**
@@ -49538,8 +49294,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * 100 horizontal lines from center of canvas. height & side change each render
 	 * black lines radiate from center of canvas. size determined each render
 	 */
-	var y2;
-	var previous = false;
 	p5.prototype.randomGaussian = function(mean, sd)  {
 	  var y1,x1,x2,w;
 	  if (previous) {
@@ -50235,19 +49989,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.text = function(str, x, y, maxWidth, maxHeight) {
-	  var args = new Array(arguments.length);
-	  for (var i = 0; i < args.length; ++i) {
-	    args[i] = arguments[i];
-	  }
-	  this._validateParameters(
-	    'text',
-	    args,
-	    [
-	      ['*', 'Number', 'Number'],
-	      ['*', 'Number', 'Number', 'Number', 'Number']
-	    ]
-	  );
-	
 	  return (!(this._renderer._doFill || this._renderer._doStroke)) ? this :
 	    this._renderer.text.apply(this._renderer, arguments);
 	};
@@ -51759,6 +51500,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * For example, float("1234.56") evaluates to 1234.56, but float("giraffe")
 	 * will return NaN.
 	 *
+	 * When an array of values is passed in, then an array of floats of the same
+	 * length is returned.
+	 *
 	 * @method float
 	 * @param {String}  str float string to parse
 	 * @return {Number}     floating point representation of string
@@ -51774,6 +51518,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.float = function(str) {
+	  if (str instanceof Array) {
+	    return str.map(parseFloat);
+	  }
 	  return parseFloat(str);
 	};
 	
@@ -51796,8 +51543,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * </code></div>
 	 */
 	p5.prototype.int = function(n, radix) {
+	  radix = radix || 10;
 	  if (typeof n === 'string') {
-	    radix = radix || 10;
 	    return parseInt(n, radix);
 	  } else if (typeof n === 'number') {
 	    return n | 0;
@@ -52748,15 +52495,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.camera = function(x, y, z){
-	  var args = new Array(arguments.length);
-	  for (var i = 0; i < args.length; ++i) {
-	    args[i] = arguments[i];
-	  }
-	  this._validateParameters(
-	    'camera',
-	    args,
-	    ['Number', 'Number', 'Number']
-	  );
 	  //what it manipulates is the model view matrix
 	  this._renderer.translate(-x, -y, -z);
 	};
@@ -52777,7 +52515,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * //you will see there's a vanish point
 	 * function setup(){
 	 *   createCanvas(100, 100, WEBGL);
-	 *   perspective(60 / 180 * PI, width/height, 0.1, 100);
+	 *   var fov = 60 / 180 * PI;
+	 *   var cameraZ = (height/2.0) / tan(fov/2.0);
+	 *   perspective(60 / 180 * PI, width/height, cameraZ * 0.1, cameraZ * 10);
 	 * }
 	 * function draw(){
 	 *  background(200);
@@ -52799,15 +52539,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.perspective = function(fovy,aspect,near,far) {
-	  var args = new Array(arguments.length);
-	  for (var i = 0; i < args.length; ++i) {
-	    args[i] = arguments[i];
-	  }
-	  this._validateParameters(
-	    'perspective',
-	    args,
-	    ['Number', 'Number', 'Number', 'Number']
-	  );
 	  this._renderer.uPMatrix = p5.Matrix.identity();
 	  this._renderer.uPMatrix.perspective(fovy,aspect,near,far);
 	  this._renderer._curCamera = 'custom';
@@ -52830,7 +52561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * //there's no vanish point
 	 * function setup(){
 	 *   createCanvas(100, 100, WEBGL);
-	 *   ortho(-width/2, width/2, height/2, -height/2, 0.1, 100);
+	 *   ortho(-width/2, width/2, height/2, -height/2, 0, 500);
 	 * }
 	 * function draw(){
 	 *  background(200);
@@ -52852,19 +52583,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.ortho = function(left,right,bottom,top,near,far) {
-	  var args = new Array(arguments.length);
-	  for (var i = 0; i < args.length; ++i) {
-	    args[i] = arguments[i];
-	  }
-	  this._validateParameters(
-	    'ortho',
-	    args,
-	      ['Number', 'Number', 'Number', 'Number', 'Number', 'Number']
-	  );
-	  left /= this.width;
-	  right /= this.width;
-	  top /= this.height;
-	  bottom /= this.height;
 	  this._renderer.uPMatrix = p5.Matrix.identity();
 	  this._renderer.uPMatrix.ortho(left,right,bottom,top,near,far);
 	  this._renderer._curCamera = 'custom';
@@ -52996,40 +52714,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.directionalLight = function(v1, v2, v3, a, x, y, z) {
-	  // TODO(jgessner): Find an example using this and profile it.
-	  // var args = new Array(arguments.length);
-	  // for (var i = 0; i < args.length; ++i) {
-	  //   args[i] = arguments[i];
-	  // }
-	  // this._validateParameters(
-	  //   'directionalLight',
-	  //   args,
-	  //   [
-	  //     //rgbaxyz
-	  //     ['Number', 'Number', 'Number', 'Number', 'Number', 'Number', 'Number'],
-	  //     //rgbxyz
-	  //     ['Number', 'Number', 'Number', 'Number', 'Number', 'Number'],
-	  //     //caxyz
-	  //     ['Number', 'Number', 'Number', 'Number', 'Number'],
-	  //     //cxyz
-	  //     ['Number', 'Number', 'Number', 'Number'],
-	  //     ['String', 'Number', 'Number', 'Number'],
-	  //     ['Array', 'Number', 'Number', 'Number'],
-	  //     ['Object', 'Number', 'Number', 'Number'],
-	  //     //rgbavector
-	  //     ['Number', 'Number', 'Number', 'Number', 'Object'],
-	  //     //rgbvector
-	  //     ['Number', 'Number', 'Number', 'Object'],
-	  //     //cavector
-	  //     ['Number', 'Number', 'Object'],
-	  //     //cvector
-	  //     ['Number', 'Object'],
-	  //     ['String', 'Object'],
-	  //     ['Array', 'Object'],
-	  //     ['Object', 'Object']
-	  //   ]
-	  // );
-	
 	  var gl = this._renderer.GL;
 	  var shaderProgram = this._renderer._getShader(
 	    'lightVert', 'lightTextureFrag');
@@ -53131,40 +52815,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 	p5.prototype.pointLight = function(v1, v2, v3, a, x, y, z) {
-	  // TODO(jgessner): Find an example using this and profile it.
-	  // var args = new Array(arguments.length);
-	  // for (var i = 0; i < args.length; ++i) {
-	  //   args[i] = arguments[i];
-	  // }
-	  // this._validateParameters(
-	  //   'pointLight',
-	  //   arguments,
-	  //   [
-	  //     //rgbaxyz
-	  //     ['Number', 'Number', 'Number', 'Number', 'Number', 'Number', 'Number'],
-	  //     //rgbxyz
-	  //     ['Number', 'Number', 'Number', 'Number', 'Number', 'Number'],
-	  //     //caxyz
-	  //     ['Number', 'Number', 'Number', 'Number', 'Number'],
-	  //     //cxyz
-	  //     ['Number', 'Number', 'Number', 'Number'],
-	  //     ['String', 'Number', 'Number', 'Number'],
-	  //     ['Array', 'Number', 'Number', 'Number'],
-	  //     ['Object', 'Number', 'Number', 'Number'],
-	  //     //rgbavector
-	  //     ['Number', 'Number', 'Number', 'Number', 'Object'],
-	  //     //rgbvector
-	  //     ['Number', 'Number', 'Number', 'Object'],
-	  //     //cavector
-	  //     ['Number', 'Number', 'Object'],
-	  //     //cvector
-	  //     ['Number', 'Object'],
-	  //     ['String', 'Object'],
-	  //     ['Array', 'Object'],
-	  //     ['Object', 'Object']
-	  //   ]
-	  // );
-	
 	  var gl = this._renderer.GL;
 	  var shaderProgram = this._renderer._getShader(
 	    'lightVert', 'lightTextureFrag');
@@ -55048,7 +54698,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	_dereq_('../core/p5.Renderer');
 	_dereq_('./p5.Matrix');
 	var uMVMatrixStack = [];
-	var RESOLUTION = 1000;
 	
 	//@TODO should implement public method
 	//to override these attributes
@@ -55133,7 +54782,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var _w = this.width;
 	    var _h = this.height;
 	    this.uPMatrix = p5.Matrix.identity();
-	    this.uPMatrix.perspective(60 / 180 * Math.PI, _w / _h, 0.1, 100);
+	    var cameraZ = (this.height / 2) / Math.tan(Math.PI * 30 / 180);
+	    this.uPMatrix.perspective(60 / 180 * Math.PI, _w / _h,
+	                              cameraZ * 0.1, cameraZ * 10);
 	    this._curCamera = 'default';
 	  }
 	};
@@ -55223,9 +54874,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	function(shaderProgram, isImmediateMode) {
 	  var gl = this.GL;
 	  gl.useProgram(shaderProgram);
-	  shaderProgram.uResolution =
-	    gl.getUniformLocation(shaderProgram, 'uResolution');
-	  gl.uniform1f(shaderProgram.uResolution, RESOLUTION);
 	
 	  //projection Matrix uniform
 	  shaderProgram.uPMatrixUniform =
@@ -55463,11 +55111,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @todo implement handle for components or vector as args
 	 */
 	p5.RendererGL.prototype.translate = function(x, y, z) {
-	  //@TODO: figure out how to fit the resolution
-	  x = x / RESOLUTION;
-	  y = -y / RESOLUTION;
-	  z = z / RESOLUTION;
-	  this.uMVMatrix.translate([x,y,z]);
+	  this.uMVMatrix.translate([x,-y,z]);
 	  return this;
 	};
 	
@@ -55738,8 +55382,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  for (var i = 0; i < args.length; ++i) {
 	    args[i] = arguments[i];
 	  }
-	  //@todo validate params here
-	  //
 	  var radius = args[0] || 50;
 	  var detailX = typeof args[1] === 'number' ? args[1] : 24;
 	  var detailY = typeof args[2] === 'number' ? args[2] : 16;
@@ -55973,7 +55615,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	/**
-	 * Draw an ellipsoid with given raduis
+	 * Draw an ellipsoid with given radius
 	 * @method ellipsoid
 	 * @param  {Number} radiusx           xradius of circle
 	 * @param  {Number} radiusy           yradius of circle
@@ -56245,8 +55887,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  for (var i = 0; i < args.length; ++i) {
 	    args[i] = arguments[i];
 	  }
-	  //@todo validate params here
-	  //
 	  var x1 = args[0],
 	    y1 = args[1],
 	    x2 = args[2],
@@ -56337,19 +55977,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	module.exports = {
 	  immediateVert:
-	    "attribute vec3 aPosition;\nattribute vec4 aVertexColor;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform float uResolution;\nuniform float uPointSize;\n\nvarying vec4 vColor;\nvoid main(void) {\n  vec4 positionVec4 = vec4(aPosition / uResolution *vec3(1.0, -1.0, 1.0), 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n  vColor = aVertexColor;\n  gl_PointSize = uPointSize;\n}\n",
+	    "attribute vec3 aPosition;\nattribute vec4 aVertexColor;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform float uResolution;\nuniform float uPointSize;\n\nvarying vec4 vColor;\nvoid main(void) {\n  vec4 positionVec4 = vec4(aPosition * vec3(1.0, -1.0, 1.0), 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n  vColor = aVertexColor;\n  gl_PointSize = uPointSize;\n}\n",
 	  vertexColorVert:
-	    "attribute vec3 aPosition;\nattribute vec4 aVertexColor;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform float uResolution;\n\nvarying vec4 vColor;\n\nvoid main(void) {\n  vec4 positionVec4 = vec4(aPosition / uResolution * vec3(1.0, -1.0, 1.0), 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n  vColor = aVertexColor;\n}\n",
+	    "attribute vec3 aPosition;\nattribute vec4 aVertexColor;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\n\nvarying vec4 vColor;\n\nvoid main(void) {\n  vec4 positionVec4 = vec4(aPosition * vec3(1.0, -1.0, 1.0), 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n  vColor = aVertexColor;\n}\n",
 	  vertexColorFrag:
 	    "precision mediump float;\nvarying vec4 vColor;\nvoid main(void) {\n  gl_FragColor = vColor;\n}",
 	  normalVert:
-	    "attribute vec3 aPosition;\nattribute vec3 aNormal;\nattribute vec2 aTexCoord;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform mat3 uNormalMatrix;\nuniform float uResolution;\n\nvarying vec3 vVertexNormal;\nvarying highp vec2 vVertTexCoord;\n\nvoid main(void) {\n  vec4 positionVec4 = vec4(aPosition / uResolution * vec3(1.0, -1.0, 1.0), 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n  vVertexNormal = vec3( uNormalMatrix * aNormal );\n  vVertTexCoord = aTexCoord;\n}\n",
+	    "attribute vec3 aPosition;\nattribute vec3 aNormal;\nattribute vec2 aTexCoord;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform mat3 uNormalMatrix;\n\nvarying vec3 vVertexNormal;\nvarying highp vec2 vVertTexCoord;\n\nvoid main(void) {\n  vec4 positionVec4 = vec4(aPosition * vec3(1.0, -1.0, 1.0), 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n  vVertexNormal = vec3( uNormalMatrix * aNormal );\n  vVertTexCoord = aTexCoord;\n}\n",
 	  normalFrag:
 	    "precision mediump float;\nvarying vec3 vVertexNormal;\nvoid main(void) {\n  gl_FragColor = vec4(vVertexNormal, 1.0);\n}",
 	  basicFrag:
 	    "precision mediump float;\nvarying vec3 vVertexNormal;\nuniform vec4 uMaterialColor;\nvoid main(void) {\n  gl_FragColor = uMaterialColor;\n}",
 	  lightVert:
-	    "attribute vec3 aPosition;\nattribute vec3 aNormal;\nattribute vec2 aTexCoord;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform mat3 uNormalMatrix;\nuniform float uResolution;\nuniform int uAmbientLightCount;\nuniform int uDirectionalLightCount;\nuniform int uPointLightCount;\n\nuniform vec3 uAmbientColor[8];\nuniform vec3 uLightingDirection[8];\nuniform vec3 uDirectionalColor[8];\nuniform vec3 uPointLightLocation[8];\nuniform vec3 uPointLightColor[8];\nuniform bool uSpecular;\n\nvarying vec3 vVertexNormal;\nvarying vec2 vVertTexCoord;\nvarying vec3 vLightWeighting;\n\nvec3 ambientLightFactor = vec3(0.0, 0.0, 0.0);\nvec3 directionalLightFactor = vec3(0.0, 0.0, 0.0);\nvec3 pointLightFactor = vec3(0.0, 0.0, 0.0);\nvec3 pointLightFactor2 = vec3(0.0, 0.0, 0.0);\n\nvoid main(void){\n\n  vec4 positionVec4 = vec4(aPosition / uResolution, 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n\n  vec3 vertexNormal = vec3( uNormalMatrix * aNormal );\n  vVertexNormal = vertexNormal;\n  vVertTexCoord = aTexCoord;\n\n  vec4 mvPosition = uModelViewMatrix * vec4(aPosition / uResolution, 1.0);\n  vec3 eyeDirection = normalize(-mvPosition.xyz);\n\n  float shininess = 32.0;\n  float specularFactor = 2.0;\n  float diffuseFactor = 0.3;\n\n  for(int i = 0; i < 8; i++){\n    if(uAmbientLightCount == i) break;\n    ambientLightFactor += uAmbientColor[i];\n  }\n\n  for(int j = 0; j < 8; j++){\n    if(uDirectionalLightCount == j) break;\n    vec3 dir = uLightingDirection[j];\n    float directionalLightWeighting = max(dot(vertexNormal, dir), 0.0);\n    directionalLightFactor += uDirectionalColor[j] * directionalLightWeighting;\n  }\n\n  for(int k = 0; k < 8; k++){\n    if(uPointLightCount == k) break;\n    vec3 loc = uPointLightLocation[k];\n    //loc = loc / uResolution;\n    vec3 lightDirection = normalize(loc - mvPosition.xyz);\n\n    float directionalLightWeighting = max(dot(vertexNormal, lightDirection), 0.0);\n    pointLightFactor += uPointLightColor[k] * directionalLightWeighting;\n\n    //factor2 for specular\n    vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);\n    float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), shininess);\n\n    pointLightFactor2 += uPointLightColor[k] * (specularFactor * specularLightWeighting\n      +  directionalLightWeighting * diffuseFactor);\n  }\n\n  if(!uSpecular){\n    vLightWeighting =  ambientLightFactor + directionalLightFactor + pointLightFactor;\n  }else{\n    vLightWeighting = ambientLightFactor + directionalLightFactor + pointLightFactor2;\n  }\n\n}\n",
+	    "attribute vec3 aPosition;\nattribute vec3 aNormal;\nattribute vec2 aTexCoord;\n\nuniform mat4 uModelViewMatrix;\nuniform mat4 uProjectionMatrix;\nuniform mat3 uNormalMatrix;\nuniform int uAmbientLightCount;\nuniform int uDirectionalLightCount;\nuniform int uPointLightCount;\n\nuniform vec3 uAmbientColor[8];\nuniform vec3 uLightingDirection[8];\nuniform vec3 uDirectionalColor[8];\nuniform vec3 uPointLightLocation[8];\nuniform vec3 uPointLightColor[8];\nuniform bool uSpecular;\n\nvarying vec3 vVertexNormal;\nvarying vec2 vVertTexCoord;\nvarying vec3 vLightWeighting;\n\nvec3 ambientLightFactor = vec3(0.0, 0.0, 0.0);\nvec3 directionalLightFactor = vec3(0.0, 0.0, 0.0);\nvec3 pointLightFactor = vec3(0.0, 0.0, 0.0);\nvec3 pointLightFactor2 = vec3(0.0, 0.0, 0.0);\n\nvoid main(void){\n\n  vec4 positionVec4 = vec4(aPosition, 1.0);\n  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;\n\n  vec3 vertexNormal = vec3( uNormalMatrix * aNormal );\n  vVertexNormal = vertexNormal;\n  vVertTexCoord = aTexCoord;\n\n  vec4 mvPosition = uModelViewMatrix * vec4(aPosition, 1.0);\n  vec3 eyeDirection = normalize(-mvPosition.xyz);\n\n  float shininess = 32.0;\n  float specularFactor = 2.0;\n  float diffuseFactor = 0.3;\n\n  for(int i = 0; i < 8; i++){\n    if(uAmbientLightCount == i) break;\n    ambientLightFactor += uAmbientColor[i];\n  }\n\n  for(int j = 0; j < 8; j++){\n    if(uDirectionalLightCount == j) break;\n    vec3 dir = uLightingDirection[j];\n    float directionalLightWeighting = max(dot(vertexNormal, dir), 0.0);\n    directionalLightFactor += uDirectionalColor[j] * directionalLightWeighting;\n  }\n\n  for(int k = 0; k < 8; k++){\n    if(uPointLightCount == k) break;\n    vec3 loc = uPointLightLocation[k];\n    vec3 lightDirection = normalize(loc - mvPosition.xyz);\n\n    float directionalLightWeighting = max(dot(vertexNormal, lightDirection), 0.0);\n    pointLightFactor += uPointLightColor[k] * directionalLightWeighting;\n\n    //factor2 for specular\n    vec3 reflectionDirection = reflect(-lightDirection, vertexNormal);\n    float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), shininess);\n\n    pointLightFactor2 += uPointLightColor[k] * (specularFactor * specularLightWeighting\n      +  directionalLightWeighting * diffuseFactor);\n  }\n\n  if(!uSpecular){\n    vLightWeighting =  ambientLightFactor + directionalLightFactor + pointLightFactor;\n  }else{\n    vLightWeighting = ambientLightFactor + directionalLightFactor + pointLightFactor2;\n  }\n\n}\n",
 	  lightTextureFrag:
 	    "precision mediump float;\n\nuniform vec4 uMaterialColor;\nuniform sampler2D uSampler;\nuniform bool isTexture;\n\nvarying vec3 vLightWeighting;\nvarying highp vec2 vVertTexCoord;\n\nvoid main(void) {\n  if(!isTexture){\n    gl_FragColor = vec4(vec3(uMaterialColor.rgb * vLightWeighting), uMaterialColor.a);\n  }else{\n    vec4 textureColor = texture2D(uSampler, vVertTexCoord);\n    if(vLightWeighting == vec3(0., 0., 0.)){\n      gl_FragColor = textureColor;\n    }else{\n      gl_FragColor = vec4(vec3(textureColor.rgb * vLightWeighting), textureColor.a);\n    }\n  }\n}"
 	};
@@ -56357,7 +55997,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -56367,10 +56007,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var _ = __webpack_require__(2);
-	var pag = __webpack_require__(4);
-	var ppe = __webpack_require__(5);
-	var sss = __webpack_require__(6);
-	var ob = __webpack_require__(8);
+	var pag = __webpack_require__(6);
+	var ppe = __webpack_require__(7);
+	var sss = __webpack_require__(4);
+	var ob = __webpack_require__(5);
 	ob.init(init, initGame);
 	var p = ob.p;
 	var player;

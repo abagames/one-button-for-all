@@ -11,10 +11,11 @@ import * as ui from './ui';
 import * as screen from './screen';
 import * as text from './text';
 import * as debug from './debug';
+import * as util from './util';
+export { Random, ui, screen, text, debug };
 export * from './util';
 export * from './actor';
 export * from './modules/index';
-export { Random, ui, screen, text, debug };
 
 declare const require: any;
 export const p5 = require('p5');
@@ -80,9 +81,9 @@ export function setTitle(_title: string, _titleCont: string = null) {
   titleCont = _titleCont;
   let lc = 0;
   for (let i = 0; i < _title.length; i++) {
-    lc = _title.charCodeAt(i);
+    lc += _title.charCodeAt(i);
   }
-  titleHue = lc * 0.17;
+  titleHue = util.wrap(lc * 0.17, 0, 1);
 }
 
 export function enableDebug(_onSeedChangedFunc = null) {

@@ -53,4 +53,10 @@ export class Vector {
     v.x = ob.p.constrain(v.x, lowX, highX);
     v.y = ob.p.constrain(v.y, lowY, highY);
   }
+
+  static swapXy(v: p5.Vector) {
+    const t = v.x;
+    v.x = v.y;
+    v.y = t;
+  }
 }

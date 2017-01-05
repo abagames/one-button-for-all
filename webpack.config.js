@@ -4,7 +4,8 @@ var ob = glob.sync('./src/ob/**/*.ts');
 module.exports = {
   entry: {
     ob: ob,
-    refrev: ['./src/refrev/index.ts'].concat(ob)
+    refrev: ['./src/refrev/index.ts'].concat(ob),
+    invorb: ['./src/invorb/index.ts'].concat(ob)
   },
   output: {
     path: 'docs',

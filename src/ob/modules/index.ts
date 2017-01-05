@@ -190,6 +190,8 @@ export class AbsorbPos extends Module {
 }
 
 export class HaveGravity extends Module {
+  velocity = 0.01;
+
   constructor(actor: ob.Actor, public mass = 0.1) {
     super(actor);
   }
@@ -200,10 +202,19 @@ export class HaveGravity extends Module {
         return;
       }
       const r = ob.wrap(a.pos.dist(this.actor.pos), 1, 999) * 0.1;
-      const f = (a.getModule('HaveGravity').mass * this.mass) / r / r;
+      const v = (a.getModule('HaveGravity').mass * this.mass) / r / r /
+        this.mass * this.velocity;
       const an = ob.Vector.getAngle(this.actor.pos, a.pos);
-      ob.Vector.addAngle(this.actor.vel, an, f);
+      ob.Vector.addAngle(this.actor.vel, an, v);
     });
+  }
+}
+
+export class LimitInstances {
+  constructor(actor: ob.Actor, count = 1) {
+    if (ob.Actor.get(actor.type).length > count) {
+      actor.remove();
+    }
   }
 }
 
