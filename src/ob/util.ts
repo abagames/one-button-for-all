@@ -21,8 +21,9 @@ export function getDifficulty() {
   return ob.scene === ob.Scene.title ? 1 : ob.ticks * 0.001 + 1;
 }
 
-export function fillStar(c = 64) {
-  _.times(c, () => new ob.Star());
+export function fillStar(c = 64,
+  minSpeedY = 0.5, maxSpeedY = 1.5, minSpeedX = 0, maxSpeedX = 0) {
+  _.times(c, () => new ob.Star(minSpeedY, maxSpeedY, minSpeedX, maxSpeedX));
 }
 
 export function fillPanel() {

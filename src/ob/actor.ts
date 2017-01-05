@@ -316,10 +316,10 @@ export class Item extends Actor {
 export class Star extends Actor {
   color;
 
-  constructor() {
+  constructor(minSpeedY = 0.5, maxSpeedY = 1.5, minSpeedX = 0, maxSpeedX = 0) {
     super();
     this.pos.set(ob.p.random(ob.screen.size.x), ob.p.random(ob.screen.size.y));
-    this.vel.y = ob.p.random(0.5, 1.5);
+    this.vel.set(ob.p.random(minSpeedX, maxSpeedX), ob.p.random(minSpeedY, maxSpeedY));
     this.clearModules();
     new ob.WrapPos(this);
     const colorStrs = ['00', '7f', 'ff'];
