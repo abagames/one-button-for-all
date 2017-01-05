@@ -28,7 +28,7 @@ export class Actor {
   constructor() {
     Actor.add(this);
     this.type = ob.getClassName(this);
-    new ob.RemoveWhenOut(this);
+    new ob.RemoveWhenInAndOut(this);
   }
 
   update() {

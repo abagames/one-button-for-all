@@ -66,6 +66,35 @@ export class RemoveWhenOut extends Module {
   }
 }
 
+export class RemoveWhenInAndOut extends RemoveWhenOut {
+  isIn = false;
+  paddingOuter = 64;
+
+  constructor(actor: ob.Actor, padding = 8,
+    paddingRight: number = null, paddingBottom: number = null,
+    paddingLeft: number = null, paddingTop: number = null) {
+    super(actor, padding, paddingRight, paddingBottom, paddingLeft, paddingTop);
+  }
+
+  update() {
+    if (this.isIn) {
+      return super.update();
+    }
+    if (ob.isIn(this.actor.pos.x, -this.paddingLeft,
+      ob.screen.size.x + this.paddingRight) &&
+      ob.isIn(this.actor.pos.y, -this.paddingTop,
+        ob.screen.size.y + this.paddingBottom)) {
+      this.isIn = true;
+    }
+    if (!ob.isIn(this.actor.pos.x, -this.paddingOuter,
+      ob.screen.size.x + this.paddingOuter) ||
+      !ob.isIn(this.actor.pos.y, -this.paddingOuter,
+        ob.screen.size.y + this.paddingOuter)) {
+      this.actor.remove();
+    }
+  }
+}
+
 export class WrapPos extends Module {
   constructor(actor: ob.Actor, public padding = 8) {
     super(actor);
@@ -85,7 +114,7 @@ export class MoveSin extends Module {
 
   constructor
     (actor: ob.Actor, prop: string,
-    public center = 64, public width = 48,
+    public center = 64, public amplitude = 48,
     public speed = 0.1, startAngle = 0) {
     super(actor);
     this.prop = getPropValue(actor, prop);
@@ -95,7 +124,7 @@ export class MoveSin extends Module {
 
   update() {
     this.angle += this.speed;
-    this.prop.value[this.prop.name] = Math.sin(this.angle) * this.width + this.center;
+    this.prop.value[this.prop.name] = Math.sin(this.angle) * this.amplitude + this.center;
   }
 }
 
@@ -157,6 +186,24 @@ export class AbsorbPos extends Module {
         this.absorbingTicks = 1;
       }
     }
+  }
+}
+
+export class HaveGravity extends Module {
+  constructor(actor: ob.Actor, public mass = 0.1) {
+    super(actor);
+  }
+
+  update() {
+    _.forEach(ob.Actor.getByModuleName('HaveGravity'), a => {
+      if (a === this.actor) {
+        return;
+      }
+      const r = ob.wrap(a.pos.dist(this.actor.pos), 1, 999) * 0.1;
+      const f = (a.getModule('HaveGravity').mass * this.mass) / r / r;
+      const an = ob.Vector.getAngle(this.actor.pos, a.pos);
+      ob.Vector.addAngle(this.actor.vel, an, f);
+    });
   }
 }
 
