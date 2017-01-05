@@ -84,6 +84,11 @@ export function setTitle(_title: string, _titleCont: string = null) {
     lc += _title.charCodeAt(i);
   }
   titleHue = util.wrap(lc * 0.17, 0, 1);
+  let docTitle = title;
+  if (titleCont != null) {
+    docTitle += ' ' + titleCont;
+  }
+  document.title = docTitle;
 }
 
 export function enableDebug(_onSeedChangedFunc = null) {
