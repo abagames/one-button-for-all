@@ -1,5 +1,7 @@
 import * as _ from 'lodash';
 import * as ob from '../index';
+import * as sss from 'sss';
+import * as ppe from 'ppe';
 
 class Module {
   constructor(public actor: ob.Actor) {
@@ -33,6 +35,20 @@ export class DoInterval extends Module {
         i /= ob.getDifficulty();
       }
       this.ticks += i;
+    }
+  }
+}
+
+export class DoCond extends Module {
+  isEnabled = true;
+
+  constructor(actor: ob.Actor, public func: Function, public cond: Function) {
+    super(actor);
+  }
+
+  update() {
+    if (this.isEnabled && this.cond(this)) {
+      this.func(this);
     }
   }
 }
@@ -214,6 +230,45 @@ export class LimitInstances {
   constructor(actor: ob.Actor, count = 1) {
     if (ob.Actor.get(actor.type).length > count) {
       actor.remove();
+    }
+  }
+}
+
+export class JumpOnWall extends Module {
+  isOnWall = false;
+  wasOnWall = false;
+
+  constructor(actor: ob.Actor,
+    public jumpVel = 5, public fallFastVel = 10, public fallSlowVel = 1,
+    public fallRatio = 0.04) {
+    super(actor);
+  }
+
+  update() {
+    const wasOnWall = this.wasOnWall;
+    this.wasOnWall = this.isOnWall;
+    this.isOnWall = false;
+    _.forEach(this.actor.testCollision('wall'), (w: ob.Wall) => {
+      w.adjustPos(this.actor);
+      this.isOnWall = true;
+    });
+    if (this.isOnWall) {
+      if (!wasOnWall) {
+        sss.play(`s_${this.actor.type}_jow`);
+      }
+      if (ob.ui.isJustPressed) {
+        this.actor.vel.y = -this.jumpVel;
+        ppe.emit(`m_${this.actor.type}_jow`,
+          this.actor.pos.x, this.actor.pos.y, 0);
+        ppe.emit(`m_${this.actor.type}_jow`,
+          this.actor.pos.x, this.actor.pos.y, Math.PI);
+        sss.play(`j_${this.actor.type}_jow`);
+      } else {
+        this.actor.vel.y = 1;
+      }
+    } else {
+      const avy = ob.ui.isPressed ? this.fallSlowVel : this.fallFastVel;
+      this.actor.vel.y += (avy - this.actor.vel.y) * this.fallRatio;
     }
   }
 }

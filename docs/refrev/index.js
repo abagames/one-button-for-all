@@ -18868,6 +18868,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        lc += _title.charCodeAt(i);
 	    }
 	    titleHue = util.wrap(lc * 0.17, 0, 1);
+	    var docTitle = title;
+	    if (titleCont != null) {
+	        docTitle += ' ' + titleCont;
+	    }
+	    document.title = docTitle;
 	}
 	exports.setTitle = setTitle;
 	function enableDebug(_onSeedChangedFunc) {
@@ -22356,6 +22361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function Actor() {
 	        this.pos = new p5.Vector();
 	        this.vel = new p5.Vector();
+	        this.prevPos = new p5.Vector();
 	        this.angle = 0;
 	        this.speed = 0;
 	        this.isAlive = true;
@@ -22370,6 +22376,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        new ob.RemoveWhenInAndOut(this);
 	    }
 	    Actor.prototype.update = function () {
+	        this.prevPos.set(this.pos);
 	        this.pos.add(this.vel);
 	        this.pos.x += Math.cos(this.angle) * this.speed;
 	        this.pos.y += Math.sin(this.angle) * this.speed;
@@ -22651,6 +22658,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return Item;
 	}(Actor));
 	exports.Item = Item;
+	var Wall = (function (_super) {
+	    __extends(Wall, _super);
+	    function Wall(pos) {
+	        var _this = _super.call(this) || this;
+	        _this.pixels = pag.generate(['oo', 'ox'], { isMirrorX: true, hue: 0.7 });
+	        _this.type = _this.collisionType = 'wall';
+	        _this.pos.set(pos);
+	        _this.priority = 0.2;
+	        _this.collision.set(8, 8);
+	        return _this;
+	    }
+	    Wall.prototype.adjustPos = function (actor) {
+	        var a = ob.Vector.getAngle(this.pos, actor.prevPos);
+	        if (a > Math.PI * 3 / 4 || a <= -Math.PI * 3 / 4) {
+	            actor.pos.x = this.pos.x - (this.collision.x + actor.collision.x) / 2;
+	        }
+	        else if (a > Math.PI / 4) {
+	            actor.pos.y = this.pos.y + (this.collision.y + actor.collision.y) / 2;
+	        }
+	        else if (a > -Math.PI / 4) {
+	            actor.pos.x = this.pos.x + (this.collision.x + actor.collision.x) / 2;
+	        }
+	        else {
+	            actor.pos.y = this.pos.y - (this.collision.y + actor.collision.y) / 2;
+	        }
+	    };
+	    return Wall;
+	}(Actor));
+	exports.Wall = Wall;
 	var Star = (function (_super) {
 	    __extends(Star, _super);
 	    function Star(minSpeedY, maxSpeedY, minSpeedX, maxSpeedX) {
@@ -23153,6 +23189,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var _ = __webpack_require__(2);
 	var ob = __webpack_require__(5);
+	var sss = __webpack_require__(4);
+	var ppe = __webpack_require__(7);
 	var Module = (function () {
 	    function Module(actor) {
 	        this.actor = actor;
@@ -23195,6 +23233,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return DoInterval;
 	}(Module));
 	exports.DoInterval = DoInterval;
+	var DoCond = (function (_super) {
+	    __extends(DoCond, _super);
+	    function DoCond(actor, func, cond) {
+	        var _this = _super.call(this, actor) || this;
+	        _this.func = func;
+	        _this.cond = cond;
+	        _this.isEnabled = true;
+	        return _this;
+	    }
+	    DoCond.prototype.update = function () {
+	        if (this.isEnabled && this.cond(this)) {
+	            this.func(this);
+	        }
+	    };
+	    return DoCond;
+	}(Module));
+	exports.DoCond = DoCond;
 	var RemoveWhenOut = (function (_super) {
 	    __extends(RemoveWhenOut, _super);
 	    function RemoveWhenOut(actor, padding, paddingRight, paddingBottom, paddingLeft, paddingTop) {
@@ -23407,6 +23462,53 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return LimitInstances;
 	}());
 	exports.LimitInstances = LimitInstances;
+	var JumpOnWall = (function (_super) {
+	    __extends(JumpOnWall, _super);
+	    function JumpOnWall(actor, jumpVel, fallFastVel, fallSlowVel, fallRatio) {
+	        if (jumpVel === void 0) { jumpVel = 5; }
+	        if (fallFastVel === void 0) { fallFastVel = 10; }
+	        if (fallSlowVel === void 0) { fallSlowVel = 1; }
+	        if (fallRatio === void 0) { fallRatio = 0.04; }
+	        var _this = _super.call(this, actor) || this;
+	        _this.jumpVel = jumpVel;
+	        _this.fallFastVel = fallFastVel;
+	        _this.fallSlowVel = fallSlowVel;
+	        _this.fallRatio = fallRatio;
+	        _this.isOnWall = false;
+	        _this.wasOnWall = false;
+	        return _this;
+	    }
+	    JumpOnWall.prototype.update = function () {
+	        var _this = this;
+	        var wasOnWall = this.wasOnWall;
+	        this.wasOnWall = this.isOnWall;
+	        this.isOnWall = false;
+	        _.forEach(this.actor.testCollision('wall'), function (w) {
+	            w.adjustPos(_this.actor);
+	            _this.isOnWall = true;
+	        });
+	        if (this.isOnWall) {
+	            if (!wasOnWall) {
+	                sss.play("s_" + this.actor.type + "_jow");
+	            }
+	            if (ob.ui.isJustPressed) {
+	                this.actor.vel.y = -this.jumpVel;
+	                ppe.emit("m_" + this.actor.type + "_jow", this.actor.pos.x, this.actor.pos.y, 0);
+	                ppe.emit("m_" + this.actor.type + "_jow", this.actor.pos.x, this.actor.pos.y, Math.PI);
+	                sss.play("j_" + this.actor.type + "_jow");
+	            }
+	            else {
+	                this.actor.vel.y = 1;
+	            }
+	        }
+	        else {
+	            var avy = ob.ui.isPressed ? this.fallSlowVel : this.fallFastVel;
+	            this.actor.vel.y += (avy - this.actor.vel.y) * this.fallRatio;
+	        }
+	    };
+	    return JumpOnWall;
+	}(Module));
+	exports.JumpOnWall = JumpOnWall;
 	var DrawText = (function (_super) {
 	    __extends(DrawText, _super);
 	    function DrawText(actor, text) {

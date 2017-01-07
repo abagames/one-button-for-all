@@ -11,6 +11,7 @@ const rotationNum = 16;
 export class Actor {
   pos: p5.Vector = new p5.Vector();
   vel: p5.Vector = new p5.Vector();
+  prevPos: p5.Vector = new p5.Vector();
   angle = 0;
   speed = 0;
   isAlive = true;
@@ -32,6 +33,7 @@ export class Actor {
   }
 
   update() {
+    this.prevPos.set(this.pos);
     this.pos.add(this.vel);
     this.pos.x += Math.cos(this.angle) * this.speed;
     this.pos.y += Math.sin(this.angle) * this.speed;
@@ -310,6 +312,30 @@ export class Item extends Actor {
   destroy() {
     ob.addScore(1, this.pos);
     super.destroy();
+  }
+}
+
+export class Wall extends Actor {
+  constructor(pos: p5.Vector) {
+    super();
+    this.pixels = pag.generate(['oo', 'ox'], { isMirrorX: true, hue: 0.7 });
+    this.type = this.collisionType = 'wall';
+    this.pos.set(pos);
+    this.priority = 0.2;
+    this.collision.set(8, 8);
+  }
+
+  adjustPos(actor) {
+    const a = ob.Vector.getAngle(this.pos, actor.prevPos);
+    if (a > Math.PI * 3 / 4 || a <= -Math.PI * 3 / 4) {
+      actor.pos.x = this.pos.x - (this.collision.x + actor.collision.x) / 2;
+    } else if (a > Math.PI / 4) {
+      actor.pos.y = this.pos.y + (this.collision.y + actor.collision.y) / 2;
+    } else if (a > -Math.PI / 4) {
+      actor.pos.x = this.pos.x + (this.collision.x + actor.collision.x) / 2;
+    } else {
+      actor.pos.y = this.pos.y - (this.collision.y + actor.collision.y) / 2;
+    }
   }
 }
 
