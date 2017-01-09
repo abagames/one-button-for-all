@@ -316,26 +316,38 @@ export class Item extends Actor {
 }
 
 export class Wall extends Actor {
-  constructor(pos: p5.Vector) {
+  constructor(pos: p5.Vector, width = 8, height = 8) {
     super();
-    this.pixels = pag.generate(['oo', 'ox'], { isMirrorX: true, hue: 0.7 });
+    const pw = Math.round(width / 4);
+    const ph = Math.round(height / 4);
+    const pt = [_.times(pw, () => 'o').join('')].concat(
+      _.times(ph - 1, () => ['o'].concat(_.times(pw - 1, () => 'x')).join(''))
+    );
+    this.pixels = pag.generate(pt, { isMirrorX: true, hue: 0.7 });
     this.type = this.collisionType = 'wall';
     this.pos.set(pos);
     this.priority = 0.2;
-    this.collision.set(8, 8);
+    this.collision.set(width, height);
   }
 
   adjustPos(actor) {
+    const wa = Math.atan2(this.collision.y, this.collision.x);
     const a = ob.Vector.getAngle(this.pos, actor.prevPos);
-    if (a > Math.PI * 3 / 4 || a <= -Math.PI * 3 / 4) {
+    let angle: number;
+    if (a > Math.PI * 2 - wa || a <= -Math.PI * 2 + wa) {
       actor.pos.x = this.pos.x - (this.collision.x + actor.collision.x) / 2;
-    } else if (a > Math.PI / 4) {
+      angle = 2;
+    } else if (a > wa) {
       actor.pos.y = this.pos.y + (this.collision.y + actor.collision.y) / 2;
-    } else if (a > -Math.PI / 4) {
+      angle = 1;
+    } else if (a > -wa) {
       actor.pos.x = this.pos.x + (this.collision.x + actor.collision.x) / 2;
+      angle = 0;
     } else {
       actor.pos.y = this.pos.y - (this.collision.y + actor.collision.y) / 2;
+      angle = 3;
     }
+    return angle;
   }
 }
 
