@@ -248,11 +248,16 @@ export class JumpOnWall extends Module {
     const wasOnWall = this.wasOnWall;
     this.wasOnWall = this.isOnWall;
     this.isOnWall = false;
+    let collisionInfo: any = { dist: 999 };
     _.forEach(this.actor.testCollision('wall'), (w: ob.Wall) => {
-      w.adjustPos(this.actor);
+      const ci = w.getCollisionInfo(this.actor);
+      if (ci.dist < collisionInfo.dist) {
+        collisionInfo = ci;
+      }
       this.isOnWall = true;
     });
     if (this.isOnWall) {
+      collisionInfo.wall.adjustPos(this.actor, collisionInfo.angle);
       if (!wasOnWall) {
         sss.play(`s_${this.actor.type}_jow`);
       }
@@ -270,6 +275,33 @@ export class JumpOnWall extends Module {
       const avy = ob.ui.isPressed ? this.fallSlowVel : this.fallFastVel;
       this.actor.vel.y += (avy - this.actor.vel.y) * this.fallRatio;
     }
+  }
+}
+
+export class ReflectByWall extends Module {
+  constructor(actor: ob.Actor) {
+    super(actor);
+  }
+
+  update() {
+    let collisionInfo: any = { dist: 999 };
+    _.forEach(this.actor.testCollision('wall'), (w: ob.Wall) => {
+      const ci = w.getCollisionInfo(this.actor);
+      if (ci.dist < collisionInfo.dist) {
+        collisionInfo = ci;
+      }
+    });
+    if (collisionInfo.wall == null) {
+      return;
+    }
+    collisionInfo.wall.adjustPos(this.actor, collisionInfo.angle);
+    if (collisionInfo.angle === 0 || collisionInfo.angle === 2) {
+      this.actor.vel.x *= -1;
+    }
+    if (collisionInfo.angle === 1 || collisionInfo.angle === 3) {
+      this.actor.vel.y *= -1;
+    }
+    collisionInfo.wall.destroy();
   }
 }
 

@@ -316,39 +316,55 @@ export class Item extends Actor {
 }
 
 export class Wall extends Actor {
-  constructor(pos: p5.Vector, width = 8, height = 8) {
+  constructor(pos: p5.Vector, width = 8, height = 8, hue = 0.7, seed: number = null) {
     super();
     const pw = Math.round(width / 4);
     const ph = Math.round(height / 4);
     const pt = [_.times(pw, () => 'o').join('')].concat(
       _.times(ph - 1, () => ['o'].concat(_.times(pw - 1, () => 'x')).join(''))
     );
-    this.pixels = pag.generate(pt, { isMirrorX: true, hue: 0.7 });
+    this.pixels = pag.generate(pt, { isMirrorX: true, hue, seed });
     this.type = this.collisionType = 'wall';
     this.pos.set(pos);
     this.priority = 0.2;
     this.collision.set(width, height);
   }
 
-  adjustPos(actor) {
+  getCollisionInfo(actor) {
+    let angle: number;
     const wa = Math.atan2(this.collision.y, this.collision.x);
     const a = ob.Vector.getAngle(this.pos, actor.prevPos);
-    let angle: number;
-    if (a > Math.PI * 2 - wa || a <= -Math.PI * 2 + wa) {
-      actor.pos.x = this.pos.x - (this.collision.x + actor.collision.x) / 2;
+    if (a > Math.PI - wa || a <= -Math.PI + wa) {
       angle = 2;
     } else if (a > wa) {
-      actor.pos.y = this.pos.y + (this.collision.y + actor.collision.y) / 2;
       angle = 1;
     } else if (a > -wa) {
-      actor.pos.x = this.pos.x + (this.collision.x + actor.collision.x) / 2;
       angle = 0;
     } else {
-      actor.pos.y = this.pos.y - (this.collision.y + actor.collision.y) / 2;
       angle = 3;
+    }
+    return { wall: this, angle, dist: this.pos.dist(actor.prevPos) };
+  }
+
+  adjustPos(actor, angle: number) {
+    switch (angle) {
+      case 0:
+        actor.pos.x = this.pos.x + (this.collision.x + actor.collision.x) / 2;
+        break;
+      case 1:
+        actor.pos.y = this.pos.y + (this.collision.y + actor.collision.y) / 2;
+        break;
+      case 2:
+        actor.pos.x = this.pos.x - (this.collision.x + actor.collision.x) / 2;
+        break;
+      case 3:
+        actor.pos.y = this.pos.y - (this.collision.y + actor.collision.y) / 2;
+        break;
     }
     return angle;
   }
+
+  destroy() { }
 }
 
 export class Star extends Actor {
@@ -382,7 +398,6 @@ export class Panel extends Actor {
     this.pixels = pag.generate(['ooo', 'oxx', 'oxx'], pagOptions);
     this.pos.set(x, y);
     new ob.WrapPos(this);
-    this.vel.y = 1;
     this.priority = -1;
   }
 }

@@ -119,7 +119,7 @@ export function setSeeds(seed: number) {
 }
 
 export function endGame() {
-  if (scene === Scene.gameover) {
+  if (scene === Scene.gameover || scene == Scene.title) {
     return;
   }
   let isReplay = scene === Scene.replay;
@@ -153,6 +153,10 @@ export function addScore(v: number = 1, pos: p5.Vector = null) {
 
 export function addScoreMultiplier(v: number = 1) {
   scoreMultiplier += v;
+}
+
+export function setScoreMultiplier(v: number = 1) {
+  scoreMultiplier = v;
 }
 
 export function clearModules() {

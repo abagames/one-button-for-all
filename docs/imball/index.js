@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define([], factory);
 	else if(typeof exports === 'object')
-		exports["refrev"] = factory();
+		exports["imball"] = factory();
 	else
-		root["refrev"] = factory();
+		root["imball"] = factory();
 })(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -54,7 +54,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(20);
+	__webpack_require__(1);
 	__webpack_require__(10);
 	__webpack_require__(15);
 	__webpack_require__(6);
@@ -67,7 +67,152 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 1 */,
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var _ = __webpack_require__(2);
+	var pag = __webpack_require__(4);
+	var sss = __webpack_require__(5);
+	var ob = __webpack_require__(6);
+	ob.init(init, initGame, update);
+	var p = ob.p;
+	var blockSpeed = 0;
+	var blockAddingDist = 0;
+	function init() {
+	    ob.setTitle('IMBALL');
+	    ob.setSeeds(1959778);
+	}
+	function initGame() {
+	    ob.fillPanel();
+	    _.times(14, function (i) {
+	        new ob.Wall(p.createVector(i * 8 + 4 + 9, 4));
+	    });
+	    _.times(16, function (i) {
+	        new ob.Wall(p.createVector(4, i * 8 + 4));
+	        new ob.Wall(p.createVector(124, i * 8 + 4));
+	    });
+	    if (ob.scene !== ob.Scene.title) {
+	        new Ball();
+	        new Racket();
+	    }
+	    blockSpeed = 0;
+	    blockAddingDist = 0;
+	    new ob.DoCond(null, function () {
+	        new Block();
+	        blockAddingDist += 10;
+	    }, function () { return blockAddingDist <= 0; });
+	}
+	function update() {
+	    var d = _.reduce(ob.Actor.get('block'), function (v, b) { return v < b.pos.y ? b.pos.y : v; }, 0);
+	    blockSpeed = d > 50 ? (1 + ob.getDifficulty()) * 0.03 : (60 - d) * 0.01;
+	    blockAddingDist -= blockSpeed;
+	}
+	var Ball = (function (_super) {
+	    __extends(Ball, _super);
+	    function Ball() {
+	        var _this = _super.call(this) || this;
+	        _this.isPressing = false;
+	        _this.clearModules();
+	        _this.pixels = pag.generate([' o', 'ox'], { isMirrorX: true, hue: 0.2 });
+	        _this.pos.set(64, 64);
+	        var angle = ob.random.get(-p.HALF_PI / 4 * 3, -p.HALF_PI / 2);
+	        ob.Vector.addAngle(_this.vel, angle, 0.33);
+	        new ob.ReflectByWall(_this);
+	        return _this;
+	    }
+	    Ball.prototype.update = function () {
+	        var _this = this;
+	        if (this.isPressing !== ob.ui.isPressed) {
+	            this.vel.mult(ob.ui.isPressed ? 4 : 0.25);
+	            this.isPressing = ob.ui.isPressed;
+	        }
+	        if (ob.ui.isJustPressed) {
+	            this.vel.x *= -1;
+	        }
+	        _.forEach(this.testCollision('racket'), function (r) {
+	            r.adjustPos(_this, 3);
+	            var ox = _this.pos.x - r.pos.x;
+	            if (Math.abs(ox) < 8) {
+	                _this.vel.y *= -1;
+	            }
+	            else {
+	                var speed = _this.vel.mag();
+	                var angle = ox > 0 ?
+	                    -p.HALF_PI / 8 * 7 + (ox - 8) / 8 * p.HALF_PI / 2 :
+	                    -p.HALF_PI / 8 * 9 - (-ox - 8) / 8 * p.HALF_PI / 2;
+	                _this.vel.set(0, 0);
+	                ob.Vector.addAngle(_this.vel, angle, speed);
+	            }
+	            sss.play('s_ra');
+	            ob.setScoreMultiplier();
+	        });
+	        if (this.pos.y > 128) {
+	            this.emitParticles('e_bl');
+	            sss.play('u_bl');
+	            this.remove();
+	            ob.endGame();
+	        }
+	        this.vel.mult(1.0003);
+	        _super.prototype.update.call(this);
+	    };
+	    return Ball;
+	}(ob.Actor));
+	var Racket = (function (_super) {
+	    __extends(Racket, _super);
+	    function Racket() {
+	        var _this = _super.call(this, p.createVector(64, 120), 32, 8, 0.3, 11) || this;
+	        _this.collisionType = 'racket';
+	        _this.vel.set(1, 0);
+	        return _this;
+	    }
+	    Racket.prototype.update = function () {
+	        if (this.pos.x <= 24) {
+	            this.pos.x = 25;
+	            this.vel.x *= -1;
+	        }
+	        if (this.pos.x >= 128 - 24) {
+	            this.pos.x = 128 - 25;
+	            this.vel.x *= -1;
+	        }
+	        if (this.testCollision('wall').length > 0) {
+	            this.emitParticles('e_rk');
+	            sss.play('u_bl');
+	            this.remove();
+	            ob.endGame();
+	        }
+	        _super.prototype.update.call(this);
+	    };
+	    return Racket;
+	}(ob.Wall));
+	var Block = (function (_super) {
+	    __extends(Block, _super);
+	    function Block() {
+	        var _this = _super.call(this, p.createVector(ob.random.get(16, 112), 0), 16, 8, 0.5, 22) || this;
+	        _this.type = 'block';
+	        return _this;
+	    }
+	    Block.prototype.update = function () {
+	        this.pos.y += blockSpeed;
+	        _super.prototype.update.call(this);
+	    };
+	    Block.prototype.destroy = function () {
+	        this.emitParticles('s_bl');
+	        sss.play('s_bl');
+	        ob.addScore(1, this.pos);
+	        ob.addScoreMultiplier();
+	        this.remove();
+	    };
+	    return Block;
+	}(ob.Wall));
+
+
+/***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -56163,326 +56308,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	},{}]},{},[28])(28)
 	});
-
-/***/ },
-/* 19 */,
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	var _ = __webpack_require__(2);
-	var pag = __webpack_require__(4);
-	var ppe = __webpack_require__(7);
-	var sss = __webpack_require__(5);
-	var ob = __webpack_require__(6);
-	ob.init(init, initGame);
-	var p = ob.p;
-	var player;
-	function init() {
-	    ob.setTitle('REFREV');
-	    ob.setSeeds(8761924);
-	}
-	function initGame() {
-	    ob.fillStar();
-	    player = new Player();
-	    if (ob.scene === ob.Scene.title) {
-	        player.remove();
-	    }
-	    enemyMove = new EnemyMove();
-	    bulletPattern = new BulletPattern();
-	    new ob.DoInterval(null, function () {
-	        enemyMove = new EnemyMove();
-	        bulletPattern = new BulletPattern();
-	    }, 60 * 5);
-	    new ob.DoInterval(null, function () {
-	        new Enemy();
-	    }, 60, false, true);
-	}
-	var Player = (function (_super) {
-	    __extends(Player, _super);
-	    function Player() {
-	        var _this = _super.call(this) || this;
-	        _this.weaponType = 0;
-	        _this.weaponLevel = 1;
-	        _this.mr = new ob.MoveRoundTrip(_this, 'pos.x');
-	        _this.pos.y = 110;
-	        _this.angle = -p.HALF_PI;
-	        return _this;
-	    }
-	    Player.prototype.update = function () {
-	        this.mr.speed = ob.ui.isPressed ? 3 : 1;
-	        if (ob.ui.isJustPressed) {
-	            switch (this.weaponType) {
-	                case 0:
-	                    if (ob.Actor.get('napalm').length < 3) {
-	                        new Napalm(this, this.weaponLevel);
-	                    }
-	                    break;
-	                case 1:
-	                    if (ob.Actor.get('laser').length < 1) {
-	                        new Laser(this.weaponLevel);
-	                    }
-	                    break;
-	                case 2:
-	                    if (ob.Actor.get('wave').length < 2) {
-	                        new Wave(this, this.weaponLevel);
-	                    }
-	                    break;
-	            }
-	        }
-	        _super.prototype.update.call(this);
-	    };
-	    Player.prototype.changeWeapon = function (type) {
-	        this.weaponType = type;
-	        if (this.weaponLevel < 10) {
-	            this.weaponLevel++;
-	        }
-	        var name = ['NAPALM', 'LASER', 'WAVE'];
-	        var nt = new ob.Text(name[type], 60);
-	        nt.pos.set(this.pos.x, this.pos.y - 4);
-	        var lt = new ob.Text("LV" + this.weaponLevel, 60);
-	        lt.pos.set(this.pos.x, this.pos.y + 4);
-	    };
-	    return Player;
-	}(ob.Player));
-	var Napalm = (function (_super) {
-	    __extends(Napalm, _super);
-	    function Napalm(actor, level) {
-	        var _this = _super.call(this, actor) || this;
-	        _this.level = level;
-	        _this.type = 'napalm';
-	        return _this;
-	    }
-	    Napalm.prototype.destroy = function () {
-	        new Explosion(this, this.level);
-	        _super.prototype.destroy.call(this);
-	    };
-	    return Napalm;
-	}(ob.Shot));
-	var Explosion = (function (_super) {
-	    __extends(Explosion, _super);
-	    function Explosion(actor, level) {
-	        var _this = _super.call(this) || this;
-	        _this.level = level;
-	        _this.radius = 0;
-	        _this.colors = ['#7f7', '#070'];
-	        _this.pos.set(actor.pos);
-	        _this.collisionType = 'shot';
-	        _this.priority = 0.3;
-	        sss.play('e_ex');
-	        return _this;
-	    }
-	    Explosion.prototype.update = function () {
-	        this.radius += this.ticks < 30 ? 1 + this.level * 0.1 : -1 - this.level * 0.1;
-	        this.collision.set(this.radius, this.radius);
-	        p.fill(this.colors[ob.random.getInt(2)]);
-	        p.ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
-	        if (this.ticks >= 60) {
-	            this.remove();
-	        }
-	        _super.prototype.update.call(this);
-	    };
-	    Explosion.prototype.destroy = function () { };
-	    return Explosion;
-	}(ob.Actor));
-	var Laser = (function (_super) {
-	    __extends(Laser, _super);
-	    function Laser(level) {
-	        var _this = _super.call(this) || this;
-	        _this.level = level;
-	        _this.collisionType = 'shot';
-	        _this.type = 'laser';
-	        _this.priority = 0.3;
-	        sss.play('l_ls');
-	        sss.play('s_ls');
-	        _this.pos.y = player.pos.y / 2;
-	        return _this;
-	    }
-	    Laser.prototype.update = function () {
-	        var _this = this;
-	        this.pos.x = player.pos.x;
-	        var w = (1 - this.ticks / 30) * (15 + this.level * 1.8);
-	        if (this.ticks < 11) {
-	            p.fill('#7f7');
-	            this.collision.set(w, this.pos.y * 2);
-	        }
-	        else {
-	            if (this.ticks === 11) {
-	                _.times(16, function (i) {
-	                    ppe.emit('m_ls', _this.pos.x, player.pos.y / 16 * i, -p.HALF_PI, { hue: 0.4, countScale: 0.5 });
-	                });
-	            }
-	            p.fill('#070');
-	            this.collision.set(0, 0);
-	        }
-	        p.rect(this.pos.x - w / 2, 0, w, player.pos.y);
-	        if (this.ticks >= 30) {
-	            this.remove();
-	        }
-	        _super.prototype.update.call(this);
-	    };
-	    Laser.prototype.destroy = function () { };
-	    return Laser;
-	}(ob.Actor));
-	var Wave = (function (_super) {
-	    __extends(Wave, _super);
-	    function Wave(actor, level) {
-	        var _this = _super.call(this, actor, 3) || this;
-	        _this.level = level;
-	        _this.colors = ['#7f7', '#070'];
-	        _this.type = 'wave';
-	        _this.pixels = null;
-	        _this.width = 12 + level * 1.5;
-	        _this.collision.set(_this.width, 4);
-	        return _this;
-	    }
-	    Wave.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        p.fill(this.colors[ob.random.getInt(2)]);
-	        p.rect(this.pos.x - this.width / 2, this.pos.y - 2, this.width, 4);
-	    };
-	    Wave.prototype.destroy = function () { };
-	    return Wave;
-	}(ob.Shot));
-	var enemyMove;
-	var bulletPattern;
-	var Enemy = (function (_super) {
-	    __extends(Enemy, _super);
-	    function Enemy() {
-	        var _this = _super.call(this) || this;
-	        _this.pos.x = ob.random.get(16, 128 - 16);
-	        if (enemyMove.isYSin) {
-	            new ob.MoveSin(_this, 'pos.y', 0, 64, ob.random.get(0.015, 0.03));
-	        }
-	        else {
-	            _this.vel.y = ob.random.get(1, ob.getDifficulty());
-	        }
-	        if (enemyMove.isXSin) {
-	            _this.vel.x = ob.random.get(ob.getDifficulty() - 1) * ob.random.getPm() * 0.5;
-	        }
-	        else {
-	            var w = ob.random.get(ob.getDifficulty() - 1) * 16;
-	            new ob.MoveSin(_this, 'pos.x', ob.random.get(16 + w, 128 - 16 - w), w, ob.random.get(0.03, 0.05));
-	        }
-	        _this.angle = p.HALF_PI;
-	        _this.bulletPattern = bulletPattern;
-	        new ob.DoInterval(_this, function (di) {
-	            if (_this.pos.y < 50) {
-	                _this.bulletPattern.fire(_this);
-	            }
-	        }, 60, true, true);
-	        return _this;
-	    }
-	    Enemy.prototype.destroy = function () {
-	        if (ob.random.get() < 0.12) {
-	            new WeaponItem(this.pos);
-	        }
-	        _super.prototype.destroy.call(this);
-	    };
-	    return Enemy;
-	}(ob.Enemy));
-	var EnemyMove = (function () {
-	    function EnemyMove() {
-	        this.isYSin = ob.random.get() < 1 / ob.getDifficulty();
-	        this.isXSin = ob.random.get() > 1 / ob.getDifficulty();
-	    }
-	    return EnemyMove;
-	}());
-	var BulletPattern = (function () {
-	    function BulletPattern() {
-	        this.way = ob.random.getInt(1, ob.getDifficulty());
-	        this.angle = ob.random.get(ob.getDifficulty() * p.HALF_PI * 0.2);
-	        this.whip = ob.random.getInt(1, ob.getDifficulty() * 2);
-	        this.speed = ob.random.get(ob.getDifficulty() * 0.1);
-	    }
-	    BulletPattern.prototype.fire = function (actor) {
-	        var _this = this;
-	        var a = ob.Vector.getAngle(actor.pos, player.pos);
-	        var va = 0;
-	        if (this.way > 1) {
-	            a += this.angle;
-	            va = this.angle * 2 / (this.way - 1);
-	        }
-	        _.times(this.way, function (i) {
-	            var s = 1;
-	            var vs = 0;
-	            if (_this.whip > 1) {
-	                s += _this.speed;
-	                vs = _this.speed * 2 / (_this.whip - 1);
-	            }
-	            _.times(_this.whip, function () {
-	                new Bullet(actor, s * 2, a);
-	                s -= vs;
-	            });
-	            a -= va;
-	        });
-	    };
-	    return BulletPattern;
-	}());
-	var Bullet = (function (_super) {
-	    __extends(Bullet, _super);
-	    function Bullet(enemy, speed, angle) {
-	        var _this = _super.call(this, enemy, speed, angle) || this;
-	        _this.collision.set(4, 4);
-	        return _this;
-	    }
-	    Bullet.prototype.update = function () {
-	        _super.prototype.update.call(this);
-	        var ss = this.testCollision('shot');
-	        if (ss.length > 0) {
-	            this.emitParticles('e_bl', { sizeScale: 0.5 });
-	            new Bonus(this.pos);
-	            this.remove();
-	            _.forEach(ss, function (s) {
-	                if (s.type === 'napalm') {
-	                    s.destroy();
-	                }
-	            });
-	        }
-	    };
-	    return Bullet;
-	}(ob.Bullet));
-	var Bonus = (function (_super) {
-	    __extends(Bonus, _super);
-	    function Bonus(pos) {
-	        var _this = _super.call(this, pos, p.createVector(0, -1), p.createVector(0, 0.02)) || this;
-	        _this.clearModules();
-	        new ob.RemoveWhenOut(_this, 8, null, null, null, 9999);
-	        new ob.AbsorbPos(_this);
-	        return _this;
-	    }
-	    Bonus.prototype.destroy = function () {
-	        ob.addScoreMultiplier();
-	        this.remove();
-	    };
-	    return Bonus;
-	}(ob.Item));
-	var WeaponItem = (function (_super) {
-	    __extends(WeaponItem, _super);
-	    function WeaponItem(pos) {
-	        var _this = _super.call(this, pos, p.createVector(0, -1), p.createVector(0, 0.02)) || this;
-	        _this.pixels = pag.generate(['oo', 'ox'], { isMirrorX: true, hue: 0.4, value: 0.5 });
-	        _this.clearModules();
-	        new ob.RemoveWhenOut(_this, 8, null, null, null, 9999);
-	        new ob.AbsorbPos(_this);
-	        _this.weaponType = ob.random.getInt(3);
-	        var texts = ['N', 'L', 'W'];
-	        new ob.DrawText(_this, texts[_this.weaponType]);
-	        _this.priority = 0.7;
-	        return _this;
-	    }
-	    WeaponItem.prototype.destroy = function () {
-	        player.changeWeapon(this.weaponType);
-	        this.remove();
-	    };
-	    return WeaponItem;
-	}(ob.Item));
-
 
 /***/ }
 /******/ ])
